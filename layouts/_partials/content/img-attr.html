@@ -6,6 +6,6 @@
   {{- $dims := split $resolution "x" -}}
   {{- $width := index $dims 0 -}}
   {{- $height := index $dims 1 -}}
-  {{- $attrs = printf `width="%s" height="%s"` $width $height -}}
+  {{- $attrs = printf `width="%spx" height="%spx"` $width $height -}}
 {{- end -}}
 {{- return $attrs -}}

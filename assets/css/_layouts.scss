@@ -97,7 +97,6 @@ nav ul {
   // Mobile: fixed layout for overlay
   @media screen and (max-width: breakpoint(menu)) {
     display: block;
-    max-width: 100%;
     padding: 0 space(16);
   }
 
@@ -1209,10 +1208,6 @@ body[dir="rtl"] .site-menu {
 
   // Halve ToC margin right on screens smaller than wide breakpoint
   @media screen and (max-width: breakpoint(wide)) {
-    .main-wrap {
-      max-width: $body-max-width;
-    }
-
     .site-menu {
       margin-right: ($toc-margin-right / 2);
     }
@@ -1222,12 +1217,15 @@ body[dir="rtl"] .site-menu {
     }
   }
 
+  // Reduce body max-width between ToC breakpoint and wide breakpoint
+  @media (min-width: breakpoint(toc)) and (max-width: breakpoint(wide)) {
+    .main-wrap {
+      max-width: $body-max-width;
+    }
+  }
+
   // Restore content width when side ToC disappears
   @media screen and (max-width: breakpoint(toc)) {
-    .main-wrap {
-      max-width: $body-wide-width;
-    }
-
     .site-toc {
       margin-right: 0;
     }

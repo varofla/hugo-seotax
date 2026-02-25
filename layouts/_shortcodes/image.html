@@ -13,7 +13,7 @@
 {{- $size := slice -}}
 {{- $width := .Get "width" | default "" -}}
 {{- with .Get "min-width" -}}{{- $size = $size | append (print "min-width: " .) -}}{{- end -}}
-{{- with .Get "max-width" -}}{{- $size = $size | append (print "max-width: " .) -}}{{- end -}}
+{{- with .Get "max-width" -}}{{- $size = $size | append (print "max-width: min(100%, " . ")") -}}{{- end -}}
 {{- $height := .Get "height" | default "" -}}
 {{- with .Get "min-height" -}}{{- $size = $size | append (print "min-height: " .) -}}{{- end -}}
 {{- with .Get "max-height" -}}{{- $size = $size | append (print "max-height: " .) -}}{{- end -}}
@@ -22,8 +22,8 @@
   {{- $resolution := partial "content/img-size" (dict "Page" .Page "Url" $src) -}}
   {{- if $resolution -}}
     {{- $dims := split $resolution "x" -}}
-    {{- $width = index $dims 0 -}}
-    {{- $height = index $dims 1 -}}
+    {{- $width = printf "%spx" (index $dims 0) -}}
+    {{- $height = printf "%spx" (index $dims 1) -}}
   {{- end -}}
 {{- end -}}
 {{- /* --- Id: global ordinal counter for images --- */ -}}
@@ -34,15 +34,12 @@
 {{- $imgOrdinal = add $imgOrdinal 1 -}}
 {{- .Page.Scratch.Set "sc-image-ordinal" $imgOrdinal -}}
 {{- /* --- Render --- */ -}}
-{{- if $href -}}
 <div class="sc-image" {{- with $align }}style="text-align: {{ . }};"{{ end -}}>
-{{- else -}}
-<label class="sc-image" for="sc-image-toggle-{{ $imgOrdinal }}" {{- with $align }}style="text-align: {{ . }};"{{ end -}}>
-{{- end -}}
   {{- with $caption -}}<figure>{{- end -}}
   {{- if $href -}}
   <a href="{{ $href }}" target="{{ $target }}" id="sc-image-link-{{ $imgOrdinal }}">
   {{- else -}}
+  <label class="sc-image" for="sc-image-toggle-{{ $imgOrdinal }}">
   <input class="hidden toggle" type="checkbox" id="sc-image-toggle-{{ $imgOrdinal }}" />
   {{- end -}}
   <img src="{{ $src }}"
@@ -54,12 +51,11 @@
     {{- with $height }}height="{{ . }}"{{ end -}}
     loading="{{ $loading | default `lazy` }}"
     decoding="async"
-    {{- with $size }}style="{{ delimit . `; ` }}"{{ end -}}>
-  {{- with $href -}}</a>{{- end }}
-  {{- with $caption -}}<figcaption>{{ . }}</figcaption></figure>
+    {{- with $size }}style="{{ delimit . `; ` | safeCSS }}"{{ end -}}>
+  {{- if $href -}}
+  </a>
+  {{- else -}}
+  </label>
   {{- end -}}
-{{- if $href -}}
+  {{- with $caption -}}<figcaption>{{ . }}</figcaption></figure>{{- end -}}
 </div>
-{{- else -}}
-</label>
-{{- end -}}

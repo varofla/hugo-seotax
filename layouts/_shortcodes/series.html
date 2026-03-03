@@ -3,7 +3,10 @@
 {{- $removePrefix := .Get 1 | default "" -}}
 {{- /* --- Render --- */ -}}
 {{- if $seriesName -}}
-  {{- $pages := (partialCached "pages/series" $seriesName $seriesName).ByDate -}}
+  {{- $pages := (partialCached "pages/series" $seriesName $seriesName) -}}
+  {{- if $pages -}}
+    {{- $pages = $pages.ByDate -}}
+  {{- end -}}
   <div id="series-anchor"></div>
   <div class="sc-series">
     <div class="series-bookmark">

@@ -51,6 +51,29 @@
     }
   }
 
+  p a,
+  figcaption a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--gray-500);
+    text-underline-offset: 2px;
+    opacity: 0.7;
+    transition: background-color .15s ease, text-decoration-color .15s ease;
+    font-weight: 500;
+
+    padding: 0 1px;
+    border-radius: 3px;
+  }
+
+  p a:hover,
+  figcaption a:hover {
+    text-decoration-color: currentColor;
+    background-color: var(--gray-200);
+
+    border-radius: 3px;
+    padding: 0 1px;
+  }
+
   img {
     max-width: 100%;
     height: auto;

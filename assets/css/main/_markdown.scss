@@ -173,6 +173,11 @@
     unicode-bidi: embed;
     border-radius: radius(block);
 
+    table {
+      margin-top: space(16);
+      margin-bottom: space(16);
+    }
+
     table tr {
       td pre code > span {
         display: flex;

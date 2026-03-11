@@ -24,8 +24,11 @@ h6 {
   font-weight: $body-font-weight;
 }
 
-a {
+.categories-label.categories-toggle a {
   flex: auto;
+}
+
+a {
   align-items: center;
   gap: space(8);
 
@@ -678,10 +681,10 @@ body[dir="rtl"] .site-menu {
   padding-top: space(16);
   font-size: font-size(14);
 
-  a {
-    margin: space(4) 0;
-    padding: space(4) 0;
-  }
+  // a {
+  //   margin: space(4) 0;
+  //   padding: space(4) 0;
+  // }
 }
 
 .prev-next-wrap {

@@ -6,106 +6,137 @@
 {{- $siteName := .Get "site-name" -}}
 {{- $fetch := .Get "fetch" | default "true" -}}
 {{- $class := .Get "class" -}}
+
 {{- /* --- Variables --- */ -}}
 {{- $ogTitle := "" -}}
 {{- $ogImage := "" -}}
+
 {{- /* --- Fetch --- */ -}}
-{{- if eq $fetch "true" -}}
-{{- with resources.GetRemote $url -}}
-  {{- with .Content -}}
-    {{- $content := . | string -}}
-    {{- /* Extract og:title */ -}}
-    {{- $titleRegex := `<meta[^>]+(?:property|name)="(?:og:title|twitter:title)"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+(?:property|name)="(?:og:title|twitter:title)"` -}}
-    {{- with findRE $titleRegex $content 1 -}}
-      {{- with index . 0 -}}
-        {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
-        {{- with index $matches 0 -}}
-          {{- $ogTitle = replaceRE `content="([^\x22]+)"` "$1" . -}}
-        {{- end -}}
-      {{- end -}}
-      {{- end -}}
-    {{- /* Fallback to <title> tag */ -}}
-    {{- if not $ogTitle -}}
-      {{- $titleTagRegex := `<title[^>]*>([^<]+)</title>` -}}
-      {{- with findRE $titleTagRegex $content 1 -}}
-        {{- with index . 0 -}}
-          {{- $title = replaceRE `<title[^>]*>([^<]+)</title>` "$1" . | htmlUnescape -}}
-        {{- end -}}
-      {{- end -}}
-    {{- else -}}
-      {{- $title = $ogTitle -}}
-    {{- end -}}
-    {{- /* Extract og:description */ -}}
-    {{- $descRegex := `<meta[^>]+(?:property|name)="(?:og:description|twitter:description|description)"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+(?:property|name)="(?:og:description|twitter:description|description)"` -}}
-    {{- with findRE $descRegex $content 1 -}}
-      {{- with index . 0 -}}
-        {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
-        {{- with index $matches 0 -}}
-          {{- $description = replaceRE `content="([^\x22]+)"` "$1" . -}}
-        {{- end -}}
-      {{- end -}}
-    {{- end -}}
-    {{- /* Extract og:image */ -}}
-    {{- $imageRegex := `<meta[^>]+(?:property|name)="(?:og:image|twitter:image)"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+(?:property|name)="(?:og:image|twitter:image)"` -}}
-    {{- with findRE $imageRegex $content 1 -}}
-      {{- with index . 0 -}}
-        {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
-        {{- with index $matches 0 -}}
-          {{- $ogImage = replaceRE `content="([^\x22]+)"` "$1" . -}}
-        {{- end -}}
-      {{- end -}}
-    {{- end -}}
-    {{- /* Fallback to first meaningful image in content */ -}}
-    {{- if not $ogImage -}}
-      {{- $imgRegex := `<img[^>]+alt="[^\x22]*"[^>]+src="([^\x22]+)"|<img[^>]+src="([^\x22]+)"[^>]+alt="[^\x22]*"` -}}
-      {{- with findRE $imgRegex $content 20 -}}
-        {{- range . -}}
-          {{- $srcMatch := findRE `src="([^\x22]+)"` . 1 -}}
-          {{- with index $srcMatch 0 -}}
-            {{- $imgSrc := replaceRE `src="([^\x22]+)"` "$1" . -}}
-            {{- /* Convert relative URLs to absolute */ -}}
-            {{- if hasPrefix $imgSrc "http" -}}
-              {{- $image = $imgSrc -}}
-            {{- else if hasPrefix $imgSrc "/" -}}
-              {{- $parsedURL := urls.Parse $url -}}
-              {{- $image = printf "%s://%s%s" $parsedURL.Scheme $parsedURL.Host $imgSrc -}}
-            {{- else -}}
-              {{- /* Handle relative paths including ../ */ -}}
-              {{- $parsedURL := urls.Parse $url -}}
-              {{- $basePath := path.Dir $parsedURL.Path -}}
-              {{- /* Resolve ../ by going up directories */ -}}
-              {{- $resolvedPath := $basePath -}}
-              {{- $remainingPath := $imgSrc -}}
-              {{- range seq 10 -}}
-                {{- if hasPrefix $remainingPath "../" -}}
-                  {{- $resolvedPath = path.Dir $resolvedPath -}}
-                  {{- $remainingPath = strings.TrimPrefix "../" $remainingPath -}}
-                {{- end -}}
-              {{- end -}}
-              {{- $image = printf "%s://%s%s/%s" $parsedURL.Scheme $parsedURL.Host $resolvedPath $remainingPath -}}
+{{- if and $url (eq $fetch "true") -}}
+  {{- $opts := dict
+    "method" "GET"
+    "timeout" "5s"
+    "key" (print "bookmark:" $url)
+  -}}
+
+  {{- with try (resources.GetRemote $url $opts) -}}
+    {{- with .Err -}}
+      {{- warnf "bookmark shortcode: failed to fetch %q: %s" $url . -}}
+    {{- else with .Value -}}
+      {{- with .Content -}}
+        {{- $content := . | string -}}
+
+        {{- /* Extract og:title */ -}}
+        {{- $titleRegex := `<meta[^>]+(?:property|name)="(?:og:title|twitter:title)"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+(?:property|name)="(?:og:title|twitter:title)"` -}}
+        {{- with findRE $titleRegex $content 1 -}}
+          {{- with index . 0 -}}
+            {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
+            {{- with index $matches 0 -}}
+              {{- $ogTitle = replaceRE `content="([^\x22]+)"` "$1" . | htmlUnescape -}}
             {{- end -}}
-            {{- break -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{- /* Fallback to <title> tag */ -}}
+        {{- if not $ogTitle -}}
+          {{- $titleTagRegex := `<title[^>]*>([^<]+)</title>` -}}
+          {{- with findRE $titleTagRegex $content 1 -}}
+            {{- with index . 0 -}}
+              {{- $title = replaceRE `<title[^>]*>([^<]+)</title>` "$1" . | htmlUnescape -}}
+            {{- end -}}
+          {{- end -}}
+        {{- else -}}
+          {{- $title = $ogTitle -}}
+        {{- end -}}
+
+        {{- /* Extract og:description */ -}}
+        {{- $descRegex := `<meta[^>]+(?:property|name)="(?:og:description|twitter:description|description)"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+(?:property|name)="(?:og:description|twitter:description|description)"` -}}
+        {{- with findRE $descRegex $content 1 -}}
+          {{- with index . 0 -}}
+            {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
+            {{- with index $matches 0 -}}
+              {{- $description = replaceRE `content="([^\x22]+)"` "$1" . | htmlUnescape -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{- /* Extract og:image */ -}}
+        {{- $imageRegex := `<meta[^>]+(?:property|name)="(?:og:image|twitter:image)"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+(?:property|name)="(?:og:image|twitter:image)"` -}}
+        {{- with findRE $imageRegex $content 1 -}}
+          {{- with index . 0 -}}
+            {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
+            {{- with index $matches 0 -}}
+              {{- $ogImage = replaceRE `content="([^\x22]+)"` "$1" . | htmlUnescape -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{- /* Fallback to first meaningful image in content */ -}}
+        {{- if not $ogImage -}}
+          {{- $imgRegex := `<img[^>]+alt="[^\x22]*"[^>]+src="([^\x22]+)"|<img[^>]+src="([^\x22]+)"[^>]+alt="[^\x22]*"` -}}
+          {{- with findRE $imgRegex $content 20 -}}
+            {{- range . -}}
+              {{- $srcMatch := findRE `src="([^\x22]+)"` . 1 -}}
+              {{- with index $srcMatch 0 -}}
+                {{- $imgSrc := replaceRE `src="([^\x22]+)"` "$1" . | htmlUnescape -}}
+
+                {{- if hasPrefix $imgSrc "http" -}}
+                  {{- $image = $imgSrc -}}
+                {{- else if hasPrefix $imgSrc "/" -}}
+                  {{- $parsedURL := urls.Parse $url -}}
+                  {{- $image = printf "%s://%s%s" $parsedURL.Scheme $parsedURL.Host $imgSrc -}}
+                {{- else -}}
+                  {{- $parsedURL := urls.Parse $url -}}
+                  {{- $basePath := path.Dir $parsedURL.Path -}}
+                  {{- $resolvedPath := $basePath -}}
+                  {{- $remainingPath := $imgSrc -}}
+
+                  {{- range seq 10 -}}
+                    {{- if hasPrefix $remainingPath "../" -}}
+                      {{- $resolvedPath = path.Dir $resolvedPath -}}
+                      {{- $remainingPath = strings.TrimPrefix "../" $remainingPath -}}
+                    {{- end -}}
+                  {{- end -}}
+
+                  {{- $image = printf "%s://%s%s/%s" $parsedURL.Scheme $parsedURL.Host $resolvedPath $remainingPath -}}
+                {{- end -}}
+
+                {{- break -}}
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- else -}}
+          {{- $image = $ogImage -}}
+        {{- end -}}
+
+        {{- /* Extract og:site_name */ -}}
+        {{- $siteRegex := `<meta[^>]+property="og:site_name"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+property="og:site_name"` -}}
+        {{- with findRE $siteRegex $content 1 -}}
+          {{- with index . 0 -}}
+            {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
+            {{- with index $matches 0 -}}
+              {{- $siteName = replaceRE `content="([^\x22]+)"` "$1" . | htmlUnescape -}}
+            {{- end -}}
           {{- end -}}
         {{- end -}}
       {{- end -}}
     {{- else -}}
-      {{- $image = $ogImage -}}
-    {{- end -}}
-    {{- /* Extract og:site_name */ -}}
-    {{- $siteRegex := `<meta[^>]+property="og:site_name"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+property="og:site_name"` -}}
-    {{- with findRE $siteRegex $content 1 -}}
-      {{- with index . 0 -}}
-        {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
-        {{- with index $matches 0 -}}
-          {{- $siteName = replaceRE `content="([^\x22]+)"` "$1" . -}}
-        {{- end -}}
-      {{- end -}}
+      {{- warnf "bookmark shortcode: no response value for %q" $url -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
+
+{{- /* --- Final fallback values --- */ -}}
+{{- if not $title -}}
+  {{- $title = $url -}}
 {{- end -}}
+
+{{- if and (not $siteName) $url -}}
+  {{- $siteName = $url | replaceRE "^https?://([^/]+).*" "$1" -}}
+{{- end -}}
+
 {{- /* --- Render --- */ -}}
-<a href="{{ $url }}" target="_blank" class="sc-bookmark-card {{ with $class }} {{ . }}{{ end }}">
+<a href="{{ $url }}" target="_blank" rel="noopener noreferrer" class="sc-bookmark-card{{ with $class }} {{ . }}{{ end }}">
   {{- if $image -}}
   <div class="sc-bookmark-image">
     <img src="{{ $image }}" alt="{{ $title }}" loading="lazy" decoding="async">
@@ -113,11 +144,7 @@
   {{- end -}}
   <div class="sc-bookmark-content">
     <h3 class="sc-bookmark-title">
-      {{- if $title -}}
-        {{ $title | truncate 80 }}
-      {{- else -}}
-        {{ $url }}
-      {{- end -}}
+      {{ $title | truncate 80 }}
     </h3>
     {{- if $description -}}
     <p class="sc-bookmark-description">
@@ -125,11 +152,7 @@
     </p>
     {{- end -}}
     <small class="sc-bookmark-url">
-      {{- if $siteName -}}
-        {{ $siteName }}
-      {{- else -}}
-        {{ $url | replaceRE "^https?://([^/]+).*" "$1" }}
-      {{- end -}}
+      {{ $siteName }}
     </small>
   </div>
 </a>

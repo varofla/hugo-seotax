@@ -10,83 +10,119 @@
 {{- /* --- Variables --- */ -}}
 {{- $ogTitle := "" -}}
 {{- $ogImage := "" -}}
+{{- $fetchFailed := false -}}
+
+{{- /* --- Helpers --- */ -}}
+{{- $parsedURL := urls.Parse $url -}}
+{{- $baseScheme := $parsedURL.Scheme -}}
+{{- $baseHost := $parsedURL.Host -}}
+{{- $basePath := path.Dir $parsedURL.Path -}}
 
 {{- /* --- Fetch --- */ -}}
 {{- if and $url (eq $fetch "true") -}}
   {{- $opts := dict
     "method" "GET"
     "key" (print "bookmark:" $url)
+    "headers" (dict
+      "User-Agent" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+      "Accept" "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      "Accept-Language" "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7"
+    )
   -}}
 
   {{- with try (resources.GetRemote $url $opts) -}}
     {{- with .Err -}}
+      {{- $fetchFailed = true -}}
       {{- warnf "bookmark shortcode: failed to fetch %q: %s" $url . -}}
     {{- else with .Value -}}
       {{- with .Content -}}
         {{- $content := . | string -}}
 
-        {{- /* Extract og:title */ -}}
-        {{- $titleRegex := `<meta[^>]+(?:property|name)="(?:og:title|twitter:title)"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+(?:property|name)="(?:og:title|twitter:title)"` -}}
+        {{- /* Extract og:title / twitter:title */ -}}
+        {{- $titleRegex := `(?is)<meta[^>]+(?:property|name)=['"](?:og:title|twitter:title)['"][^>]+content=['"]([^'"]+)['"]|<meta[^>]+content=['"]([^'"]+)['"][^>]+(?:property|name)=['"](?:og:title|twitter:title)['"]` -}}
         {{- with findRE $titleRegex $content 1 -}}
           {{- with index . 0 -}}
-            {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
+            {{- $matches := findRE `(?is)content=['"]([^'"]+)['"]` . 1 -}}
             {{- with index $matches 0 -}}
-              {{- $ogTitle = replaceRE `content="([^\x22]+)"` "$1" . | htmlUnescape -}}
+              {{- $ogTitle = replaceRE `(?is).*content=['"]([^'"]+)['"].*` "$1" . | htmlUnescape | strings.TrimSpace -}}
             {{- end -}}
           {{- end -}}
         {{- end -}}
 
-        {{- /* Fallback to <title> tag */ -}}
+        {{- /* Fallback to <title> */ -}}
         {{- if not $ogTitle -}}
-          {{- $titleTagRegex := `<title[^>]*>([^<]+)</title>` -}}
+          {{- $titleTagRegex := `(?is)<title[^>]*>(.*?)</title>` -}}
           {{- with findRE $titleTagRegex $content 1 -}}
             {{- with index . 0 -}}
-              {{- $title = replaceRE `<title[^>]*>([^<]+)</title>` "$1" . | htmlUnescape -}}
+              {{- $title = replaceRE `(?is)<title[^>]*>(.*?)</title>` "$1" . | htmlUnescape | strings.TrimSpace -}}
             {{- end -}}
           {{- end -}}
         {{- else -}}
           {{- $title = $ogTitle -}}
         {{- end -}}
 
-        {{- /* Extract og:description */ -}}
-        {{- $descRegex := `<meta[^>]+(?:property|name)="(?:og:description|twitter:description|description)"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+(?:property|name)="(?:og:description|twitter:description|description)"` -}}
+        {{- /* Extract og:description / twitter:description / description */ -}}
+        {{- $descRegex := `(?is)<meta[^>]+(?:property|name)=['"](?:og:description|twitter:description|description)['"][^>]+content=['"]([^'"]+)['"]|<meta[^>]+content=['"]([^'"]+)['"][^>]+(?:property|name)=['"](?:og:description|twitter:description|description)['"]` -}}
         {{- with findRE $descRegex $content 1 -}}
           {{- with index . 0 -}}
-            {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
+            {{- $matches := findRE `(?is)content=['"]([^'"]+)['"]` . 1 -}}
             {{- with index $matches 0 -}}
-              {{- $description = replaceRE `content="([^\x22]+)"` "$1" . | htmlUnescape -}}
+              {{- $description = replaceRE `(?is).*content=['"]([^'"]+)['"].*` "$1" . | htmlUnescape | strings.TrimSpace -}}
             {{- end -}}
           {{- end -}}
         {{- end -}}
 
-        {{- /* Extract og:image */ -}}
-        {{- $imageRegex := `<meta[^>]+(?:property|name)="(?:og:image|twitter:image)"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+(?:property|name)="(?:og:image|twitter:image)"` -}}
+        {{- /* Extract og:image / twitter:image */ -}}
+        {{- $imageRegex := `(?is)<meta[^>]+(?:property|name)=['"](?:og:image|twitter:image)['"][^>]+content=['"]([^'"]+)['"]|<meta[^>]+content=['"]([^'"]+)['"][^>]+(?:property|name)=['"](?:og:image|twitter:image)['"]` -}}
         {{- with findRE $imageRegex $content 1 -}}
           {{- with index . 0 -}}
-            {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
+            {{- $matches := findRE `(?is)content=['"]([^'"]+)['"]` . 1 -}}
             {{- with index $matches 0 -}}
-              {{- $ogImage = replaceRE `content="([^\x22]+)"` "$1" . | htmlUnescape -}}
+              {{- $ogImage = replaceRE `(?is).*content=['"]([^'"]+)['"].*` "$1" . | htmlUnescape | strings.TrimSpace -}}
             {{- end -}}
           {{- end -}}
         {{- end -}}
 
-        {{- /* Fallback to first meaningful image in content */ -}}
-        {{- if not $ogImage -}}
-          {{- $imgRegex := `<img[^>]+alt="[^\x22]*"[^>]+src="([^\x22]+)"|<img[^>]+src="([^\x22]+)"[^>]+alt="[^\x22]*"` -}}
+        {{- /* Normalize og:image */ -}}
+        {{- if $ogImage -}}
+          {{- if hasPrefix $ogImage "http://" -}}
+            {{- $image = $ogImage -}}
+          {{- else if hasPrefix $ogImage "https://" -}}
+            {{- $image = $ogImage -}}
+          {{- else if hasPrefix $ogImage "//" -}}
+            {{- $image = printf "%s:%s" $baseScheme $ogImage -}}
+          {{- else if hasPrefix $ogImage "/" -}}
+            {{- $image = printf "%s://%s%s" $baseScheme $baseHost $ogImage -}}
+          {{- else -}}
+            {{- $resolvedPath := $basePath -}}
+            {{- $remainingPath := $ogImage -}}
+
+            {{- range seq 10 -}}
+              {{- if hasPrefix $remainingPath "../" -}}
+                {{- $resolvedPath = path.Dir $resolvedPath -}}
+                {{- $remainingPath = strings.TrimPrefix "../" $remainingPath -}}
+              {{- end -}}
+            {{- end -}}
+
+            {{- $remainingPath = strings.TrimPrefix "./" $remainingPath -}}
+            {{- $image = printf "%s://%s%s/%s" $baseScheme $baseHost $resolvedPath $remainingPath -}}
+          {{- end -}}
+        {{- else -}}
+          {{- /* Fallback to first image in content */ -}}
+          {{- $imgRegex := `(?is)<img[^>]+src=['"]([^'"]+)['"][^>]*` -}}
           {{- with findRE $imgRegex $content 20 -}}
             {{- range . -}}
-              {{- $srcMatch := findRE `src="([^\x22]+)"` . 1 -}}
+              {{- $srcMatch := findRE `(?is)src=['"]([^'"]+)['"]` . 1 -}}
               {{- with index $srcMatch 0 -}}
-                {{- $imgSrc := replaceRE `src="([^\x22]+)"` "$1" . | htmlUnescape -}}
+                {{- $imgSrc := replaceRE `(?is).*src=['"]([^'"]+)['"].*` "$1" . | htmlUnescape | strings.TrimSpace -}}
 
-                {{- if hasPrefix $imgSrc "http" -}}
+                {{- if or (hasPrefix $imgSrc "http://") (hasPrefix $imgSrc "https://") -}}
                   {{- $image = $imgSrc -}}
+                {{- else if hasPrefix $imgSrc "//" -}}
+                  {{- $image = printf "%s:%s" $baseScheme $imgSrc -}}
                 {{- else if hasPrefix $imgSrc "/" -}}
-                  {{- $parsedURL := urls.Parse $url -}}
-                  {{- $image = printf "%s://%s%s" $parsedURL.Scheme $parsedURL.Host $imgSrc -}}
+                  {{- $image = printf "%s://%s%s" $baseScheme $baseHost $imgSrc -}}
                 {{- else -}}
-                  {{- $parsedURL := urls.Parse $url -}}
-                  {{- $basePath := path.Dir $parsedURL.Path -}}
                   {{- $resolvedPath := $basePath -}}
                   {{- $remainingPath := $imgSrc -}}
 
@@ -97,31 +133,58 @@
                     {{- end -}}
                   {{- end -}}
 
-                  {{- $image = printf "%s://%s%s/%s" $parsedURL.Scheme $parsedURL.Host $resolvedPath $remainingPath -}}
+                  {{- $remainingPath = strings.TrimPrefix "./" $remainingPath -}}
+                  {{- $image = printf "%s://%s%s/%s" $baseScheme $baseHost $resolvedPath $remainingPath -}}
                 {{- end -}}
 
-                {{- break -}}
+                {{- if $image -}}
+                  {{- break -}}
+                {{- end -}}
               {{- end -}}
             {{- end -}}
           {{- end -}}
-        {{- else -}}
-          {{- $image = $ogImage -}}
         {{- end -}}
 
         {{- /* Extract og:site_name */ -}}
-        {{- $siteRegex := `<meta[^>]+property="og:site_name"[^>]+content="([^\x22]+)"|<meta[^>]+content="([^\x22]+)"[^>]+property="og:site_name"` -}}
+        {{- $siteRegex := `(?is)<meta[^>]+property=['"]og:site_name['"][^>]+content=['"]([^'"]+)['"]|<meta[^>]+content=['"]([^'"]+)['"][^>]+property=['"]og:site_name['"]` -}}
         {{- with findRE $siteRegex $content 1 -}}
           {{- with index . 0 -}}
-            {{- $matches := findRE `content="([^\x22]+)"` . 1 -}}
+            {{- $matches := findRE `(?is)content=['"]([^'"]+)['"]` . 1 -}}
             {{- with index $matches 0 -}}
-              {{- $siteName = replaceRE `content="([^\x22]+)"` "$1" . | htmlUnescape -}}
+              {{- $siteName = replaceRE `(?is).*content=['"]([^'"]+)['"].*` "$1" . | htmlUnescape | strings.TrimSpace -}}
             {{- end -}}
           {{- end -}}
         {{- end -}}
+      {{- else -}}
+        {{- $fetchFailed = true -}}
+        {{- warnf "bookmark shortcode: empty content for %q" $url -}}
       {{- end -}}
     {{- else -}}
+      {{- $fetchFailed = true -}}
       {{- warnf "bookmark shortcode: no response value for %q" $url -}}
     {{- end -}}
+  {{- else -}}
+    {{- $fetchFailed = true -}}
+    {{- warnf "bookmark shortcode: try failed for %q" $url -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* --- Fetch failure fallback --- */ -}}
+{{- if and $url (or $fetchFailed (and (eq $fetch "true") (not $title) (not $description) (not $image) (not $siteName))) -}}
+  {{- if not $title -}}
+    {{- $title = $baseHost -}}
+  {{- end -}}
+
+  {{- if not $image -}}
+    {{- $image = "/broken-link.webp" -}}
+  {{- end -}}
+
+  {{- if not $description -}}
+    {{- $description = "북마크 미리보기 생성 실패" -}}
+  {{- end -}}
+
+  {{- if not $siteName -}}
+    {{- $siteName = $url | truncate 60 -}}
   {{- end -}}
 {{- end -}}
 

@@ -1,10 +1,47 @@
-{{- $destination := .Destination -}}
+{{- $rawDestination := .Destination -}}
+{{- $destination := $rawDestination -}}
 {{- if .Page.Site.Params.portableLinks -}}
   {{- $destination = partial "links/portable-image" . -}}
 {{- end -}}
-{{- $attrs := partial "content/img-attr" (dict "Page" .Page "Url" $destination) -}}
-<label class="md-image" for="md-image-toggle-{{ .Ordinal }}">
-  <input class="hidden toggle" type="checkbox" id="md-image-toggle-{{ .Ordinal }}" />
-  <img src="{{ $destination | safeURL }}" alt="{{ .Text }}" {{ with .Title }}title="{{ . }}"{{ end }} id="md-image-{{ .Ordinal }}" {{ $attrs | safeHTMLAttr }} loading="lazy" decoding="async" />
-</label>
+
+{{- $pathOnly := index (split $rawDestination "?") 0 -}}
+{{- $ext := lower (path.Ext $pathOnly) -}}
+
+{{- $imageExts := slice ".png" ".jpg" ".jpeg" ".gif" ".webp" ".avif" ".svg" -}}
+{{- $videoExts := slice ".mp4" ".mov" ".webm" ".ogg" -}}
+
+{{- if in $imageExts $ext -}}
+  {{- $attrs := partial "content/img-attr" (dict "Page" .Page "Url" $destination) -}}
+  <label class="md-image" for="md-image-toggle-{{ .Ordinal }}">
+    <input class="hidden toggle" type="checkbox" id="md-image-toggle-{{ .Ordinal }}" />
+    <img
+      src="{{ $destination | safeURL }}"
+      alt="{{ .Text }}"
+      {{ with .Title }}title="{{ . }}"{{ end }}
+      id="md-image-{{ .Ordinal }}"
+      {{ $attrs | safeHTMLAttr }}
+      loading="lazy"
+      decoding="async"
+    />
+  </label>
+
+{{- else if in $videoExts $ext -}}
+  <div style="display:block; width:100%; max-width:100%; margin:1rem 0;">
+    <video
+      controls
+      playsinline
+      preload="metadata"
+      {{ with .Title }}title="{{ . }}"{{ end }}
+      style="display:block; width:100%; max-width:100%; height:auto;"
+    >
+      <source src="{{ $destination | safeURL }}">
+      {{ .Text }}
+    </video>
+  </div>
+
+{{- else -}}
+  <a href="{{ $destination | safeURL }}" {{ with .Title }}title="{{ . }}"{{ end }}>
+    {{- if .Text -}}{{ .Text }}{{- else -}}{{ $destination }}{{- end -}}
+  </a>
+{{- end -}}
 {{- /**/ -}}

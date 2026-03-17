@@ -15,7 +15,6 @@
 {{- if and $url (eq $fetch "true") -}}
   {{- $opts := dict
     "method" "GET"
-    "timeout" "5s"
     "key" (print "bookmark:" $url)
   -}}
 

@@ -1,31 +1,49 @@
 {{- /* --- Parameters: Image --- */ -}}
-{{- $src := partial "links/portable-image" (dict "Page" .Page "Destination" (.Get "src")) -}}
+{{- $rawSrc := .Get "src" -}}
 {{- $alt := .Get "alt" -}}
 {{- $caption := .Get "caption" -}}
 {{- $class := .Get "class" -}}
 {{- $title := .Get "title" -}}
-{{- $loading := .Get "loading" -}}
+{{- $loading := .Get "loading" | default "lazy" -}}
 {{- $align := .Get "align" -}}
+
 {{- /* --- Parameters: Anchor --- */ -}}
 {{- $href := .Get "href" -}}
 {{- $target := .Get "target" | default "_blank" -}}
+
 {{- /* --- Parameters: Size --- */ -}}
 {{- $size := slice -}}
 {{- $width := .Get "width" | default "" -}}
 {{- with .Get "min-width" -}}{{- $size = $size | append (print "min-width: " .) -}}{{- end -}}
 {{- with .Get "max-width" -}}{{- $size = $size | append (print "max-width: min(100%, " . ")") -}}{{- end -}}
+
 {{- $height := .Get "height" | default "" -}}
 {{- with .Get "min-height" -}}{{- $size = $size | append (print "min-height: " .) -}}{{- end -}}
 {{- with .Get "max-height" -}}{{- $size = $size | append (print "max-height: " .) -}}{{- end -}}
-{{- /* --- Auto-detect dimensions if not provided --- */ -}}
+
+{{- /* --- Resolve image URL --- */ -}}
+{{- $src := partial "links/portable-image" (dict "Page" .Page "Destination" $rawSrc) -}}
+
+{{- /* --- Auto-detect dimensions from page bundle resource --- */ -}}
 {{- if not (or $width $height) -}}
-  {{- $resolution := partial "content/img-size" (dict "Page" .Page "Url" $src) -}}
-  {{- if $resolution -}}
-    {{- $dims := split $resolution "x" -}}
-    {{- $width = printf "%spx" (index $dims 0) -}}
-    {{- $height = printf "%spx" (index $dims 1) -}}
+  {{- $img := .Page.Resources.GetMatch $rawSrc -}}
+  {{- with $img -}}
+    {{- if reflect.IsImageResourceWithMeta . -}}
+      {{- $width = .Width -}}
+      {{- $height = .Height -}}
+
+      {{- $maxSize := default 0 site.Params.maxImageSize -}}
+      {{- if $maxSize -}}
+        {{- $maxDim := cond (gt $width $height) $width $height -}}
+        {{- if gt $maxDim $maxSize -}}
+          {{- $width = div (mul $width $maxSize) $maxDim -}}
+          {{- $height = div (mul $height $maxSize) $maxDim -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
+
 {{- /* --- Id: global ordinal counter for images --- */ -}}
 {{- $imgOrdinal := .Page.Scratch.Get "sc-image-ordinal" -}}
 {{- if not $imgOrdinal -}}
@@ -33,29 +51,39 @@
 {{- end -}}
 {{- $imgOrdinal = add $imgOrdinal 1 -}}
 {{- .Page.Scratch.Set "sc-image-ordinal" $imgOrdinal -}}
+
 {{- /* --- Render --- */ -}}
-<div class="sc-image" {{- with $align }}style="text-align: {{ . }};"{{ end -}}>
+<div class="sc-image"{{ with $align }} style="text-align: {{ . }};"{{ end }}>
   {{- with $caption -}}<figure>{{- end -}}
+
   {{- if $href -}}
-  <a href="{{ $href }}" target="{{ $target }}" id="sc-image-link-{{ $imgOrdinal }}">
+    <a href="{{ $href }}" target="{{ $target }}" id="sc-image-link-{{ $imgOrdinal }}">
   {{- else -}}
-  <label class="sc-image" for="sc-image-toggle-{{ $imgOrdinal }}">
-  <input class="hidden toggle" type="checkbox" id="sc-image-toggle-{{ $imgOrdinal }}" />
+    <label class="sc-image" for="sc-image-toggle-{{ $imgOrdinal }}">
+      <input class="hidden toggle" type="checkbox" id="sc-image-toggle-{{ $imgOrdinal }}" />
   {{- end -}}
-  <img src="{{ $src }}"
-    {{- with $alt }}alt="{{ . }}"{{ end -}}
-    {{- with $class }}class="{{ . }}"{{ end -}}
+
+  <img
+    src="{{ $src }}"
+    {{- with $alt }} alt="{{ . }}"{{ end -}}
+    {{- with $class }} class="{{ . }}"{{ end -}}
     id="sc-image-{{ $imgOrdinal }}"
-    {{- with $title }}title="{{ . }}"{{ end -}}
-    {{- with $width }}width="{{ . }}"{{ end -}}
-    {{- with $height }}height="{{ . }}"{{ end -}}
-    loading="{{ $loading | default `lazy` }}"
+    {{- with $title }} title="{{ . }}"{{ end -}}
+    {{- with $width }} width="{{ . }}"{{ end -}}
+    {{- with $height }} height="{{ . }}"{{ end -}}
+    loading="{{ $loading }}"
     decoding="async"
-    {{- with $size }}style="{{ delimit . `; ` | safeCSS }}"{{ end -}}>
+    {{- with $size }} style="{{ delimit . `; ` | safeCSS }}"{{ end -}}
+  >
+
   {{- if $href -}}
-  </a>
+    </a>
   {{- else -}}
-  </label>
+    </label>
   {{- end -}}
-  {{- with $caption -}}<figcaption>{{ . | markdownify }}</figcaption></figure>{{- end -}}
+
+  {{- with $caption -}}
+    <figcaption>{{ . | markdownify }}</figcaption>
+    </figure>
+  {{- end -}}
 </div>

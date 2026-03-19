@@ -453,7 +453,7 @@
   .sc-image, .md-image {
     display: block;
     max-width: 100%;
-
+    
     img {
       width: 100%;
       height: auto;
@@ -767,4 +767,9 @@
       stroke: #e0e0e0 !important;
     }
   }
+}
+
+.medium-zoom-overlay,
+.medium-zoom-image--opened {
+    z-index: 999;
 }

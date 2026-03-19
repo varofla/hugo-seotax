@@ -252,6 +252,7 @@ void window.siteI18n.initData().catch(() => {});
 
 <!-- Image Zoom -->
 {{- $imageZoomJS := resources.Get "js/shortcodes/image-zoom.js" | resources.ExecuteAsTemplate "js/shortcodes/image-zoom.js" . | resources.Minify | resources.Fingerprint }}
+<script defer src="{{ `medium-zoom.min.js` | relURL }}"></script>
 <script defer src="{{ partial `links/resource-precache` $imageZoomJS }}" {{ template `integrity` $imageZoomJS }}></script>
 
 <!-- Data Table -->

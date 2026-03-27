@@ -222,6 +222,10 @@ void window.siteI18n.initData().catch(() => {});
 <script defer src="{{ partial `links/resource-precache` $i18nJS }}" {{ template `integrity` $i18nJS }}></script>
 <!-- i18n: End -->
 
+<!-- Category expand -->
+{{- $categoryExpand := resources.Get "js/partials/category-expand.js" | resources.ExecuteAsTemplate "js/partials/category-expand.js" . | resources.Minify | resources.Fingerprint }}
+<script defer src="{{ partial `links/resource-precache` $categoryExpand }}" {{ template `integrity` $categoryExpand }}></script>
+
 <!-- Index scroll -->
 {{- $indexScrollJS := resources.Get "js/partials/index-scroll.js" | resources.ExecuteAsTemplate "js/partials/index-scroll.js" . | resources.Minify | resources.Fingerprint }}
 <script defer src="{{ partial `links/resource-precache` $indexScrollJS }}" {{ template `integrity` $indexScrollJS }}></script>

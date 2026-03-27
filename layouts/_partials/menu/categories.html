@@ -32,7 +32,10 @@
       {{ $treeL2 := index $treeL1 $category1 }}
       {{ if $treeL2 }}
       <input type="checkbox" class="hidden toggle" id="cat-{{ $category1 | urlize }}" />
-      <label for="cat-{{ $category1 | urlize }}" class="categories-label categories-toggle">
+      <label
+        for="cat-{{ $category1 | urlize }}"
+        class="categories-label categories-toggle"
+        data-category1="{{ $category1 }}">
         <a href="/search/?category1={{ $category1 }}">
           <i class="icon-folder"></i>
           {{- $category1 -}}

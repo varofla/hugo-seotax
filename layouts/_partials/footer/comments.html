@@ -1,2 +1,39 @@
+<comentario-comments id="comentario-comments"></comentario-comments>
+<script>
+(function() {
+  const commentsEl = document.getElementById('comentario-comments');
+  if (!commentsEl) return;
+
+  function getTheme() {
+    const theme = document.documentElement.getAttribute('data-theme');
+    return theme === 'dark' ? 'dark' : 'light';
+  }
+
+  function syncComentarioTheme() {
+    commentsEl.setAttribute('theme', getTheme());
+  }
+
+  // Set the initial theme before Comentario initialises.
+  syncComentarioTheme();
+
+  document.addEventListener('DOMContentLoaded', function() {
+    syncComentarioTheme();
+
+    window.addEventListener('site-theme-changed', syncComentarioTheme);
+
+    const observer = new MutationObserver(function(mutations) {
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+          syncComentarioTheme();
+        }
+      }
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+  });
+})();
+</script>
 <script defer src="https://comentario.varofla.com/comentario.js"></script>
-<comentario-comments></comentario-comments>

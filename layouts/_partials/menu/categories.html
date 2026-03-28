@@ -1,5 +1,8 @@
 <div class="menu-categories">
   {{ $pages := partialCached "pages/posts" . "posts" }}
+  {{ $categoryOrder := .Site.Params.categoryOrder | default (dict) }}
+  {{ $categoryOrderL1 := index $categoryOrder "level1" | default (slice) }}
+  {{ $categoryOrderL2 := index $categoryOrder "level2" | default (dict) }}
   {{/* Categories label for root category */}}
   <input type="checkbox" class="hidden toggle" id="categories-control" checked />
   <label for="categories-control" class="categories-label categories-toggle">
@@ -15,7 +18,20 @@
   {{/* Categories list for parent category */}}
   <ul>
     {{ $treeL1 := partialCached "categories/tree" . "categories" }}
-    {{ range $category1 := (partial "keys" $treeL1) }}
+    {{ $category1Keys := partial "keys" $treeL1 }}
+    {{ $sortedCategory1 := slice }}
+    {{ range $k := $categoryOrderL1 }}
+      {{ $key := printf "%v" $k }}
+      {{ if in $category1Keys $key }}
+        {{ $sortedCategory1 = $sortedCategory1 | append $key }}
+      {{ end }}
+    {{ end }}
+    {{ range $k := $category1Keys }}
+      {{ if not (in $sortedCategory1 $k) }}
+        {{ $sortedCategory1 = $sortedCategory1 | append $k }}
+      {{ end }}
+    {{ end }}
+    {{ range $category1 := $sortedCategory1 }}
     {{/* Count pages including parent category */}}
     {{ $pagesL1 := slice }}
     {{ $category1Count := 0 }}
@@ -45,7 +61,21 @@
       </label>
       {{/* Categories list for child category */}}
       <ul>
-        {{ range $category2 := (partial "keys" $treeL2) }}
+        {{ $category2Keys := partial "keys" $treeL2 }}
+        {{ $category2Order := index $categoryOrderL2 $category1 | default (slice) }}
+        {{ $sortedCategory2 := slice }}
+        {{ range $k := $category2Order }}
+          {{ $key := printf "%v" $k }}
+          {{ if in $category2Keys $key }}
+            {{ $sortedCategory2 = $sortedCategory2 | append $key }}
+          {{ end }}
+        {{ end }}
+        {{ range $k := $category2Keys }}
+          {{ if not (in $sortedCategory2 $k) }}
+            {{ $sortedCategory2 = $sortedCategory2 | append $k }}
+          {{ end }}
+        {{ end }}
+        {{ range $category2 := $sortedCategory2 }}
         {{/* Count pages including child category */}}
         {{ $category2Count := 0 }}
         {{ range $pagesL1 }}

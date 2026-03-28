@@ -71,7 +71,11 @@
       -}}
 
     {{- if and $processable (or (ne $renderW $origW) (ne $renderH $origH)) -}}
-      {{- $resized := .Resize (printf "%dx%d" $renderW $renderH) -}}
+      {{- $resizeSpec := printf "%dx%d" $renderW $renderH -}}
+      {{- if or (eq $ext ".jpg") (eq $ext ".jpeg") (eq $ext ".webp") -}}
+        {{- $resizeSpec = printf "%s q100" $resizeSpec -}}
+      {{- end -}}
+      {{- $resized := .Resize $resizeSpec -}}
       {{- $renderSrc = $resized.RelPermalink -}}
       {{- $width = $resized.Width -}}
       {{- $height = $resized.Height -}}

@@ -1,0 +1,57 @@
+# GitHub Pages Deployment for Hugo SeoTax Theme
+#
+# Builds exampleSite/ by symlinking the repo root as themes/seotax/
+# so Hugo resolves all theme paths correctly, then deploys to GitHub Pages.
+#
+# Setup:
+#   1. Go to repository Settings > Pages
+#   2. Under "Build and deployment", select "GitHub Actions" as the Source
+#   3. Push to the main branch to trigger deployment
+
+name: Deploy Hugo site to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: "0.153.0"
+          extended: true
+
+      - name: Build with Hugo
+        working-directory: exampleSite
+        run: |
+          mkdir -p themes
+          ln -sf ../.. themes/seotax
+          hugo --minify --baseURL "https://minyeamer.github.io/hugo-seotax/"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: exampleSite/public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -451,6 +451,13 @@
 
   // {{< image >}}
   .sc-image, .md-image {
+    --image-loader-size: 3rem;
+    --image-loader-border-width: 3px;
+    --image-loader-backdrop-size: 4.25rem;
+    --image-loader-ring-color: color-mix(in srgb, var(--body-font-color) 28%, transparent);
+    --image-loader-ring-accent-color: color-mix(in srgb, var(--body-font-color) 92%, transparent);
+    --image-loader-backdrop-color: color-mix(in srgb, var(--body-background) 78%, transparent);
+    --image-loader-shadow: 0 0.35rem 1rem color-mix(in srgb, #000 18%, transparent);
     display: block;
     max-width: 100%;
     position: relative;
@@ -466,13 +473,19 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 3rem;
-      height: 3rem;
-      margin-top: -1.5rem;
-      margin-left: -1.5rem;
-      border: 3px solid color-mix(in srgb, var(--body-font-color) 28%, transparent);
-      border-top-color: color-mix(in srgb, var(--body-font-color) 92%, transparent);
+      width: var(--image-loader-size);
+      height: var(--image-loader-size);
+      margin-top: calc(var(--image-loader-size) / -2);
+      margin-left: calc(var(--image-loader-size) / -2);
+      border: var(--image-loader-border-width) solid var(--image-loader-ring-color);
+      border-top-color: var(--image-loader-ring-accent-color);
       border-radius: 50%;
+      background-color: var(--image-loader-backdrop-color);
+      box-shadow:
+        0 0 0 calc((var(--image-loader-backdrop-size) - var(--image-loader-size)) / 2)
+          var(--image-loader-backdrop-color),
+        var(--image-loader-shadow);
+      backdrop-filter: blur(2px);
       pointer-events: none;
       z-index: 1;
       animation: medium-zoom-loader-spin 0.8s linear infinite;
@@ -793,16 +806,29 @@
 }
 
 .medium-zoom-loader {
+  --image-loader-size: 3rem;
+  --image-loader-border-width: 3px;
+  --image-loader-backdrop-size: 4.5rem;
+  --image-loader-ring-color: color-mix(in srgb, var(--body-font-color) 28%, transparent);
+  --image-loader-ring-accent-color: color-mix(in srgb, var(--body-font-color) 92%, transparent);
+  --image-loader-backdrop-color: color-mix(in srgb, var(--body-background) 76%, transparent);
+  --image-loader-shadow: 0 0.5rem 1.4rem color-mix(in srgb, #000 24%, transparent);
   position: fixed;
   top: 50%;
   left: 50%;
-  width: 3rem;
-  height: 3rem;
-  margin-top: -1.5rem;
-  margin-left: -1.5rem;
-  border: 3px solid color-mix(in srgb, var(--body-font-color) 28%, transparent);
-  border-top-color: color-mix(in srgb, var(--body-font-color) 92%, transparent);
+  width: var(--image-loader-size);
+  height: var(--image-loader-size);
+  margin-top: calc(var(--image-loader-size) / -2);
+  margin-left: calc(var(--image-loader-size) / -2);
+  border: var(--image-loader-border-width) solid var(--image-loader-ring-color);
+  border-top-color: var(--image-loader-ring-accent-color);
   border-radius: 50%;
+  background-color: var(--image-loader-backdrop-color);
+  box-shadow:
+    0 0 0 calc((var(--image-loader-backdrop-size) - var(--image-loader-size)) / 2)
+      var(--image-loader-backdrop-color),
+    var(--image-loader-shadow);
+  backdrop-filter: blur(3px);
   opacity: 0;
   pointer-events: none;
   transform: scale(0.9);

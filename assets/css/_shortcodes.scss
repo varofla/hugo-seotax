@@ -773,3 +773,37 @@
 .medium-zoom-image--opened {
     z-index: 999;
 }
+
+.medium-zoom-loader {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 3rem;
+  height: 3rem;
+  margin-top: -1.5rem;
+  margin-left: -1.5rem;
+  border: 3px solid rgba(255, 255, 255, 0.28);
+  border-top-color: rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1000;
+}
+
+body.medium-zoom-loading .medium-zoom-loader {
+  opacity: 1;
+  transform: scale(1);
+  animation: medium-zoom-loader-spin 0.8s linear infinite;
+}
+
+@keyframes medium-zoom-loader-spin {
+  from {
+    transform: scale(1) rotate(0deg);
+  }
+
+  to {
+    transform: scale(1) rotate(360deg);
+  }
+}

@@ -93,8 +93,50 @@
     }
   }
 
+  function getImageLoadingContainer(img) {
+    return img.closest(".md-image, .sc-image");
+  }
+
+  function showImageLoader(img) {
+    const container = getImageLoadingContainer(img);
+
+    if (!container) return;
+
+    container.classList.add("is-loading");
+  }
+
+  function hideImageLoader(img) {
+    const container = getImageLoadingContainer(img);
+
+    if (!container) return;
+
+    container.classList.remove("is-loading");
+  }
+
+  function initImageLoader(img) {
+    if (!(img instanceof HTMLImageElement)) return;
+
+    if (img.complete) {
+      hideImageLoader(img);
+      return;
+    }
+
+    showImageLoader(img);
+
+    const handleDone = () => {
+      hideImageLoader(img);
+      img.removeEventListener("load", handleDone);
+      img.removeEventListener("error", handleDone);
+    };
+
+    img.addEventListener("load", handleDone);
+    img.addEventListener("error", handleDone);
+  }
+
   function initImage() {
     document.querySelectorAll(".md-image img, .sc-image img").forEach((img) => {
+      initImageLoader(img);
+
       if (img.complete && img.naturalWidth && img.naturalHeight) {
         setImageOrientation(img);
       } else {

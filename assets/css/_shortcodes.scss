@@ -453,11 +453,29 @@
   .sc-image, .md-image {
     display: block;
     max-width: 100%;
+    position: relative;
     
     img {
-      width: 100%;
+      max-width: 100%;
       height: auto;
       border-radius: radius(images);
+    }
+
+    &.is-loading::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 3rem;
+      height: 3rem;
+      margin-top: -1.5rem;
+      margin-left: -1.5rem;
+      border: 3px solid color-mix(in srgb, var(--body-font-color) 28%, transparent);
+      border-top-color: color-mix(in srgb, var(--body-font-color) 92%, transparent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+      animation: medium-zoom-loader-spin 0.8s linear infinite;
     }
 
     input ~ img,
@@ -782,8 +800,8 @@
   height: 3rem;
   margin-top: -1.5rem;
   margin-left: -1.5rem;
-  border: 3px solid rgba(255, 255, 255, 0.28);
-  border-top-color: rgba(255, 255, 255, 0.92);
+  border: 3px solid color-mix(in srgb, var(--body-font-color) 28%, transparent);
+  border-top-color: color-mix(in srgb, var(--body-font-color) 92%, transparent);
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;

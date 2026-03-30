@@ -805,6 +805,10 @@
     z-index: 999;
 }
 
+.medium-zoom-image--opened {
+  border-radius: radius(images);
+}
+
 .medium-zoom-loader {
   --image-loader-size: 3rem;
   --image-loader-border-width: 3px;

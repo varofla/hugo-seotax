@@ -973,6 +973,11 @@ body[dir="rtl"] .site-menu {
     color: var(--toc-active-color);
     font-weight: bold;
   }
+
+  a.toc-flash {
+    color: var(--toc-active-color);
+    font-weight: bold;
+  }
 }
 
 .toc-overlay {

@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function setTheme(name) {
     const root = document.documentElement;
     root.setAttribute('data-theme', name);
+    root.style.colorScheme = name;
     localStorage.setItem(storageKey, name);
     window.dispatchEvent(new CustomEvent('site-theme-changed', {
       detail: { theme: name }

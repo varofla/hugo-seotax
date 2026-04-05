@@ -206,6 +206,15 @@
       padding: 0;
       margin: 0;
       position: relative;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+
+      &:focus,
+      &:focus-visible,
+      &:active {
+        outline: none;
+        box-shadow: none;
+      }
 
       // Single-line
       &:not(:has(.hljs-ln)) {

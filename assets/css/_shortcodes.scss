@@ -336,7 +336,7 @@
 
   // {{< columns >}}
   .sc-columns {
-    gap: space(16);
+    gap: space(8);
 
     >div {
       min-width: $body-min-width * 0.66;

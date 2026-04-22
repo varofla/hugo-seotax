@@ -172,6 +172,10 @@ nav ul {
       max-height: 100vw !important;
     }
   }
+
+  img.rounded {
+    border-radius: radius(image);
+  }
 }
 
 .markdown .site-title {
@@ -556,6 +560,12 @@ body[dir="rtl"] .site-menu {
   // Toggle hierarchical categories
   input[id^="cat-"]:checked + .categories-toggle .categories-arrow {
     transform: rotate(180deg);
+  }
+
+  // Active category highlight
+  .category-active,
+  .category-active a {
+    color: var(--color-link);
   }
 }
 

@@ -903,14 +903,17 @@
 .post-cover {
   width: $preview-width;
   height: $preview-height;
-  border-radius: radius(cover);
 
   .post-cover-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center;
-    border-radius: radius(images-cover);
+  }
+
+  &.rounded,
+  &.rounded .post-cover-img {
+    border-radius: radius(image-cover);
   }
 }
 
@@ -938,7 +941,6 @@
       display: block;
       width: 100%;
       height: $preview-mobile-height;
-      border-radius: radisu(cover);
       margin-top: space(8);
 
       .post-cover-mobile-img {
@@ -946,7 +948,11 @@
         height: 100%;
         object-fit: cover;
         object-position: center;
-        border-radius: radius(images-cover);
+      }
+
+      &.rounded,
+      &.rounded .post-cover-mobile-img {
+        border-radius: radius(image-cover);
       }
     }
 

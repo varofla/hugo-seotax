@@ -49,7 +49,7 @@
       {{- $renderH = int $height -}}
       {{- $renderW = div (mul $origW $renderH) $origH -}}
     {{- else -}}
-      {{- $maxSize := default 0 site.Params.maxImageSize -}}
+      {{- $maxSize := site.Params.image.maxImageSize | default 0 -}}
       {{- if $maxSize -}}
         {{- $maxDim := cond (gt $origW $origH) $origW $origH -}}
         {{- if gt $maxDim $maxSize -}}
@@ -95,9 +95,10 @@
 {{- /* --- class 처리 --- */ -}}
 {{- $imgClass := slice -}}
 {{- with $class -}}{{- $imgClass = $imgClass | append . -}}{{- end -}}
+{{- if site.Params.image.roundedCorners -}}{{- $imgClass = $imgClass | append "rounded" -}}{{- end -}}
 
 {{- /* --- Render --- */ -}}
-<div class="sc-image"{{ with $align }} style="text-align: {{ . }};"{{ end }}>
+<div class="sc-image{{ if site.Params.image.roundedCorners }} rounded{{ end }}"{{ with $align }} style="text-align: {{ . }};"{{ end }}>
   {{- with $caption -}}<figure>{{- end -}}
 
   {{- if $href -}}

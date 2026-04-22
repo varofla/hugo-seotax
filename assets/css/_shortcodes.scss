@@ -206,6 +206,7 @@
       padding: 0;
       margin: 0;
       position: relative;
+      overflow: hidden; // Prevent double scrollbar on Windows Chrome
       outline: none;
       -webkit-tap-highlight-color: transparent;
 
@@ -474,7 +475,6 @@
     img {
       max-width: 100%;
       height: auto;
-      border-radius: radius(images);
     }
 
     &.is-loading::after {
@@ -498,6 +498,10 @@
       pointer-events: none;
       z-index: 1;
       animation: medium-zoom-loader-spin 0.8s linear infinite;
+    }
+
+    &.rounded img {
+      border-radius: radius(image);
     }
 
     input ~ img,
@@ -815,7 +819,9 @@
 }
 
 .medium-zoom-image--opened {
-  border-radius: radius(images);
+  &.rounded {
+    border-radius: radius(image);
+  }
 }
 
 .medium-zoom-loader {

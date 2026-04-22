@@ -6,6 +6,9 @@
 {{- $resolution := "" -}}
 
 {{- if and $page $imageUrl -}}
+  {{- $pageDir := cond $page.File $page.File.Dir "" -}}
+  {{- $relPath := strings.TrimPrefix (site.Params.posts.section | default "posts/") $pageDir -}}
+  {{- $rootPath := site.Params.image.rootPath | default "_images" -}}
   {{- $urlParts := split (index (split $imageUrl "?") 0) "/" -}}
   {{- $fileName := index $urlParts (sub (len $urlParts) 1) -}}
 
@@ -13,6 +16,17 @@
   {{- if not $res -}}
     {{- $baseName := path.BaseName $fileName -}}
     {{- $res = $page.Resources.GetMatch (printf "%s.*" $baseName) -}}
+  {{- end -}}
+  {{- if not $res -}}
+    {{- $imagePath := printf "%s/%s/%s" $rootPath $relPath $fileName -}}
+    {{- $res = resources.Get $imagePath -}}
+  {{- end -}}
+  {{- if not $res -}}
+    {{- $baseName := path.BaseName $fileName -}}
+    {{- $imagePath := printf "%s/%s/%s.*" $rootPath $relPath $baseName -}}
+    {{- with resources.Match $imagePath -}}
+      {{- $res = index . 0 -}}
+    {{- end -}}
   {{- end -}}
 
   {{- with $res -}}
@@ -24,7 +38,7 @@
 {{- end -}}
 
 {{- if and $width $height -}}
-  {{- $maxSize := default 0 site.Params.maxImageSize -}}
+  {{- $maxSize := site.Params.image.maxImageSize | default 0 -}}
   {{- $maxDim := cond (gt $width $height) $width $height -}}
   {{- if and $maxSize (gt $maxDim $maxSize) -}}
     {{- $width = div (mul $width $maxSize) $maxDim -}}

@@ -485,12 +485,21 @@
   margin-bottom: 0;
 }
 
+.menu-categories > ul > .category-group > .category-row.category-active.category-active-suppressed {
+  background: transparent;
+  border-left-color: transparent;
+}
+
 .menu-categories .category-child.category-active > a {
   color: var(--category-accent);
 }
 
 .menu-categories .category-child.category-active {
   background: rgba(226, 232, 240, 0.52);
+}
+
+.menu-categories .category-child.category-active.category-active-suppressed {
+  background: transparent;
 }
 
 .menu-categories .category-group > ul > .category-child:first-child.category-active {

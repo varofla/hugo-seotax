@@ -35,16 +35,19 @@
 
   function initCategoryExpand() {
     const { category1, category2 } = getCurrentCategory();
-    if (!category1) return;
+    const menuCategories = document.querySelector('.menu-categories');
+    if (!menuCategories) return;
 
     // Open and activate the current parent category group.
-    const parentGroup = document.querySelector(
-      `.category-group[data-category1="${CSS.escape(category1)}"]`
-    );
-    if (parentGroup) {
-      parentGroup.classList.add('category-open');
-      const parentRow = parentGroup.querySelector('.category-parent');
-      if (parentRow) parentRow.classList.add('category-active');
+    if (category1) {
+      const parentGroup = document.querySelector(
+        `.category-group[data-category1="${CSS.escape(category1)}"]`
+      );
+      if (parentGroup) {
+        parentGroup.classList.add('category-open');
+        const parentRow = parentGroup.querySelector('.category-parent');
+        if (parentRow) parentRow.classList.add('category-active');
+      }
     }
 
     // Activate the current child category item.
@@ -54,6 +57,98 @@
       );
       if (childItem) childItem.classList.add('category-active');
     }
+
+    setupActiveHoverState(menuCategories);
+  }
+
+  function setupActiveHoverState(menuCategories) {
+    let suppressedElements = [];
+
+    function clearSuppressed() {
+      suppressedElements.forEach((element) => {
+        element.classList.remove('category-active-suppressed');
+      });
+      suppressedElements = [];
+    }
+
+    function suppress(element) {
+      if (!element || element.classList.contains('category-active-suppressed')) return;
+      element.classList.add('category-active-suppressed');
+      suppressedElements.push(element);
+    }
+
+    function getActiveParent() {
+      return menuCategories.querySelector('.category-parent.category-active');
+    }
+
+    function getActiveChild() {
+      return menuCategories.querySelector('.category-child.category-active');
+    }
+
+    function applySuppression(hoverTarget) {
+      clearSuppressed();
+      if (!hoverTarget) return;
+
+      const activeParent = getActiveParent();
+      const activeChild = getActiveChild();
+
+      if (hoverTarget.classList.contains('category-child')) {
+        const hoveredGroup = hoverTarget.closest('.category-group');
+        const activeParentGroup = activeParent ? activeParent.closest('.category-group') : null;
+
+        if (activeChild && activeChild !== hoverTarget) {
+          suppress(activeChild);
+        }
+
+        if (activeParent && activeParentGroup && activeParentGroup !== hoveredGroup) {
+          suppress(activeParent);
+        }
+
+        return;
+      }
+
+      if (hoverTarget.classList.contains('category-parent')) {
+        if (activeParent && activeParent !== hoverTarget) {
+          suppress(activeParent);
+        }
+
+        if (activeChild) {
+          suppress(activeChild);
+        }
+      }
+    }
+
+    menuCategories.addEventListener('pointerover', (event) => {
+      const hoverTarget = event.target.closest('.category-parent, .category-child');
+      if (!hoverTarget || !menuCategories.contains(hoverTarget)) return;
+      applySuppression(hoverTarget);
+    });
+
+    menuCategories.addEventListener('pointerleave', () => {
+      clearSuppressed();
+    });
+
+    menuCategories.addEventListener('focusin', (event) => {
+      const hoverTarget = event.target.closest('.category-parent, .category-child');
+      if (!hoverTarget || !menuCategories.contains(hoverTarget)) return;
+      applySuppression(hoverTarget);
+    });
+
+    menuCategories.addEventListener('focusout', () => {
+      window.requestAnimationFrame(() => {
+        const activeElement = document.activeElement;
+        const focusTarget = activeElement && activeElement.closest
+          ? activeElement.closest('.category-parent, .category-child')
+          : null;
+
+        if (focusTarget && menuCategories.contains(focusTarget)) {
+          applySuppression(focusTarget);
+          return;
+        }
+
+        clearSuppressed();
+      });
+    });
   }
 
   if (document.readyState === 'loading') {

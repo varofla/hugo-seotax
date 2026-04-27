@@ -21,6 +21,7 @@ $hint-colors: (
   --color-link: #0055bb;
   --color-visited-link: #5500bb;
   --color-page-link: #adb5bd;
+  --color-disabled-link: #94a3b8;
   --color-social-link: #fff;
   --link-background: rgba(0, 85, 187, 0.1);
 
@@ -38,33 +39,4 @@ $hint-colors: (
   --data-tbody-odd: rgba(248, 249, 250, 0.5);
   --data-tbody-even: rgba(0, 0, 0, 0.1);
   --data-tbody-hover: rgba(233, 236, 239, 0.8);
-}
-
-@mixin theme-dark {
-  --gray-100: #23272a;
-  --gray-200: #2d3339;
-  --gray-300: #3d444a;
-  --gray-500: #6c757d;
-  --gray-800: #adb5bd;
-
-  --color-link: #8ecfff;
-  --color-visited-link: #a7aaff;
-  --color-page-link: black;
-  --color-disabled-link: #222;
-  --link-background: rgba(0, 85, 187, 0.1);
-
-  --body-background: #181a1b;
-  --body-font-color: #f5f6fa;
-
-  --toc-font-color: #acacac;
-  --toc-active-color: white;
-
-  --icon-filter: brightness(0) invert(1);
-  --box-shadow: rgba(255, 255, 255, 0.1);
-  --lineno-font-color: rgba(255, 255, 255, 0.5);
-
-  --data-thead-color: #2d3748;
-  --data-tbody-odd: rgba(0, 0, 0, 0.2);
-  --data-tbody-even: rgba(52, 58, 64, 0.3);
-  --data-tbody-hover: rgba(73, 80, 87, 0.5);
 }

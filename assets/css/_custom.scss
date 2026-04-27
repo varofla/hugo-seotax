@@ -1,0 +1,334 @@
+.site-menu .menu-content {
+  padding: 0;
+  background:
+    radial-gradient(circle at top right, rgba(0, 119, 181, 0.08), transparent 28%),
+    linear-gradient(180deg, #f8fbff 0%, #f4f7fb 100%);
+  border-right: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.menu-panel {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-panel-top {
+  padding: 1.75rem 1.25rem 1.25rem;
+  border-bottom: 1px solid oklch(0.92 0.005 200);
+}
+
+.menu-panel-search {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.menu-panel-body {
+  flex: 1;
+  padding: 0.5rem 0 1.25rem;
+}
+
+.menu-profile {
+  margin-bottom: 0;
+}
+
+.menu-brand {
+  display: block;
+  color: var(--body-font-color);
+}
+
+.menu-brand:hover {
+  opacity: 1;
+}
+
+.menu-brand-copy {
+  min-width: 0;
+}
+
+.profile-image-wrap {
+  display: none;
+}
+
+.profile-image-wrap .profile-image {
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.profile-title {
+  margin: 0;
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  line-height: 1.2;
+}
+
+.profile-title span {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: oklch(0.14 0.005 220);
+}
+
+.profile-title img,
+.profile-title > img {
+  display: inline-flex;
+}
+
+.menu-subtitle {
+  display: block;
+  margin-top: 0.1875rem;
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 0.6875rem;
+  letter-spacing: 0.01em;
+  color: oklch(0.5 0.008 220);
+}
+
+.menu-links {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  width: 100%;
+  margin: 0;
+  padding-top: 0.875rem;
+}
+
+.menu-links a,
+.menu-links button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 1.95rem;
+  height: 1.95rem;
+  margin: 0;
+  padding: 0.3125rem 0.4375rem;
+  border-radius: 0.625rem;
+  border: 1px solid oklch(0.92 0.005 200);
+  background: transparent;
+  color: oklch(0.5 0.008 220);
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.menu-links a:hover,
+.menu-links button:hover {
+  opacity: 1;
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(148, 163, 184, 0.9);
+  transform: translateY(-1px);
+}
+
+.menu-links a i,
+.menu-links button i {
+  font-size: 1rem;
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-links a svg,
+.menu-links button svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: currentColor;
+  flex: 0 0 auto;
+}
+
+.menu-link-icon {
+  width: 1.95rem;
+}
+
+.menu-link-pill {
+  min-width: auto;
+  height: 2rem;
+  padding: 0.3125rem 0.875rem;
+  border-radius: 999px;
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border-width: 1.5px;
+}
+
+.menu-links .menu-link-pill-about {
+  display: inline-flex;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-inline: 0.9rem;
+  font-size: 11px;
+  justify-content: center;
+  width: auto;
+}
+
+.menu-link-pill-about span {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.menu-search {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0.1rem 0 0;
+  padding: 0.72rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.menu-search .search-icon,
+.menu-search .search-placeholder,
+.menu-search code {
+  color: #94a3b8;
+}
+
+.menu-search:hover {
+  opacity: 1;
+  border-color: rgba(14, 116, 144, 0.24);
+}
+
+.menu-languages,
+.menu-categories,
+.recent-posts {
+  margin: 0;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.menu-languages {
+  padding: 0.6rem 1rem 0;
+}
+
+.menu-languages .languages-toggle,
+.menu-languages li a {
+  border-radius: 0.9rem;
+  padding: 0.65rem 0.8rem;
+}
+
+.menu-languages .languages-toggle:hover,
+.menu-languages li:hover {
+  background: rgba(226, 232, 240, 0.7);
+}
+
+.menu-categories {
+  padding: 0.45rem 0;
+}
+
+.menu-categories .categories-toggle,
+.menu-categories .categories-label,
+.recent-post-item a {
+  border-radius: 0;
+}
+
+.menu-categories .categories-toggle,
+.menu-categories .categories-label a,
+.recent-post-item a {
+  min-height: 2.35rem;
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+  padding-left: 1.15rem;
+  padding-right: 1rem;
+}
+
+.menu-categories > .categories-toggle {
+  margin-bottom: 0.25rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.menu-categories > ul,
+.menu-categories ul ul {
+  padding-inline-start: 0;
+}
+
+.menu-categories li > .categories-toggle,
+.menu-categories li.categories-label {
+  position: relative;
+}
+
+.menu-categories li > .categories-toggle::before,
+.menu-categories li.categories-label::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.menu-categories .categories-root,
+.menu-categories .categories-leaf,
+.menu-categories .categories-label a {
+  gap: 0.55rem;
+  color: #0f172a;
+}
+
+.menu-categories .category-count {
+  margin-left: auto;
+  font-size: 0.74rem;
+  color: #94a3b8;
+}
+
+.menu-categories .categories-label:hover,
+.recent-post-item a:hover {
+  opacity: 1;
+  background: rgba(226, 232, 240, 0.56);
+}
+
+.menu-categories .category-active,
+.menu-categories .category-active a {
+  color: #0f766e;
+  background: rgba(222, 247, 241, 0.95);
+}
+
+.menu-categories .category-active::before {
+  background: #0f766e;
+}
+
+.menu-categories .categories-arrow {
+  color: #94a3b8;
+}
+
+.recent-posts {
+  padding-top: 0.65rem;
+}
+
+.recent-post-label {
+  padding: 0.55rem 1.15rem;
+  margin: 0 0 0.15rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.recent-post-item a {
+  padding-right: 1.15rem;
+}
+
+.recent-post-title {
+  color: #1e293b;
+}
+
+.recent-post-date {
+  color: #94a3b8;
+}
+
+@media screen and (max-width: breakpoint(menu)) {
+  .site-menu .menu-content {
+    box-shadow: 24px 0 60px rgba(15, 23, 42, 0.18);
+  }
+}

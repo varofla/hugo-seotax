@@ -1,18 +1,30 @@
+{{- $host := replaceRE "^https?://([^/]+)/?.*$" "$1" .Site.BaseURL -}}
+{{- $author := .Site.Params.author | default "" -}}
 <div class="menu-profile">
-  {{- with site.Params.menu.profileImage -}}
-  <div class="profile-image-wrap">
-    <a href="{{ $.Site.BaseURL }}">
+  <a class="menu-brand" href="{{ .Site.BaseURL }}">
+    {{- with site.Params.menu.profileImage -}}
+    <span class="profile-image-wrap">
       <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="Profile" class="profile-image" decoding="async" />
-    </a>
-  </div>
-  {{- end -}}
+    </span>
+    {{- end -}}
 
-  <h2 class="profile-title">
-    <a class="flex align-center" href="{{ .Site.BaseURL }}">
-      {{- with .Site.Params.menu.logoImage -}}
-        <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="Logo" />
+    <div class="menu-brand-copy">
+      <h2 class="profile-title">
+        {{- with .Site.Params.menu.logoImage -}}
+          <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="Logo" />
+        {{- end -}}
+        <span>{{ .Site.Params.Menu.Title }}</span>
+      </h2>
+
+      {{- if or $author $host -}}
+      <span class="menu-subtitle">
+        {{- if and $author $host -}}
+          {{ printf "%v · %s" $author $host }}
+        {{- else -}}
+          {{ $author | default $host }}
+        {{- end -}}
+      </span>
       {{- end -}}
-      <span>{{ .Site.Params.Menu.Title }}</span>
-    </a>
-  </h2>
+    </div>
+  </a>
 </div>

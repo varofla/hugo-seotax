@@ -1,11 +1,10 @@
 /**
  * Highlight.js Theme - CSS Variables
- * xcode (Light) + vs2015 (Dark)
+ * xcode (Light)
  */
 
-/* Light Theme (xcode) */
 /* https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/xcode.min.css */
-[data-theme="light"] {
+:root {
   --hljs-background: #fff;
   --hljs-color: #000;
   --hljs-comment: #007400;
@@ -41,46 +40,6 @@
   --hljs-addition-bg: #baeeba;
   --hljs-deletion-bg: #ffc8bd;
   --hljs-xml-meta: silver;
-}
-
-/* Dark Theme (vs2015) */
-/* https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/vs2015.min.css */
-[data-theme="dark"] {
-  --hljs-background: #1e1e1e;
-  --hljs-color: #dcdcdc;
-  --hljs-comment: #57a64a;
-  --hljs-quote: #57a64a;
-  --hljs-keyword: #569cd6;
-  --hljs-literal: #569cd6;
-  --hljs-name: #569cd6;
-  --hljs-selector-tag: #d7ba7d;
-  --hljs-tag: #9b9b9b;
-  --hljs-string: #d69d85;
-  --hljs-code: #d69d85;
-  --hljs-meta-string: #d69d85;
-  --hljs-number: #b8d7a3;
-  --hljs-bullet: #d7ba7d;
-  --hljs-symbol: #569cd6;
-  --hljs-title: #dcdcdc;
-  --hljs-meta: #9b9b9b;
-  --hljs-section: gold;
-  --hljs-built_in: #4ec9b0;
-  --hljs-class-title: #b8d7a3;
-  --hljs-params: #dcdcdc;
-  --hljs-type: #4ec9b0;
-  --hljs-attr: #9cdcfe;
-  --hljs-attribute: #9cdcfe;
-  --hljs-variable: #bd63c5;
-  --hljs-template-variable: #bd63c5;
-  --hljs-link: #569cd6;
-  --hljs-regexp: #9a5334;
-  --hljs-selector-class: #d7ba7d;
-  --hljs-selector-id: #d7ba7d;
-  --hljs-subst: #dcdcdc;
-  --hljs-formula-bg: transparent;
-  --hljs-addition-bg: #144212;
-  --hljs-deletion-bg: #600;
-  --hljs-xml-meta: #9b9b9b;
 }
 
 /* Base Styles */

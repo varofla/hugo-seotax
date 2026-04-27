@@ -16,9 +16,8 @@ https://github.com/minyeamer/hugo-miny
 <meta name="keywords" content="{{ partial `meta/keywords.html` . }}">
 <meta name="description" content="{{ partial `meta/description.html` . }}">
 
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
-<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff">
+<meta name="color-scheme" content="light">
 
 {{- /* Favicons */ -}}
 {{- partial "meta/favicons.html" . }}
@@ -34,18 +33,6 @@ https://github.com/minyeamer/hugo-miny
 
 {{- /* SEO: Schema.org JSON-LD */ -}}
 {{- partial "meta/seo/schema_json.html" . }}
-
-{{- /* Prevents menu flash by applying stored state before rendering */ -}}
-<script>
-(function() {
-  const menuBreakpoint = 256 + 768 * 1.3;
-  if (window.innerWidth > menuBreakpoint) {
-    if (localStorage.getItem('menu-expanded') === 'false') {
-      document.documentElement.classList.add('menu-initial-collapsed');
-    }
-  }
-})();
-</script>
 
 <title>{{- partial "title" . -}}</title>
 
@@ -170,10 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- ToC Toggle -->
 {{- $tocToggleJS := resources.Get "js/partials/toc-toggle.js" | resources.ExecuteAsTemplate "js/partials/toc-toggle.js" . | resources.Minify | resources.Fingerprint }}
 <script defer src="{{ partial `links/resource-precache` $tocToggleJS }}" {{ template `integrity` $tocToggleJS }}></script>
-
-<!-- Set color scheme - toggle dark/light theme -->
-{{- $setThemeJS := resources.Get "js/core/set-theme.js" | resources.ExecuteAsTemplate "js/core/set-theme.js" . | resources.Minify | resources.Fingerprint }}
-<script defer src="{{ partial `links/resource-precache` $setThemeJS }}" {{ template `integrity` $setThemeJS }}></script>
 
 <!-- Code Copy -->
 {{- $copyCodeJS := resources.Get "js/shortcodes/copy-code.js" | resources.ExecuteAsTemplate "js/shortcodes/copy-code.js" . | resources.Minify | resources.Fingerprint }}

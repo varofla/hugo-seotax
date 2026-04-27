@@ -194,19 +194,6 @@ nav ul {
 
 /* Menu */
 
-.menu-initial-collapsed {
-  .site-menu {
-    width: 0 !important;
-    opacity: 0 !important;
-    overflow: hidden !important;
-    transition: none !important;
-  }
-  .menu-display-button {
-    display: block !important;
-    transition: none !important;
-  }
-}
-
 .site-menu {
   width: $menu-width;
   flex-shrink: 0;
@@ -237,19 +224,6 @@ nav ul {
     visibility: hidden;
     margin-inline-start: -$menu-width;
   }
-
-  &.menu-hidden {
-    @media screen and (min-width: breakpoint(menu)) {
-      width: 0;
-      opacity: 0;
-      overflow: hidden;
-    }
-
-    @media screen and (max-width: breakpoint(menu)) {
-      transform: translateX(-$menu-width);
-    }
-  }
-
   .menu-content {
     width: $menu-width;
     padding: space(32) space(16);
@@ -266,24 +240,6 @@ nav ul {
       @include fixed;
     }
   }
-
-  .menu-toggle-button {
-    position: absolute;
-    top: space(16);
-    right: space(16);
-    background: transparent;
-    border: none;
-    color: var(--body-font-color);
-    padding: space(8);
-    cursor: pointer;
-    z-index: z-index(content);
-    display: block;
-
-    i {
-      font-size: font-size(16);
-    }
-  }
-
   a, label {
     color: inherit;
     word-wrap: break-word;
@@ -311,42 +267,6 @@ nav ul {
     + ul {
       display: block;
     }
-  }
-}
-
-.menu-display-button {
-  position: fixed;
-  top: space(16);
-  left: space(16);
-  background: transparent;
-  border: none;
-  margin: space(12);
-  cursor: pointer;
-  z-index: z-index(menu-button);
-  width: 2.5rem;
-  height: 2.5rem;
-  display: none;
-  box-shadow: none;
-
-  &:hover {
-    background: var(--gray-200);
-    transform: scale(1.1);
-  }
-
-  i {
-    font-size: font-size(20);
-  }
-
-  // Hide on mobile
-  @media screen and (max-width: breakpoint(menu)) {
-    display: none;
-  }
-}
-
-// Show button on desktop when menu is hidden
-@media screen and (min-width: breakpoint(menu)) {
-  .site-menu.menu-hidden ~ .menu-display-button {
-    display: block;
   }
 }
 
@@ -433,20 +353,6 @@ body[dir="rtl"] .site-menu {
   button {
     margin: 0;
   }
-}
-
-.dark-mode-toggle {
-  margin-top: 1rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.5rem;
-  color: inherit;
-  transition: color 0.2s;
-}
-
-[data-theme="dark"] .dark-mode-toggle {
-  color: #ffe066;
 }
 
 .menu-languages {

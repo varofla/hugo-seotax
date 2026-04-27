@@ -429,15 +429,19 @@
     min-width: 0;
     margin-block: -0.4375rem;
     color: inherit;
+    line-height: 1.2;
     text-decoration: none;
   }
 
   .menu-categories .category-name {
+    display: flex;
+    align-items: center;
     flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: inherit;
   }
 
   .menu-categories .category-toggle,
@@ -483,6 +487,8 @@
   }
 
   .menu-categories .category-count {
+    display: inline-flex;
+    align-items: center;
     margin-left: auto;
     font-family: "DM Mono", monospace;
     font-size: 0.625rem;
@@ -540,6 +546,7 @@
     padding: 0.3125rem 0.625rem 0.3125rem 0.5rem;
     font-family: "Pretendard Variable", Pretendard, sans-serif;
     font-size: 0.75rem;
+    line-height: 1.2;
     color: var(--site-menu-text-muted);
     text-decoration: none;
   }

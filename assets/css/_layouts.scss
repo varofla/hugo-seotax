@@ -45,8 +45,12 @@ small {
   @extend .text-small;
 }
 
-:focus {
+:focus-visible {
   @include outline;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
 nav ul {
@@ -420,7 +424,7 @@ body[dir="rtl"] .site-menu {
   position: relative;
   z-index: z-index(base);
 
-  i.icon-file, i.icon-folder, i.icon-chevron-down, i.icon-chevron-up {
+  i.icon-file, i.icon-folder {
     font-size: font-size(16);
     transition: transform 0.2s ease;
     max-width: font-size(18);
@@ -430,15 +434,6 @@ body[dir="rtl"] .site-menu {
     display: flex;
     align-items: center;
     width: 100%;
-  }
-
-  .categories-toggle {
-    display: flex;
-    align-items: center;
-    padding: space(4) space(8);
-    min-height: 2.381rem;
-    font-weight: 500;
-    cursor: pointer;
   }
 
   .categories-label:hover {
@@ -452,20 +447,6 @@ body[dir="rtl"] .site-menu {
     white-space: nowrap;
     text-align: left;
     margin: 0;
-  }
-
-  // Toggle root category
-  #categories-control:checked + .categories-toggle .categories-arrow {
-    transform: rotate(180deg);
-  }
-
-  #categories-control:checked ~ .menu-categories {
-    max-height: 1000px;
-  }
-
-  // Toggle hierarchical categories
-  input[id^="cat-"]:checked + .categories-toggle .categories-arrow {
-    transform: rotate(180deg);
   }
 
   // Active category highlight

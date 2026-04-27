@@ -37,18 +37,17 @@
     const { category1, category2 } = getCurrentCategory();
     if (!category1) return;
 
-    // Expand and activate parent category
-    const parentLabel = document.querySelector(
-      `.categories-label[data-category1="${CSS.escape(category1)}"].categories-toggle`
+    // Open and activate the current parent category group.
+    const parentGroup = document.querySelector(
+      `.category-group[data-category1="${CSS.escape(category1)}"]`
     );
-    if (parentLabel) {
-      const checkboxId = parentLabel.getAttribute('for');
-      const checkbox = document.getElementById(checkboxId);
-      if (checkbox) checkbox.checked = true;
-      parentLabel.classList.add('category-active');
+    if (parentGroup) {
+      parentGroup.classList.add('category-open');
+      const parentRow = parentGroup.querySelector('.category-parent');
+      if (parentRow) parentRow.classList.add('category-active');
     }
 
-    // Activate child category item
+    // Activate the current child category item.
     if (category2) {
       const childItem = document.querySelector(
         `.categories-label[data-category1="${CSS.escape(category1)}"][data-category2="${CSS.escape(category2)}"]`

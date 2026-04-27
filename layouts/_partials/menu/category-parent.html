@@ -2,22 +2,32 @@
 {{- $category1Count := .category1Count -}}
 {{- $hasChildren := .hasChildren -}}
 {{- $isLeaf := .isLeaf -}}
+{{- $childrenId := .childrenId -}}
 <a
   href="{{ `search/` | relURL }}?category1={{ $category1 }}"
   class="categories-label category-row category-parent{{ if $isLeaf }} categories-leaf{{ end }} category-link"
   data-category-item="parent"
   data-category1="{{ $category1 }}">
   {{- if $hasChildren -}}
-  <span class="category-icon category-icon-closed" aria-hidden="true">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-    </svg>
-  </span>
-  <span class="category-icon category-icon-open" aria-hidden="true">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1"></path>
-      <path d="M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path>
-    </svg>
+  <span
+    class="category-toggle"
+    data-category-toggle
+    role="button"
+    tabindex="0"
+    aria-controls="{{ $childrenId }}"
+    aria-expanded="false"
+    aria-label="{{ $category1 }} 하위 카테고리 펼치기">
+    <span class="category-icon category-icon-closed" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+      </svg>
+    </span>
+    <span class="category-icon category-icon-open" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4l2 2h4a2 2 0 0 1 2 2v1"></path>
+        <path d="M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path>
+      </svg>
+    </span>
   </span>
   {{- else -}}
   <i class="icon-file" aria-hidden="true"></i>

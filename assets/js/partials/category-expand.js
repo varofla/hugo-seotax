@@ -6,6 +6,7 @@
     categoryGroup: '[data-category-group]',
     parentItem: '[data-category-item="parent"]',
     childItem: '[data-category-item="child"]',
+    categoryToggle: '[data-category-toggle]',
   };
 
   /**
@@ -52,6 +53,7 @@
       );
       if (parentGroup) {
         parentGroup.classList.add('is-open');
+        syncGroupToggleState(parentGroup);
         const parentRow = parentGroup.querySelector(SELECTORS.parentItem);
         if (parentRow) parentRow.classList.add('is-active');
       }
@@ -65,11 +67,66 @@
       if (childItem) childItem.classList.add('is-active');
     }
 
+    setupCategoryToggle(menuCategories);
     setupActiveHoverState(menuCategories);
+  }
+
+  function syncGroupToggleState(categoryGroup) {
+    const toggle = categoryGroup.querySelector(SELECTORS.categoryToggle);
+    if (!toggle) return;
+
+    const isOpen = categoryGroup.classList.contains('is-open');
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    toggle.setAttribute(
+      'aria-label',
+      `${categoryGroup.dataset.category1} 하위 카테고리 ${isOpen ? '접기' : '펼치기'}`
+    );
+  }
+
+  function toggleCategoryGroup(categoryGroup) {
+    categoryGroup.classList.toggle('is-open');
+    syncGroupToggleState(categoryGroup);
+  }
+
+  function setupCategoryToggle(menuCategories) {
+    menuCategories.querySelectorAll(SELECTORS.categoryGroup).forEach((categoryGroup) => {
+      syncGroupToggleState(categoryGroup);
+    });
+
+    menuCategories.addEventListener('click', (event) => {
+      const toggle = event.target.closest(SELECTORS.categoryToggle);
+      if (!toggle || !menuCategories.contains(toggle)) return;
+
+      const categoryGroup = toggle.closest(SELECTORS.categoryGroup);
+      if (!categoryGroup) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      toggleCategoryGroup(categoryGroup);
+
+      // Pointer clicks shouldn't leave the parent row in a persistent focus-within state.
+      if (typeof toggle.blur === 'function') {
+        toggle.blur();
+      }
+    });
+
+    menuCategories.addEventListener('keydown', (event) => {
+      const toggle = event.target.closest(SELECTORS.categoryToggle);
+      if (!toggle || !menuCategories.contains(toggle)) return;
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+
+      const categoryGroup = toggle.closest(SELECTORS.categoryGroup);
+      if (!categoryGroup) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      toggleCategoryGroup(categoryGroup);
+    });
   }
 
   function setupActiveHoverState(menuCategories) {
     let suppressedElements = [];
+    let linkedHoverParents = [];
 
     function clearSuppressed() {
       suppressedElements.forEach((element) => {
@@ -78,10 +135,23 @@
       suppressedElements = [];
     }
 
+    function clearLinkedHoverParents() {
+      linkedHoverParents.forEach((element) => {
+        element.classList.remove('is-hover-linked');
+      });
+      linkedHoverParents = [];
+    }
+
     function suppress(element) {
       if (!element || element.classList.contains('is-suppressed')) return;
       element.classList.add('is-suppressed');
       suppressedElements.push(element);
+    }
+
+    function linkHoverParent(element) {
+      if (!element || element.classList.contains('is-hover-linked')) return;
+      element.classList.add('is-hover-linked');
+      linkedHoverParents.push(element);
     }
 
     function getActiveParent() {
@@ -94,6 +164,7 @@
 
     function applySuppression(hoverTarget) {
       clearSuppressed();
+      clearLinkedHoverParents();
       if (!hoverTarget) return;
 
       const activeParent = getActiveParent();
@@ -102,9 +173,14 @@
       if (hoverTarget.matches(SELECTORS.childItem)) {
         const hoveredGroup = hoverTarget.closest(SELECTORS.categoryGroup);
         const activeParentGroup = activeParent ? activeParent.closest(SELECTORS.categoryGroup) : null;
+        const hoveredParent = hoveredGroup ? hoveredGroup.querySelector(SELECTORS.parentItem) : null;
 
         if (activeChild && activeChild !== hoverTarget) {
           suppress(activeChild);
+        }
+
+        if (hoveredParent) {
+          linkHoverParent(hoveredParent);
         }
 
         if (activeParent && activeParentGroup && activeParentGroup !== hoveredGroup) {
@@ -133,6 +209,7 @@
 
     menuCategories.addEventListener('pointerleave', () => {
       clearSuppressed();
+      clearLinkedHoverParents();
     });
 
     menuCategories.addEventListener('focusin', (event) => {
@@ -154,6 +231,7 @@
         }
 
         clearSuppressed();
+        clearLinkedHoverParents();
       });
     });
   }

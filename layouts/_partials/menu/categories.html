@@ -36,6 +36,7 @@
     {{ end }}
     {{/* Categories label for parent category */}}
     {{ $treeL2 := index $treeL1 $category1 }}
+    {{ $childrenId := printf "category-children-%s" (anchorize $category1) }}
     <li class="category-group{{ if not $treeL2 }} category-group-leaf{{ end }}" data-category-group data-category1="{{ $category1 }}">
       {{ if $treeL2 }}
       {{ partial "menu/category-parent" (dict
@@ -43,9 +44,10 @@
         "category1Count" $category1Count
         "hasChildren" true
         "isLeaf" false
+        "childrenId" $childrenId
       ) }}
       {{/* Categories list for child category */}}
-      <ul class="category-children" data-category-children>
+      <ul class="category-children" id="{{ $childrenId }}" data-category-children>
         {{ $category2Keys := partial "keys" $treeL2 }}
         {{ $category2Order := index $categoryOrderL2 $category1 | default (slice) }}
         {{ $sortedCategory2 := slice }}
@@ -85,6 +87,7 @@
         "category1Count" $category1Count
         "hasChildren" false
         "isLeaf" true
+        "childrenId" ""
       ) }}
       {{ end }}
     </li>

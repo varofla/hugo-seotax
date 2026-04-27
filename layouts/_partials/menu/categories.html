@@ -1,4 +1,4 @@
-<div class="menu-categories">
+<div class="menu-categories" data-menu-categories>
   <div class="menu-categories-label">
     <span data-i18n-id="categories.terms.title" data-i18n-text>
       {{- i18n "categories.terms.title" | default "Categories" -}}
@@ -9,7 +9,7 @@
   {{ $categoryOrderL1 := index $categoryOrder "level1" | default (slice) }}
   {{ $categoryOrderL2 := index $categoryOrder "level2" | default (dict) }}
   {{/* Categories list for parent category */}}
-  <ul>
+  <ul class="category-groups">
     {{ $treeL1 := partialCached "categories/tree" . "categories" }}
     {{ $category1Keys := partial "keys" $treeL1 }}
     {{ $sortedCategory1 := slice }}
@@ -38,25 +38,16 @@
     {{ end }}
     {{/* Categories label for parent category */}}
     {{ $treeL2 := index $treeL1 $category1 }}
-    <li class="category-group{{ if not $treeL2 }} category-group-leaf{{ end }}" data-category1="{{ $category1 }}">
+    <li class="category-group{{ if not $treeL2 }} category-group-leaf{{ end }}" data-category-group data-category1="{{ $category1 }}">
       {{ if $treeL2 }}
-      <a href="{{ `search/` | relURL }}?category1={{ $category1 }}" class="categories-label category-row category-parent category-link" data-category1="{{ $category1 }}">
-        <span class="category-icon category-icon-closed" aria-hidden="true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"></path>
-          </svg>
-        </span>
-        <span class="category-icon category-icon-open" aria-hidden="true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1"></path>
-            <path d="M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"></path>
-          </svg>
-        </span>
-        <span class="category-name">{{- $category1 -}}</span>
-        <span class="category-count">{{- $category1Count -}}</span>
-      </a>
+      {{ partial "menu/category-parent" (dict
+        "category1" $category1
+        "category1Count" $category1Count
+        "hasChildren" true
+        "isLeaf" false
+      ) }}
       {{/* Categories list for child category */}}
-      <ul>
+      <ul class="category-children" data-category-children>
         {{ $category2Keys := partial "keys" $treeL2 }}
         {{ $category2Order := index $categoryOrderL2 $category1 | default (slice) }}
         {{ $sortedCategory2 := slice }}
@@ -82,22 +73,21 @@
           {{ end }}
         {{ end }}
         {{/* Categories label for child category */}}
-        <li class="categories-label category-child" data-category1="{{ $category1 }}" data-category2="{{ $category2 }}">
-          <a href="{{ `search/` | relURL }}?category1={{ $category1 }}&category2={{ $category2 }}" class="category-link">
-            <i class="icon-file"></i>
-            <span class="category-name">{{- $category2 -}}</span>
-            <span class="category-count">{{- $category2Count -}}</span>
-          </a>
-        </li>
+        {{ partial "menu/category-child" (dict
+          "category1" $category1
+          "category2" $category2
+          "category2Count" $category2Count
+        ) }}
         {{ end }}
       </ul>
       {{ else }}
       {{/* Categories label for parent category if child categories not exist */}}
-      <a href="{{ `search/` | relURL }}?category1={{ $category1 }}" class="categories-label category-row category-parent categories-leaf category-link">
-        <i class="icon-file"></i>
-        <span class="category-name">{{- $category1 -}}</span>
-        <span class="category-count">{{- $category1Count -}}</span>
-      </a>
+      {{ partial "menu/category-parent" (dict
+        "category1" $category1
+        "category1Count" $category1Count
+        "hasChildren" false
+        "isLeaf" true
+      ) }}
       {{ end }}
     </li>
     {{ end }}

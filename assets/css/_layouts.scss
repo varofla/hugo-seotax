@@ -450,8 +450,8 @@ body[dir="rtl"] .site-menu {
   }
 
   // Active category highlight
-  .category-active,
-  .category-active a {
+  .is-active,
+  .is-active a {
     color: var(--color-link);
   }
 }

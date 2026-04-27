@@ -1,6 +1,13 @@
 (function() {
   'use strict';
 
+  const SELECTORS = {
+    menuCategories: '[data-menu-categories]',
+    categoryGroup: '[data-category-group]',
+    parentItem: '[data-category-item="parent"]',
+    childItem: '[data-category-item="child"]',
+  };
+
   /**
    * Get category1/category2 for the current page.
    * Checks URL search params first, then falls back to the post's category link.
@@ -35,27 +42,27 @@
 
   function initCategoryExpand() {
     const { category1, category2 } = getCurrentCategory();
-    const menuCategories = document.querySelector('.menu-categories');
+    const menuCategories = document.querySelector(SELECTORS.menuCategories);
     if (!menuCategories) return;
 
     // Open and activate the current parent category group.
     if (category1) {
-      const parentGroup = document.querySelector(
-        `.category-group[data-category1="${CSS.escape(category1)}"]`
+      const parentGroup = menuCategories.querySelector(
+        `${SELECTORS.categoryGroup}[data-category1="${CSS.escape(category1)}"]`
       );
       if (parentGroup) {
-        parentGroup.classList.add('category-open');
-        const parentRow = parentGroup.querySelector('.category-parent');
-        if (parentRow) parentRow.classList.add('category-active');
+        parentGroup.classList.add('is-open');
+        const parentRow = parentGroup.querySelector(SELECTORS.parentItem);
+        if (parentRow) parentRow.classList.add('is-active');
       }
     }
 
     // Activate the current child category item.
-    if (category2) {
-      const childItem = document.querySelector(
-        `.categories-label[data-category1="${CSS.escape(category1)}"][data-category2="${CSS.escape(category2)}"]`
+    if (category1 && category2) {
+      const childItem = menuCategories.querySelector(
+        `${SELECTORS.childItem}[data-category1="${CSS.escape(category1)}"][data-category2="${CSS.escape(category2)}"]`
       );
-      if (childItem) childItem.classList.add('category-active');
+      if (childItem) childItem.classList.add('is-active');
     }
 
     setupActiveHoverState(menuCategories);
@@ -66,23 +73,23 @@
 
     function clearSuppressed() {
       suppressedElements.forEach((element) => {
-        element.classList.remove('category-active-suppressed');
+        element.classList.remove('is-suppressed');
       });
       suppressedElements = [];
     }
 
     function suppress(element) {
-      if (!element || element.classList.contains('category-active-suppressed')) return;
-      element.classList.add('category-active-suppressed');
+      if (!element || element.classList.contains('is-suppressed')) return;
+      element.classList.add('is-suppressed');
       suppressedElements.push(element);
     }
 
     function getActiveParent() {
-      return menuCategories.querySelector('.category-parent.category-active');
+      return menuCategories.querySelector(`${SELECTORS.parentItem}.is-active`);
     }
 
     function getActiveChild() {
-      return menuCategories.querySelector('.category-child.category-active');
+      return menuCategories.querySelector(`${SELECTORS.childItem}.is-active`);
     }
 
     function applySuppression(hoverTarget) {
@@ -92,9 +99,9 @@
       const activeParent = getActiveParent();
       const activeChild = getActiveChild();
 
-      if (hoverTarget.classList.contains('category-child')) {
-        const hoveredGroup = hoverTarget.closest('.category-group');
-        const activeParentGroup = activeParent ? activeParent.closest('.category-group') : null;
+      if (hoverTarget.matches(SELECTORS.childItem)) {
+        const hoveredGroup = hoverTarget.closest(SELECTORS.categoryGroup);
+        const activeParentGroup = activeParent ? activeParent.closest(SELECTORS.categoryGroup) : null;
 
         if (activeChild && activeChild !== hoverTarget) {
           suppress(activeChild);
@@ -107,7 +114,7 @@
         return;
       }
 
-      if (hoverTarget.classList.contains('category-parent')) {
+      if (hoverTarget.matches(SELECTORS.parentItem)) {
         if (activeParent && activeParent !== hoverTarget) {
           suppress(activeParent);
         }
@@ -119,7 +126,7 @@
     }
 
     menuCategories.addEventListener('pointerover', (event) => {
-      const hoverTarget = event.target.closest('.category-parent, .category-child');
+      const hoverTarget = event.target.closest(`${SELECTORS.parentItem}, ${SELECTORS.childItem}`);
       if (!hoverTarget || !menuCategories.contains(hoverTarget)) return;
       applySuppression(hoverTarget);
     });
@@ -129,7 +136,7 @@
     });
 
     menuCategories.addEventListener('focusin', (event) => {
-      const hoverTarget = event.target.closest('.category-parent, .category-child');
+      const hoverTarget = event.target.closest(`${SELECTORS.parentItem}, ${SELECTORS.childItem}`);
       if (!hoverTarget || !menuCategories.contains(hoverTarget)) return;
       applySuppression(hoverTarget);
     });
@@ -138,7 +145,7 @@
       window.requestAnimationFrame(() => {
         const activeElement = document.activeElement;
         const focusTarget = activeElement && activeElement.closest
-          ? activeElement.closest('.category-parent, .category-child')
+          ? activeElement.closest(`${SELECTORS.parentItem}, ${SELECTORS.childItem}`)
           : null;
 
         if (focusTarget && menuCategories.contains(focusTarget)) {
@@ -152,7 +159,7 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initCategoryExpand);
+    document.addEventListener('DOMContentLoaded', initCategoryExpand, { once: true });
   } else {
     initCategoryExpand();
   }

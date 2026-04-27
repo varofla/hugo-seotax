@@ -1,15 +1,15 @@
-<nav class="menu-panel">
-  <div class="menu-panel-top">
+<nav class="menu-panel" data-sidebar>
+  <div class="menu-panel-top" data-sidebar-section="top">
     {{ partial "menu/profile" . }}
     {{ partial "menu/links" . }}
     {{/*  {{ partial "menu/languages" . }}  */}}
   </div>
 
-  <div class="menu-panel-search">
+  <div class="menu-panel-search" data-sidebar-section="search">
     {{ partial "menu/search-input" . }}
   </div>
 
-  <div class="menu-panel-body">
+  <div class="menu-panel-body" data-sidebar-section="body">
     {{ if default false .Site.Params.menu.categories }}
     {{ partial "menu/categories" . }}
     {{ end }}
@@ -19,14 +19,3 @@
     {{ end }}
   </div>
 </nav>
-
-<!-- Restore menu position as soon as possible to avoid flickering -->
-<script>
-(function() {
-  var menu = document.querySelector("aside .menu-content");
-  addEventListener("beforeunload", function(event) {
-    localStorage.setItem("menu.scrollTop", menu.scrollTop);
-  });
-  menu.scrollTop = localStorage.getItem("menu.scrollTop");
-})();
-</script>

@@ -1,0 +1,16 @@
+{{- $category1 := .category1 -}}
+{{- $category2 := .category2 -}}
+{{- $category2Count := .category2Count -}}
+<li
+  class="categories-label category-child"
+  data-category-item="child"
+  data-category1="{{ $category1 }}"
+  data-category2="{{ $category2 }}">
+  <a
+    href="{{ `search/` | relURL }}?category1={{ $category1 }}&category2={{ $category2 }}"
+    class="category-link">
+    <i class="icon-file" aria-hidden="true"></i>
+    <span class="category-name">{{- $category2 -}}</span>
+    <span class="category-count">{{- $category2Count -}}</span>
+  </a>
+</li>

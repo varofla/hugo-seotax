@@ -154,6 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
 {{- $menuToggleJS := resources.Get "js/partials/menu-toggle.js" | resources.ExecuteAsTemplate "js/partials/menu-toggle.js" . | resources.Minify | resources.Fingerprint }}
 <script defer src="{{ partial `links/resource-precache` $menuToggleJS }}" {{ template `integrity` $menuToggleJS }}></script>
 
+<!-- Menu State -->
+{{- $menuStateJS := resources.Get "js/partials/menu-state.js" | resources.ExecuteAsTemplate "js/partials/menu-state.js" . | resources.Minify | resources.Fingerprint }}
+<script defer src="{{ partial `links/resource-precache` $menuStateJS }}" {{ template `integrity` $menuStateJS }}></script>
+
 <!-- ToC Toggle -->
 {{- $tocToggleJS := resources.Get "js/partials/toc-toggle.js" | resources.ExecuteAsTemplate "js/partials/toc-toggle.js" . | resources.Minify | resources.Fingerprint }}
 <script defer src="{{ partial `links/resource-precache` $tocToggleJS }}" {{ template `integrity` $tocToggleJS }}></script>
@@ -161,10 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Code Copy -->
 {{- $copyCodeJS := resources.Get "js/shortcodes/copy-code.js" | resources.ExecuteAsTemplate "js/shortcodes/copy-code.js" . | resources.Minify | resources.Fingerprint }}
 <script defer src="{{ partial `links/resource-precache` $copyCodeJS }}" {{ template `integrity` $copyCodeJS }}></script>
-
-<!-- Category Expand -->
-{{- $categoryExpandJS := resources.Get "js/partials/category-expand.js" | resources.ExecuteAsTemplate "js/partials/category-expand.js" . | resources.Minify | resources.Fingerprint }}
-<script defer src="{{ partial `links/resource-precache` $categoryExpandJS }}" {{ template `integrity` $categoryExpandJS }}></script>
 
 <!-- ToC Highlight -->
 {{- $tocHighlightJS := resources.Get "js/partials/toc-highlight.js" | resources.ExecuteAsTemplate "js/partials/toc-highlight.js" . | resources.Minify | resources.Fingerprint }}

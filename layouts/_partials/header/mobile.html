@@ -1,10 +1,8 @@
 <div class="flex align-center justify-between">
   <label for="menu-control"
         class="menu-toggle-button"
-        aria-label="{{ i18n `menu.toggle.tooltip` | default `Toggle Menu` }}"
-        title="{{ i18n `menu.toggle.tooltip` | default `Toggle Menu` }}"
-        data-i18n-id="menu.toggle.tooltip"
-        data-i18n-attrs="aria-label,title">
+        aria-label="메뉴 접기/펼치기"
+        title="메뉴 접기/펼치기">
     <i class="icon-bars menu-icon" id="menu-icon"></i>
   </label>
 
@@ -13,9 +11,7 @@
         id="mobile-search-input"
         role="button"
         tabindex="0"
-        aria-label="{{ i18n `search.action.label` | default `Search` }}"
-        data-i18n-id="search.action.label"
-        data-i18n-attrs="aria-label">
+        aria-label="검색">
     <i class="icon-search search-icon"></i>
     <span class="mobile-title">{{ .Site.Title }}</span>
     <i class="mobile-title-pad"></i>
@@ -27,10 +23,8 @@
   {{ end }}
 
   <label for="toc-control"
-        aria-label="{{ i18n `toc.toggle.tooltip` | default `Toggle ToC` }}"
-        title="{{ i18n `toc.toggle.tooltip` | default `Toggle ToC` }}"
-        data-i18n-id="toc.toggle.tooltip"
-        data-i18n-attrs="aria-label,title">
+        aria-label="목차 접기/펼치기"
+        title="목차 접기/펼치기">
     {{ if partial "toc-show" . }}
     <i class="icon-list menu-icon" id="toc-icon"></i>
     {{ end }}

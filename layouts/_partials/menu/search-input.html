@@ -4,13 +4,10 @@
       data-hotkeys="s/"
       role="button"
       tabindex="0"
-      aria-label="{{ i18n `search.action.label` | default `Search` }}"
-      data-i18n-id="search.action.label"
-      data-i18n-attrs="aria-label">
+      aria-label="검색">
   <i class="icon-search search-icon"></i>
-  <span class="search-placeholder" data-i18n-id="search.input.label" data-i18n-text='{"`/`": "$code"}'>
-    {{ $searchText := i18n "search.input.label" | default "Press `/` to search" }}
-    {{ (replace $searchText "`/`" "<code>/</code>") | safeHTML }}
+  <span class="search-placeholder">
+    <code>/</code> 를 눌러 검색하세요
   </span>
 </div>
 {{ end }}

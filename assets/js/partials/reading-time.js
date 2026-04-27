@@ -2,18 +2,6 @@
   'use strict';
 
   /**
-   * Safely get translation for the given i18n id using the initial language.
-   * @param {string} id
-   * @param {string} [defaults='']
-   * @returns {string}
-   */
-  function translate(id, defaults = '') {
-    return (window.siteI18n && typeof window.siteI18n.translate === 'function')
-      ? window.siteI18n.translate(id, defaults)
-      : defaults;
-  }
-
-  /**
    * Estimates the reading time of a given element based on its content.
    * @param {HTMLElement} element - The content element to analyze
    * @returns {number} Estimated reading time in seconds
@@ -144,22 +132,13 @@
     const remainingSeconds = seconds % 60;
 
     const span = document.createElement('span');
-    let i18nData;
     if (hours > 0) {
-      i18nData = {id: 'reading.time.hour', params: `{"%h": ${hours}, "%m": ${minutes}}`};
-      const readFormat = translate(i18nData.id, '%h hr %m min read');
-      span.textContent = readFormat.replace('%h', hours).replace('%m', minutes);
+      span.textContent = `읽는데 ${hours}시간 ${minutes}분`;
     } else if (minutes > 0) {
-      i18nData = {id: 'reading.time.min', params: `{"%m": ${minutes}}`};
-      const readFormat = translate(i18nData.id, '%m min read');
-      span.textContent = readFormat.replace('%m', minutes);
+      span.textContent = `읽는데 ${minutes}분`;
     } else {
-      i18nData = {id: 'reading.time.sec', params: `{"%s": ${remainingSeconds}}`};
-      const readFormat = translate(i18nData.id, '%s sec read');
-      span.textContent = readFormat.replace('%s', remainingSeconds);
+      span.textContent = `읽는데 ${remainingSeconds}초`;
     }
-    span.dataset['i18nId'] = i18nData.id;
-    span.dataset['i18nText'] = i18nData.params;
     return span;
   }
 

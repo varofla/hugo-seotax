@@ -20,32 +20,21 @@ document.addEventListener('DOMContentLoaded', function() {
   const searchType = getSearchType(state);
   const STORAGE_KEY = 'search-filter-expanded';
 
-  const I18N = {
-    'search.action.label': '{{ i18n "search.action.label" | default "Search" }}',
-    'search.input.placeholder': '{{ i18n "search.input.placeholder" | default "Type here to search" }}',
-    'search.results.title': '{{ i18n "search.results.title" | default "Search results" }}',
-    'search.count.label': '{{ i18n "search.count.label" | default `%s results for "%q"` }}',
-    'search.tags.title': '{{ i18n "search.tags.title" | default `Search Tags` }}',
-    'list.count.label': '{{ i18n "list.count.label" | default "%s posts" }}',
-    'categories.parent.subtutle': '{{ i18n "categories.parent.subtutle" | default "Parent Category" }}',
-    'categories.child.subtutle': '{{ i18n "categories.child.subtutle" | default "Child Category" }}',
-    'tags.terms.title': '{{ i18n "tags.terms.title" | default "Tags" }}',
-    'tags.op.checkbox': '{{ i18n "tags.op.checkbox" | default "Match all" }}',
-    'search.filters.toggle': '{{ i18n "search.filters.toggle" | default "Advanced Filters" }}',
-    'post.prev.link': '{{ i18n "post.prev.link" | default "PREV" }}',
-    'post.next.link': '{{ i18n "post.next.link" | default "NEXT" }}'
+  const TEXT = {
+    searchAction: '검색',
+    searchInputPlaceholder: '검색어를 입력해주세요',
+    searchResultsTitle: '검색 결과',
+    searchCountLabel: '"%q" 검색 결과 %s',
+    searchTagsTitle: '검색 태그',
+    listCountLabel: '전체 글 %s',
+    categoriesParentSubtitle: '상위 카테고리',
+    categoriesChildSubtitle: '하위 카테고리',
+    tagsTermsTitle: '태그',
+    tagsOpCheckbox: '모두 일치',
+    searchFiltersToggle: '고급 필터',
+    postPrevLink: '이전',
+    postNextLink: '다음'
   };
-
-  /**
-   * Safely get translation for the given i18n id using the initial language.
-   * @param {string} id
-   * @returns {string}
-   */
-  function translate(id) {
-    return (window.siteI18n && typeof window.siteI18n.translate === 'function')
-      ? window.siteI18n.translate(id, I18N[id])
-      : I18N[id];
-  }
 
   /**
    * Create a DOM element with specified properties.
@@ -146,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.siteSearch.initTags()
       ]).then(() => {
         clearHeader();
-        createListHeader({i18nId: 'search.results.title', icon: 'icon-file-lines'}, 0, '');
+        createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-file-lines'}, 0, '');
         displayResults(new Set());
       });
       break;
@@ -247,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
   /**
    * Create header contents (title, icon, and result count)
    * and append to list header.
-   * @param {Object} titleInfo - {i18nId?:string, icon?:string, text?:string}
+   * @param {Object} titleInfo - {text:string, icon?:string}
    * @param {number} pageCount - The number of results
    * @param {string} [query=''] - Search query (optional)
    */
@@ -259,23 +248,13 @@ document.addEventListener('DOMContentLoaded', function() {
       title.appendChild(createElement('i', {className: `${titleInfo.icon}`}))
       title.appendChild(document.createTextNode(' '));
     }
-    if (titleInfo.i18nId) {
-      title.appendChild(createElement('span', {
-        text: translate(titleInfo.i18nId),
-        dataset: {i18nId: titleInfo.i18nId, i18nText: ''}
-      }));
-    } else {
-      title.appendChild(createElement('span', {text: titleInfo.text || ''}));
-    }
+    title.appendChild(createElement('span', {text: titleInfo.text || ''}));
     fragment.appendChild(title);
 
-    const subtitleI18nId = query ? 'search.count.label' : 'list.count.label';
-    const subtitleI18nParams = query ? `{"%q": "${query}", "%s": "$.list-count"}` : '{"%s": "$.list-count"}';
-    const countLabel = translate(subtitleI18nId);
+    const countLabel = query ? TEXT.searchCountLabel.replace('%q', query) : TEXT.listCountLabel;
     const listCount = `<em class="list-count">${pageCount}</em>`;
     fragment.appendChild(createElement('p', {
-      html: (query ? countLabel.replace('%q', query) : countLabel).replace('%s', listCount),
-      dataset: {i18nId: subtitleI18nId, i18nText: subtitleI18nParams}
+      html: countLabel.replace('%s', listCount)
     }));
 
     listHeader.appendChild(fragment);
@@ -284,18 +263,15 @@ document.addEventListener('DOMContentLoaded', function() {
   /**
    * Create a taxonomy section with category or tag chips
    * and append to list header.
-   * @param {string} i18nId - i18n Id for section label text
+   * @param {string} labelText - Section label text
    * @param {Object[]} taxonomies - Array of taxonomy objects to display
    */
-  function createTaxonomySection(i18nId, taxonomies) {
+  function createTaxonomySection(labelText, taxonomies) {
     const fragment = document.createDocumentFragment();
     const section = document.querySelector('#taxonomy-section');
     section.classList.remove('hidden');
 
-    const label = createElement('h2', {
-      text: translate(i18nId),
-      dataset: {i18nId: i18nId, i18nText: ''}
-    });
+    const label = createElement('h2', {text: labelText});
     const chips = createElement('div', {className: 'taxonomy-chips'});
     taxonomies.forEach(taxonomy => {
       chips.appendChild(createTaxonomyChip(taxonomy));
@@ -341,20 +317,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const queryIcon = createElement('i', {className: 'icon-search search-query-icon'});
     inputWrapper.appendChild(queryIcon);
 
-    const placeholder = translate('search.input.placeholder');
     const queryInput = createElement('input', {
       id: 'search-query-input',
       className: 'search-query-input',
-      attrs: {type: 'text', maxLength: 64, placeholder: placeholder, value: queryValue},
-      dataset: {i18nId: 'search.input.placeholder', i18nAttrs: 'placeholder'}
+      attrs: {type: 'text', maxLength: 64, placeholder: TEXT.searchInputPlaceholder, value: queryValue}
     });
     inputWrapper.appendChild(queryInput);
 
     const queryButton = createElement('button', {
       className: 'search-query-button',
-      text: translate('search.action.label'),
-      attrs: {type: 'button'},
-      dataset: {i18nId: 'search.action.label', i18nText: ''}
+      text: TEXT.searchAction,
+      attrs: {type: 'button'}
     });
     inputWrapper.appendChild(queryButton);
     queryRow.appendChild(inputWrapper);
@@ -362,10 +335,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const toggleButton = createElement('button', {className: 'search-filter-toggle', attrs: {type: 'button'}});
     toggleButton.appendChild(createElement('i', {className: 'icon-caret-up'}))
     toggleButton.appendChild(document.createTextNode(' '));
-    toggleButton.appendChild(createElement('span', {
-      text: translate('search.filters.toggle'),
-      dataset: {i18nId: 'search.filters.toggle', i18nText: ''}
-    }))
+    toggleButton.appendChild(createElement('span', {text: TEXT.searchFiltersToggle}))
     queryRow.appendChild(toggleButton);
 
     return queryRow;
@@ -402,14 +372,12 @@ document.addEventListener('DOMContentLoaded', function() {
    */
   function createCategoryFilter(type, disabled = false) {
     const isCategory2 = (type === 'category2');
-    const i18nId = isCategory2 ? 'categories.child.subtutle' : 'categories.parent.subtutle';
-    const filterLabel = translate(i18nId);
+    const filterLabel = isCategory2 ? TEXT.categoriesChildSubtitle : TEXT.categoriesParentSubtitle;
 
     const taxonomyFilter = createElement('div', {className: 'taxonomy-filter'});
     taxonomyFilter.appendChild(createElement('label', {
       text: filterLabel,
-      attrs: {for: `filter-${type}`},
-      dataset: {i18nId: i18nId, i18nText: ''}
+      attrs: {for: `filter-${type}`}
     }));
 
     const inputWrapper = createElement('div', {className: 'taxonomy-input-wrapper'});
@@ -417,8 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const input = createElement('input', {
       id: `filter-${type}`,
       className: 'search-filter-input',
-      attrs: {type: 'text', placeholder: filterLabel, autocomplete: 'off'},
-      dataset: {i18nId: i18nId, i18nAttrs: 'placeholder'}
+      attrs: {type: 'text', placeholder: filterLabel, autocomplete: 'off'}
     });
     if (disabled) input.disabled = true;
     inputWrapper.appendChild(input);
@@ -447,11 +414,10 @@ document.addEventListener('DOMContentLoaded', function() {
   function createTagsFilter() {
     const taxonomyFilter = createElement('div', {className: 'taxonomy-filter taxonomy-filter-wide'});
 
-    const filterLabel = translate('tags.terms.title');
+    const filterLabel = TEXT.tagsTermsTitle;
     taxonomyFilter.appendChild(createElement('label', {
       text: filterLabel,
-      attrs: {for: 'filter-tags'},
-      dataset: {i18nId: 'tags.terms.title', i18nText: ''}
+      attrs: {for: 'filter-tags'}
     }));
 
     const inputWrapper = createElement('div', {className: 'taxonomy-input-wrapper'});
@@ -459,8 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const input = createElement('input', {
       id: 'filter-tags',
       className: 'search-filter-input',
-      attrs: {type: 'text', placeholder: filterLabel, autocomplete: 'off'},
-      dataset: {i18nId: 'tags.terms.title', i18nAttrs: 'placeholder'}
+      attrs: {type: 'text', placeholder: filterLabel, autocomplete: 'off'}
     });
     inputWrapper.appendChild(input);
 
@@ -497,8 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
     label.appendChild(checkbox);
 
     label.appendChild(createElement('span', {
-      text: translate('tags.op.checkbox'),
-      dataset: {i18nId: 'tags.op.checkbox', i18nText: ''}
+      text: TEXT.tagsOpCheckbox
     }));
 
     taxonomyFilter.appendChild(label);
@@ -1081,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (appendHeader) {
       clearHeader();
-      createListHeader({i18nId: 'search.results.title', icon: 'icon-file-text'}, searchPosts.size, state.query);
+      createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-file-text'}, searchPosts.size, state.query);
       createSearchFilter(searchPosts);
     }
 
@@ -1114,7 +1078,7 @@ document.addEventListener('DOMContentLoaded', function() {
           pageCount: category1[key]['ids'].length,
         }));
       if (taxonomies.length > 0) {
-        createTaxonomySection('categories.child.subtutle', taxonomies);
+        createTaxonomySection(TEXT.categoriesChildSubtitle, taxonomies);
       }
     }
 
@@ -1149,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', function() {
           href: `${SEARCH_PATH}?category1=${category1Name}`,
           pageCount: category1['A']['ids'].length,
         };
-        createTaxonomySection('categories.parent.subtutle', [taxonomy]);
+        createTaxonomySection(TEXT.categoriesParentSubtitle, [taxonomy]);
       }
     }
 
@@ -1191,7 +1155,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (hasSingleTag) {
         createListHeader({text: tagNames[0], icon: 'icon-tag'}, tagPosts.size);
       } else {
-        createListHeader({i18nId: 'search.results.title', icon: 'icon-tags'}, tagPosts.size);
+        createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-tags'}, tagPosts.size);
       }
       createSearchFilter(tagPosts, 'false');
 
@@ -1204,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', function() {
             pageCount: tags[tag.toLowerCase()]['ids'].length,
           }));
         if (taxonomies.length > 0) {
-          createTaxonomySection('search.tags.title', taxonomies);
+          createTaxonomySection(TEXT.searchTagsTitle, taxonomies);
         }
       }
     }
@@ -1239,7 +1203,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (appendHeader) {
       clearHeader();
-      createListHeader({i18nId: 'search.results.title', icon: 'icon-file-text'}, searchPosts.size, state.query);
+      createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-file-text'}, searchPosts.size, state.query);
       createSearchFilter(searchPosts);
     }
 
@@ -1352,10 +1316,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       nav.appendChild(createElement('i', {className: 'icon-backward'}));
       nav.appendChild(document.createTextNode(' '));
-      nav.appendChild(createElement('span', {
-        text: translate('post.prev.link'),
-        dataset: {i18nId: 'post.prev.link', i18nText: ''}
-      }));
+      nav.appendChild(createElement('span', {text: TEXT.postPrevLink}));
       fragment.appendChild(nav);
     })();
 
@@ -1386,10 +1347,7 @@ document.addEventListener('DOMContentLoaded', function() {
       } else {
         nav = createElement('span', {className: 'pagination-nav disabled'});
       }
-      nav.appendChild(createElement('span', {
-        text: translate('post.next.link'),
-        dataset: {i18nId: 'post.next.link', i18nText: ''}
-      }));
+      nav.appendChild(createElement('span', {text: TEXT.postNextLink}));
       nav.appendChild(document.createTextNode(' '));
       nav.appendChild(createElement('i', {className: 'icon-forward'}));
       fragment.appendChild(nav);

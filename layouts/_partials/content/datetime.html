@@ -12,7 +12,7 @@
     {{- $imageMinutes := div $numImages 6 -}}
     {{- $totalMinutes := add $textMinutes (add $codeMinutes $imageMinutes) -}}
     {{- if lt $totalMinutes 1 -}}{{ $totalMinutes = 1 }}{{- end -}}
-    {{ replace (i18n "reading.time.min" | default "%m min read") "%m" $totalMinutes }}
+    {{ replace "읽는데 %m분" "%m" $totalMinutes }}
   </span>
 </div>
 {{ end }}

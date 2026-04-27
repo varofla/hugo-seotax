@@ -1,18 +1,6 @@
 (function() {
   'use strict';
 
-  /**
-   * Safely get translation for the given i18n id using the initial language.
-   * @param {string} id
-   * @param {string} [defaults='']
-   * @returns {string}
-   */
-  function translate(id, defaults = '') {
-    return (window.siteI18n && typeof window.siteI18n.translate === 'function')
-      ? window.siteI18n.translate(id, defaults)
-      : defaults;
-  }
-
   const tocBreakpoint = 256 + 768 * 1.1 + 256;
   let scrollPosition = 0;
 
@@ -60,13 +48,11 @@
     const tocContent = document.querySelector('.site-toc .toc-content');
     if (tocContent) {
       const tocToggleButton = document.createElement('button');
-      const tocToggleLabel = translate('toc.toggle.tooltip', 'Toggle ToC');
+      const tocToggleLabel = '목차 접기/펼치기';
       tocToggleButton.className = 'toc-toggle-button';
       tocToggleButton.innerHTML = '<i class="icon-xmark"></i>';
       tocToggleButton.setAttribute('aria-label', tocToggleLabel);
       tocToggleButton.setAttribute('title', tocToggleLabel);
-      tocToggleButton.dataset['i18nId'] = 'toc.toggle.tooltip';
-      tocToggleButton.dataset['i18nAttrs'] = 'aria-label,title';
       tocToggleButton.addEventListener('click', (e) => {
         e.preventDefault();
         toggleToC();

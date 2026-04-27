@@ -2,24 +2,12 @@
   'use strict';
 
   const SEARCH_PATH = '{{ "search/" | relURL }}';
-
-  const I18N = {
-    'search.action.label': '{{ i18n "search.action.label" | default "Search" }}',
-    'search.close.tooltip': '{{ i18n "search.close.tooltip" | default "Close" }}',
-    'search.input.placeholder': '{{ i18n "search.input.placeholder" | default "Type here to search" }}',
-    'search.more.label': '{{ i18n "search.more.label" | default "See all %d results" }}'
+  const TEXT = {
+    searchAction: '검색',
+    searchClose: '닫기',
+    searchPlaceholder: '검색어를 입력해주세요',
+    searchMore: '전체 %d개 결과 보기'
   };
-
-  /**
-   * Safely get translation for the given i18n id using the initial language.
-   * @param {string} id
-   * @returns {string}
-   */
-  function translate(id) {
-    return (window.siteI18n && typeof window.siteI18n.translate === 'function')
-      ? window.siteI18n.translate(id, I18N[id])
-      : I18N[id];
-  }
 
   /**
    * Create a DOM element with specified properties.
@@ -150,16 +138,14 @@
 
     const modalTitle = createElement('h3', {
       className: 'search-modal-title',
-      text: translate('search.action.label'),
-      dataset: {i18nId: 'search.action.label', i18nText: ''}
+      text: TEXT.searchAction
     });
     modalHeader.appendChild(modalTitle);
 
     const closeButton = createElement('button', {
       className: 'search-modal-close',
       html: '<i class="icon-xmark"></i>',
-      attrs: {'aria-label': translate('search.close.tooltip')},
-      dataset: {i18nId: 'search.close.tooltip', i18nAttrs: 'aria-label'}
+      attrs: {'aria-label': TEXT.searchClose}
     });
     closeButton.addEventListener('click', closeSearchModal);
     modalHeader.appendChild(closeButton);
@@ -169,12 +155,10 @@
     // Create modal search input
     const modalInputContainer = createElement('div', {className: 'search-modal-input-container'});
 
-    const placeholder = translate('search.input.placeholder');
     modalSearchInput = createElement('input', {
       className: 'search-modal-input',
       id: 'search-modal-input',
-      attrs: {type: 'text', maxLength: 64,placeholder: placeholder},
-      dataset: {i18nId: 'search.input.placeholder', i18nAttrs: 'placeholder'}
+      attrs: {type: 'text', maxLength: 64, placeholder: TEXT.searchPlaceholder}
     });
     modalSearchInput.addEventListener('keyup', displayPreview);
     modalSearchInput.addEventListener('keydown', (e) => {
@@ -191,8 +175,7 @@
     const modalSearchButton = createElement('button', {
       className: 'search-modal-button',
       html: '<i class="icon-search"></i>',
-      attrs: {'aria-label': translate('search.action.label')},
-      dataset: {i18nId: 'search.action.label', i18nAttrs: 'aria-label'}
+      attrs: {'aria-label': TEXT.searchAction}
     });
     modalSearchButton.addEventListener('click', () => {
       window.location.href = SEARCH_PATH + '?query=' + encodeURIComponent(modalSearchInput.value.trim());
@@ -318,11 +301,9 @@
       modalFooter.innerHTML = '';
 
       const moreDiv = createElement('div', {className: 'search-more'});
-      const moreLabel = translate('search.more.label');
       const a = createElement('a', {
-        text: moreLabel.replace('%d', searchHits.length),
-        attrs: {href: `${SEARCH_PATH}?query=${encodeURIComponent(modalSearchInput.value)}`},
-        dataset: {i18nId: 'search.more.label', i18nText: `{"%d": ${searchHits.length}}`}
+        text: TEXT.searchMore.replace('%d', searchHits.length),
+        attrs: {href: `${SEARCH_PATH}?query=${encodeURIComponent(modalSearchInput.value)}`}
       });
 
       moreDiv.appendChild(a);

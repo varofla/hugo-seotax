@@ -302,11 +302,17 @@
   line-height: 1.2;
 }
 
-.menu-search code {
+.menu-search .search-placeholder code {
+  padding: 0 0.28rem;
+  border: 1px solid oklch(0.92 0.005 200);
+  border-radius: 0.32rem;
+  background: none;
+  color: inherit;
   font-family: inherit;
-  font-size: inherit;
-  background: transparent;
-  padding: 0;
+  font-size: 0.92em;
+  font-weight: 500;
+  line-height: inherit;
+  box-shadow: none;
 }
 
 .menu-search:hover {
@@ -314,28 +320,11 @@
   border-color: oklch(0.88 0.008 210);
 }
 
-.menu-languages,
 .menu-categories,
 .recent-posts {
   margin: 0;
   padding: 0;
   border-bottom: 0;
-}
-
-.menu-languages {
-  padding: 0.6rem 1rem 0;
-}
-
-.menu-languages .languages-toggle,
-.menu-languages li a {
-  border-radius: 0.9rem;
-  padding: 0.65rem 0.8rem;
-}
-
-.menu-languages .languages-toggle:hover,
-.menu-languages li:hover {
-  opacity: 1;
-  background: rgba(226, 232, 240, 0.7);
 }
 
 .menu-categories {

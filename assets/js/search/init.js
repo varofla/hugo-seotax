@@ -1,7 +1,10 @@
-{{ $searchConfig := i18n "search.index.config" | default "{}" }}
-
 window.siteSearch.getIndexConfig = function() {
-  return Object.assign({{ $searchConfig }}, {
+  return Object.assign({
+    encode: false,
+    tokenize: function(str) {
+      return str.replace(/[\x00-\x7F]/g, '').split('');
+    }
+  }, {
     includeScore: true,
     useExtendedSearch: true,
     fieldNormWeight: 1.5,

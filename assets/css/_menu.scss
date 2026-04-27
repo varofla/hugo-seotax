@@ -64,9 +64,12 @@
   padding: 1.75rem 1.25rem 1.25rem;
 }
 
-.site-menu-panel__section--notice,
 .site-menu-panel__section--search {
   padding: 0.875rem 1rem;
+}
+
+.site-menu-panel__section--notice {
+  padding: 0.625rem 1rem 0.875rem;
 }
 
 .site-menu-panel__body {
@@ -374,7 +377,7 @@
 
   .menu-categories {
     flex: 1 1 auto;
-    padding: 0.5rem 0 0.25rem;
+    padding: 0 0 0.25rem;
   }
 
   .menu-section-title {

@@ -63,9 +63,58 @@ https://github.com/minyeamer/hugo-miny
 {{- end -}}
 
 <!-- Service Worker -->
-{{- if .Site.Params.serviceWorker -}}
+{{- if eq .Site.Params.serviceWorker "precache" -}}
   {{- $swJS := resources.Get "sw-register.js" | resources.ExecuteAsTemplate "sw.js" . | resources.Minify | resources.Fingerprint }}
   <script defer src="{{ $swJS.RelPermalink }}" {{ template `integrity` $swJS }}></script>
+{{- else if eq .Site.Params.serviceWorker "cleanup" -}}
+  <script>
+    (function () {
+      if (!('serviceWorker' in navigator)) {
+        return;
+      }
+
+      const cleanupKey = 'sw-cleanup-complete';
+      const cleanupTasks = [
+        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+          return Promise.all(
+            registrations.map(function (registration) {
+              return registration.unregister();
+            })
+          );
+        })
+      ];
+
+      if ('caches' in window) {
+        cleanupTasks.push(
+          caches.keys().then(function (keys) {
+            return Promise.all(
+              keys.map(function (key) {
+                return caches.delete(key);
+              })
+            );
+          })
+        );
+      }
+
+      Promise.all(cleanupTasks)
+        .then(function () {
+          try {
+            if (window.sessionStorage.getItem(cleanupKey) === '1') {
+              return;
+            }
+
+            window.sessionStorage.setItem(cleanupKey, '1');
+          } catch (error) {
+            // Ignore storage failures and continue with a one-time reload.
+          }
+
+          window.location.reload();
+        })
+        .catch(function (error) {
+          console.error('Service worker cleanup failed:', error);
+        });
+    })();
+  </script>
 {{- end -}}
 
 <!-- RSS -->

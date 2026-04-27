@@ -1,21 +1,30 @@
 const cacheName = self.location.pathname
-const pages = [
 {{ if eq .Site.Params.serviceWorker "precache" }}
+const pages = [
   {{ range .Site.AllPages -}}
   "{{ .RelPermalink }}",
   {{ end -}}
   {{ range $permalink, $ok := site.Store.Get "sw-precache" -}}
   "{{ $permalink }}",
   {{ end -}}
-{{ end }}
 ];
 
 self.addEventListener("install", function (event) {
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(cacheName)
+      .then((cache) => cache.addAll(pages))
+      .then(() => self.skipWaiting())
+  );
+});
 
-  caches.open(cacheName).then((cache) => {
-    return cache.addAll(pages);
-  });
+self.addEventListener("activate", function (event) {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener("message", function (event) {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("fetch", (event) => {
@@ -56,3 +65,26 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(fetch(request).then(saveToCache).catch(serveFromCache));
 });
+{{ else }}
+self.addEventListener("install", function () {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", function (event) {
+  event.waitUntil((async function () {
+    const cacheKeys = await caches.keys();
+    await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+    await self.registration.unregister();
+
+    const clients = await self.clients.matchAll({ type: "window" });
+    await Promise.all(
+      clients.map((client) => {
+        if ("navigate" in client) {
+          return client.navigate(client.url);
+        }
+        return Promise.resolve();
+      })
+    );
+  })());
+});
+{{ end }}

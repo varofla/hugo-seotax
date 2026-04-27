@@ -186,8 +186,8 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  min-width: 1.95rem;
-  height: 1.95rem;
+  min-width: 1.875rem;
+  height: 1.75rem;
   margin: 0;
   padding: 0.3125rem 0.4375rem;
   border-radius: 0.625rem;
@@ -225,19 +225,31 @@
 
 .menu-links a svg,
 .menu-links button svg {
-  width: 0.9rem;
-  height: 0.9rem;
+  width: 0.875rem;
+  height: 0.875rem;
   fill: currentColor;
   flex: 0 0 auto;
 }
 
 .menu-link-icon {
-  width: 1.95rem;
+  width: 1.875rem;
+  padding: 0.3125rem 0.4375rem;
+}
+
+#github-link i {
+  font-size: 0.875rem;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+#rss-link svg {
+  width: 0.8125rem;
+  height: 0.8125rem;
 }
 
 .menu-link-pill {
   min-width: auto;
-  height: 2rem;
+  height: 1.75rem;
   padding: 0.3125rem 0.875rem;
   border-radius: 999px;
   font-family: "Pretendard Variable", Pretendard, sans-serif;
@@ -252,10 +264,13 @@
   flex: 0 0 auto;
   align-items: center;
   margin-left: auto;
-  min-height: 2.1875rem;
-  padding: 0.4375rem 0.875rem;
+  min-width: auto;
+  height: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0.3125rem 0.875rem;
   border-radius: 999px;
   font-size: 11px;
+  font-weight: 500;
   justify-content: center;
   width: auto;
   line-height: 1;

@@ -1,7 +1,5 @@
 <div class="menu-categories" data-menu-categories>
-  <div class="menu-categories-label">
-    <span>카테고리</span>
-  </div>
+  <div class="menu-section-title menu-categories-label">카테고리</div>
   {{ $pages := partialCached "pages/posts" . "posts" }}
   {{ $categoryOrder := .Site.Params.categoryOrder | default (dict) }}
   {{ $categoryOrderL1 := index $categoryOrder "level1" | default (slice) }}

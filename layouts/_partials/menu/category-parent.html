@@ -3,17 +3,15 @@
 {{- $hasChildren := .hasChildren -}}
 {{- $isLeaf := .isLeaf -}}
 {{- $childrenId := .childrenId -}}
-<a
-  href="{{ `search/` | relURL }}?category1={{ $category1 }}"
-  class="categories-label category-row category-parent{{ if $isLeaf }} categories-leaf{{ end }} category-link"
+<div
+  class="category-row category-parent{{ if $isLeaf }} categories-leaf{{ end }}"
   data-category-item="parent"
   data-category1="{{ $category1 }}">
   {{- if $hasChildren -}}
-  <span
+  <button
+    type="button"
     class="category-toggle"
     data-category-toggle
-    role="button"
-    tabindex="0"
     aria-controls="{{ $childrenId }}"
     aria-expanded="false"
     aria-label="{{ $category1 }} 하위 카테고리 펼치기">
@@ -28,10 +26,16 @@
         <path d="M5 19h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2z"></path>
       </svg>
     </span>
-  </span>
+  </button>
   {{- else -}}
-  <i class="icon-file" aria-hidden="true"></i>
+  <span class="category-icon category-icon-leaf" aria-hidden="true">
+    <i class="icon-file"></i>
+  </span>
   {{- end -}}
-  <span class="category-name">{{- $category1 -}}</span>
-  <span class="category-count">{{- $category1Count -}}</span>
-</a>
+  <a
+    href="{{ `search/` | relURL }}?category1={{ $category1 }}"
+    class="category-link category-row-link">
+    <span class="category-name">{{- $category1 -}}</span>
+    <span class="category-count">{{- $category1Count -}}</span>
+  </a>
+</div>

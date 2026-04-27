@@ -150,17 +150,9 @@ document.addEventListener('DOMContentLoaded', function() {
 {{- $scrollProgressJS := resources.Get "js/partials/scroll-progress.js" | resources.ExecuteAsTemplate "js/partials/scroll-progress.js" . | resources.Minify | resources.Fingerprint }}
 <script defer src="{{ partial `links/resource-precache` $scrollProgressJS }}" {{ template `integrity` $scrollProgressJS }}></script>
 
-<!-- Menu Toggle -->
-{{- $menuToggleJS := resources.Get "js/partials/menu-toggle.js" | resources.ExecuteAsTemplate "js/partials/menu-toggle.js" . | resources.Minify | resources.Fingerprint }}
-<script defer src="{{ partial `links/resource-precache` $menuToggleJS }}" {{ template `integrity` $menuToggleJS }}></script>
-
-<!-- Menu State -->
-{{- $menuStateJS := resources.Get "js/partials/menu-state.js" | resources.ExecuteAsTemplate "js/partials/menu-state.js" . | resources.Minify | resources.Fingerprint }}
-<script defer src="{{ partial `links/resource-precache` $menuStateJS }}" {{ template `integrity` $menuStateJS }}></script>
-
-<!-- Menu Notice Marquee -->
-{{- $menuNoticeMarqueeJS := resources.Get "js/partials/menu-notice-marquee.js" | resources.ExecuteAsTemplate "js/partials/menu-notice-marquee.js" . | resources.Minify | resources.Fingerprint }}
-<script defer src="{{ partial `links/resource-precache` $menuNoticeMarqueeJS }}" {{ template `integrity` $menuNoticeMarqueeJS }}></script>
+<!-- Site Menu -->
+{{- $siteMenuJS := resources.Get "js/partials/site-menu.js" | resources.ExecuteAsTemplate "js/partials/site-menu.js" . | resources.Minify | resources.Fingerprint }}
+<script defer src="{{ partial `links/resource-precache` $siteMenuJS }}" {{ template `integrity` $siteMenuJS }}></script>
 
 <!-- ToC Toggle -->
 {{- $tocToggleJS := resources.Get "js/partials/toc-toggle.js" | resources.ExecuteAsTemplate "js/partials/toc-toggle.js" . | resources.Minify | resources.Fingerprint }}

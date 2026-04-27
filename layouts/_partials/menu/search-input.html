@@ -1,13 +1,15 @@
 {{ if default true .Site.Params.search.enabled }}
 <div class="menu-search"
       id="search-input"
+      data-menu-search-trigger
       data-hotkeys="s/"
       role="button"
       tabindex="0"
       aria-label="검색">
   <i class="icon-search search-icon"></i>
   <span class="search-placeholder">
-    <code>/</code> 를 눌러 검색하세요
+    <span class="menu-search__shortcut"><code>/</code></span>
+    <span class="menu-search__label">를 눌러 검색하세요</span>
   </span>
 </div>
 {{ end }}

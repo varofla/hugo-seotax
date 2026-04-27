@@ -1,25 +1,25 @@
-<nav class="menu-panel" data-sidebar>
-  <div class="menu-panel-top" data-sidebar-section="top">
+<nav class="site-menu-panel" data-sidebar>
+  <section class="site-menu-panel__section site-menu-panel__section--top" data-sidebar-section="top">
     {{ partial "menu/profile" . }}
     {{ partial "menu/links" . }}
     {{/* {{ partial "menu/languages" . }} */}}
-  </div>
+  </section>
 
-  <div class="menu-panel-notice" data-menu-notice>
-    <div class="menu-panel-notice-track" aria-label="공지">
-      <div class="menu-panel-notice-rail" data-menu-notice-track>
-        <div class="menu-panel-notice-group">
-          <span class="menu-panel-notice-item">테마 공사중; 조금씩 바꿔나가고 있습니다. 일단 좌측 탭부터.. 그런데 이쁘죠? 저도 그렇게 생각해요 히히</span>
+  <section class="site-menu-panel__section site-menu-panel__section--notice" data-menu-notice>
+    <div class="site-menu-notice__viewport" aria-label="공지">
+      <div class="site-menu-notice__track" data-menu-notice-track>
+        <div class="site-menu-notice__group">
+          <span class="site-menu-notice__item">테마 공사중; 조금씩 바꿔나가고 있습니다. 일단 좌측 탭부터.. 그런데 이쁘죠? 저도 그렇게 생각해요 히히</span>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <div class="menu-panel-search" data-sidebar-section="search">
+  <section class="site-menu-panel__section site-menu-panel__section--search" data-sidebar-section="search">
     {{ partial "menu/search-input" . }}
-  </div>
+  </section>
 
-  <div class="menu-panel-body" data-sidebar-section="body">
+  <div class="site-menu-panel__body" data-sidebar-section="body">
     {{ if default false .Site.Params.menu.categories }}
     {{ partial "menu/categories" . }}
     {{ end }}

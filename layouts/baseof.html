@@ -27,7 +27,7 @@
       {{ template "content" . }} <!-- Page Content -->
       {{ template "footer" . }} <!-- Footer under page content -->
 
-      <label for="menu-control" class="hidden site-menu-overlay"></label>
+      <label for="menu-control" class="hidden site-menu-overlay" data-menu-dismiss></label>
     </div>
 
     {{ template "toc-container" . }} <!-- Right ToC -->
@@ -38,8 +38,9 @@
 
 {{ define "menu-container" }}
 <aside class="site-menu"
+      data-site-menu
       aria-label="메뉴">
-  <div class="menu-content">
+  <div class="menu-content" data-menu-scroll-region>
     {{ template "menu" . }}
   </div>
 </aside>

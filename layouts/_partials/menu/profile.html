@@ -11,9 +11,9 @@
     <div class="menu-brand-copy">
       <h2 class="profile-title">
         {{- with .Site.Params.menu.logoImage -}}
-          <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="Logo" />
+          <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="Logo" class="menu-brand-logo" />
         {{- end -}}
-        <span>{{ .Site.Params.Menu.Title }}</span>
+        <span class="menu-brand-title">{{ .Site.Params.Menu.Title }}</span>
       </h2>
 
       {{- if or $author $host -}}

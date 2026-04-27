@@ -158,6 +158,10 @@ document.addEventListener('DOMContentLoaded', function() {
 {{- $menuStateJS := resources.Get "js/partials/menu-state.js" | resources.ExecuteAsTemplate "js/partials/menu-state.js" . | resources.Minify | resources.Fingerprint }}
 <script defer src="{{ partial `links/resource-precache` $menuStateJS }}" {{ template `integrity` $menuStateJS }}></script>
 
+<!-- Menu Notice Marquee -->
+{{- $menuNoticeMarqueeJS := resources.Get "js/partials/menu-notice-marquee.js" | resources.ExecuteAsTemplate "js/partials/menu-notice-marquee.js" . | resources.Minify | resources.Fingerprint }}
+<script defer src="{{ partial `links/resource-precache` $menuNoticeMarqueeJS }}" {{ template `integrity` $menuNoticeMarqueeJS }}></script>
+
 <!-- ToC Toggle -->
 {{- $tocToggleJS := resources.Get "js/partials/toc-toggle.js" | resources.ExecuteAsTemplate "js/partials/toc-toggle.js" . | resources.Minify | resources.Fingerprint }}
 <script defer src="{{ partial `links/resource-precache` $tocToggleJS }}" {{ template `integrity` $tocToggleJS }}></script>

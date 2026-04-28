@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const params = new URLSearchParams(window.location.search);
   const state = {
+    fromModal: params.get('from') === 'modal',
     query: params.get('query') || '',
     category1: params.get('category1') || '',
     category2: params.get('category2') || '',
@@ -178,6 +179,10 @@ document.addEventListener('DOMContentLoaded', function() {
    */
   function buildSearchUrl(preserveTaxonomy = false) {
     const params = new URLSearchParams();
+
+    if (state.fromModal) {
+      params.set('from', 'modal');
+    }
 
     const queryInput = document.querySelector('#search-query-input');
     if (queryInput !== null) {
@@ -1067,7 +1072,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (appendHeader) {
       clearHeader();
       createListHeader({text: category1Name, icon: 'icon-folder'}, category1Posts.length);
-      createSearchFilter(category1Posts, 'false');
+      if (state.fromModal) {
+        createSearchFilter(category1Posts, 'false');
+      }
 
       const taxonomies = Object.keys(category1).toSorted()
         .filter(key => (key !== 'A') && (category1[key] instanceof Object))
@@ -1104,7 +1111,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (appendHeader) {
       clearHeader();
       createListHeader({text: category2Name, icon: 'icon-file'}, category2Posts.length);
-      createSearchFilter(category2Posts, 'false');
+      if (state.fromModal) {
+        createSearchFilter(category2Posts, 'false');
+      }
 
       if (category1Name) {
         taxonomy = {

@@ -538,6 +538,7 @@
 
   function buildModalSearchUrl() {
     const params = new URLSearchParams();
+    params.set('from', 'modal');
     if (modalSearchState.query) params.set('query', modalSearchState.query);
     if (modalSearchState.category1) params.set('category1', modalSearchState.category1);
     if (modalSearchState.category2) params.set('category2', modalSearchState.category2);

@@ -405,7 +405,7 @@
     }
   }
 
-  .category-header-action {
+  a.category-header-action {
     display: inline-grid;
     place-items: center;
     flex: 0 0 auto;
@@ -428,9 +428,10 @@
     text-decoration: none;
     user-select: none;
 
-    &:hover,
+    &[href]:hover,
     &:focus-visible {
       border-color: oklch(0.5 0.13 198 / 0.5);
+      text-decoration: none;
     }
   }
 

@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+  const HOME_PATH = '{{ "/" | relURL }}';
   const SEARCH_PATH = '{{ "search/" | relURL }}';
   const CATEGORY_PATH = '{{ "categories/" | relURL }}';
   const {capitalize, composeUrl, createElement, getUrlState} = window.siteSearch.utils;
@@ -1088,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', function() {
           '',
           '',
           {
-            browseHref: CATEGORY_PATH,
+            browseHref: HOME_PATH,
             useCategoryLayout: true
           }
         );
@@ -1127,7 +1128,7 @@ document.addEventListener('DOMContentLoaded', function() {
           '',
           '',
           {
-            browseHref: CATEGORY_PATH,
+            browseHref: HOME_PATH,
             useCategoryLayout: true
           }
         );

@@ -6,7 +6,8 @@
   <div class="list-header" id="list-header">
     <h1>카테고리</h1>
     <p class="list-header-count">
-      <strong class="list-count">{{ $categoryCount }}</strong>개
+      {{- $count := printf `<em class="list-count">%d</em>` $categoryCount -}}
+      {{- printf "Total %s" $count | safeHTML -}}
     </p>
   </div>
   <div class="search-filter-host" id="search-filter-host"></div>

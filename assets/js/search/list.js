@@ -231,8 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       const count = createElement('p', {className: 'list-header-count'});
-      count.appendChild(createElement('strong', {className: 'list-count', text: String(pageCount)}));
-      count.appendChild(document.createTextNode('개'));
+      count.innerHTML = `Total <em class="list-count">${pageCount}</em>`;
       fragment.appendChild(count);
       listHeader.appendChild(fragment);
       return;

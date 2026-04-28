@@ -51,6 +51,19 @@ https://github.com/minyeamer/hugo-miny
 {{- $styles := resources.Get "main.scss" | resources.ExecuteAsTemplate "main.scss" . | css.Sass | resources.Minify | resources.Fingerprint }}
 <link rel="stylesheet" href="{{ partial `links/resource-precache` $styles }}" {{ template `integrity` $styles }}>
 
+<script>
+(function() {
+  var path = window.location.pathname || '';
+  var search = window.location.search || '';
+  var categoryPath = '{{ "categories/" | relURL }}';
+  var isCategoriesQueryPage = path.indexOf(categoryPath) === 0 && search.length > 1;
+
+  if (isCategoriesQueryPage) {
+    document.documentElement.classList.add('categories-query-pending');
+  }
+})();
+</script>
+
 <!-- Google Analytics -->
 {{- if and hugo.IsProduction .Site.Params.GoogleAnalytics.tagId }}
 <script async src="https://www.googletagmanager.com/gtag/js?id={{ .Site.Params.GoogleAnalytics.tagId }}"></script>

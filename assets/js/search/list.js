@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+  const HOME_PATH = '{{ "/" | relURL }}';
   const SEARCH_PATH = '{{ "search/" | relURL }}';
   const CATEGORY_PATH = '{{ "categories/" | relURL }}';
   const currentPath = window.location.pathname;
@@ -52,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {Object} [options.attrs] - HTML attributes as key-value pairs
    * @param {Object} [options.dataset] - Data attributes as key-value pairs
    * @param {Object} [options.styles] - Inline styles as key-value pairs
+   * @param {Object} [options.on] - Event listeners as event-handler pairs
    * @returns {HTMLElement} Created element
    */
   function createElement(tag, options = {}) {
@@ -80,6 +82,12 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
+    if (options.on) {
+      Object.entries(options.on).forEach(([eventName, handler]) => {
+        element.addEventListener(eventName, handler);
+      });
+    }
+
     return element;
   }
 
@@ -91,6 +99,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const categoriesBrowser = document.querySelector('#categories-browser');
   const searchActionPath = SEARCH_PATH;
   const browseActionPath = isCategoriesPage ? CATEGORY_PATH : SEARCH_PATH;
+
+  function finishInitialRender() {
+    document.documentElement.classList.remove('categories-query-pending');
+  }
 
   switch (searchType) {
 
@@ -262,6 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (categoriesBrowser) {
       categoriesBrowser.classList.remove('hidden');
     }
+    finishInitialRender();
   }
 
   function hideCategoriesBrowser() {
@@ -278,10 +291,8 @@ document.addEventListener('DOMContentLoaded', function() {
     searchFilterHost?.replaceChildren();
 
     const section = document.querySelector('#taxonomy-section');
-    if (section.classList.contains('hidden')) {
-      section.classList.add('hidden');
-      section.replaceChildren();
-    }
+    section?.classList.add('hidden');
+    section?.replaceChildren();
   }
 
   /**
@@ -291,8 +302,41 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {number} pageCount - The number of results
    * @param {string} [query=''] - Search query (optional)
    */
-  function createListHeader(titleInfo, pageCount, query = '', countLabelOverride = '') {
+  function createListHeader(titleInfo, pageCount, query = '', countLabelOverride = '', options = {}) {
     const fragment = document.createDocumentFragment();
+    const {browseHref = '', useCategoryLayout = false} = options;
+
+    if (useCategoryLayout) {
+      const title = createElement('h1');
+      title.textContent = titleInfo.text || '';
+      fragment.appendChild(title);
+
+      if (browseHref) {
+        fragment.appendChild(createElement('span', {
+          className: 'category-header-action',
+          text: '전체 보기',
+          attrs: {role: 'link', tabindex: '0'},
+          on: {
+            click: () => {
+              location.href = browseHref;
+            },
+            keydown: (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                location.href = browseHref;
+              }
+            }
+          }
+        }));
+      }
+
+      const count = createElement('p', {className: 'category-header-count'});
+      count.appendChild(createElement('strong', {className: 'list-count', text: String(pageCount)}));
+      count.appendChild(document.createTextNode('개'));
+      fragment.appendChild(count);
+      listHeader.appendChild(fragment);
+      return;
+    }
 
     const title = createElement('h1');
     if (titleInfo.icon) {
@@ -333,8 +377,9 @@ document.addEventListener('DOMContentLoaded', function() {
   function createTaxonomySection(labelText, taxonomies) {
     const fragment = document.createDocumentFragment();
     const section = document.querySelector('#taxonomy-section');
-    section.classList.remove('hidden');
+    if (!section) return;
 
+    section.classList.remove('hidden');
     const label = createElement('h2', {text: labelText});
     const chips = createElement('div', {className: 'taxonomy-chips'});
     taxonomies.forEach(taxonomy => {
@@ -1138,22 +1183,16 @@ document.addEventListener('DOMContentLoaded', function() {
         createSearchResultsHeader(category1Posts.length, state.query);
         createSearchFilter(category1Posts, 'false');
       } else {
-        createListHeader({text: category1Name, icon: 'icon-folder'}, category1Posts.length);
-      }
-
-      const taxonomies = Object.keys(category1).toSorted()
-        .filter(key => (key !== 'A') && (category1[key] instanceof Object))
-        .map(key => ({
-          text: category1[key]['name'],
-          icon: 'icon-file',
-          href: createBrowseUrl({
-            category1: category1Name,
-            category2: category1[key]['name']
-          }),
-          pageCount: category1[key]['ids'].length,
-        }));
-      if (taxonomies.length > 0 && isCategoriesPage) {
-        createTaxonomySection(TEXT.categoriesChildSubtitle, taxonomies);
+        createListHeader(
+          {text: category1Name, icon: 'icon-folder'},
+          category1Posts.length,
+          '',
+          '',
+          {
+            browseHref: HOME_PATH,
+            useCategoryLayout: true
+          }
+        );
       }
     }
 
@@ -1183,17 +1222,16 @@ document.addEventListener('DOMContentLoaded', function() {
         createSearchResultsHeader(category2Posts.length, state.query);
         createSearchFilter(category2Posts, 'false');
       } else {
-        createListHeader({text: category2Name, icon: 'icon-file'}, category2Posts.length);
-      }
-
-      if (category1Name && isCategoriesPage) {
-        const taxonomy = {
-          text: category1Name,
-          icon: 'icon-folder-open',
-          href: createBrowseUrl({category1: category1Name}),
-          pageCount: category1['A']['ids'].length,
-        };
-        createTaxonomySection(TEXT.categoriesParentSubtitle, [taxonomy]);
+        createListHeader(
+          {text: `${category1Name} \u203a ${category2Name}`, icon: 'icon-file'},
+          category2Posts.length,
+          '',
+          '',
+          {
+            browseHref: HOME_PATH,
+            useCategoryLayout: true
+          }
+        );
       }
     }
 
@@ -1317,6 +1355,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalPosts = ids.size;
 
     if (totalPosts === 0) {
+      finishInitialRender();
       return;
     }
 
@@ -1344,6 +1383,7 @@ document.addEventListener('DOMContentLoaded', function() {
     noResults.classList.add('hidden');
     searchResults.classList.remove('hidden');
     searchResults.appendChild(fragment);
+    finishInitialRender();
 
     if (totalPages > 1) {
       const groupNumber = Math.floor((state.page - 1) / 10);

@@ -6,7 +6,7 @@
     <h1>
       Posts
     </h1>
-    <p>
+    <p class="list-header-count">
       {{- $count := printf `<em class="list-count">%d</em>` (len $pages) -}}
       {{- printf "Total %s" $count | safeHTML -}}
     </p>

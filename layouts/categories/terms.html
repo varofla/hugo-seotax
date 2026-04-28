@@ -1,18 +1,19 @@
 {{ define "content" }}
-<article class="content-wrap markdown">
+<article class="content-wrap markdown categories-page">
+  {{ $tree := partialCached "categories/tree" . "categories" }}
+  {{ $categoryCount := len (partial "keys" $tree) }}
+
   <div class="list-header" id="list-header">
-    <h1>
-      <i class="icon-folder-open"></i>
-      <span>카테고리</span>
-    </h1>
+    <h1>카테고리</h1>
+    <p class="list-header-count">
+      <strong class="list-count">{{ $categoryCount }}</strong>개
+    </p>
   </div>
   <div class="search-filter-host" id="search-filter-host"></div>
 
   <div id="categories-browser">
     {{ partial "menu/categories" . }}
   </div>
-
-  <div class="taxonomy-section hidden" id="taxonomy-section"></div>
 
   <div class="search-data hidden" id="search-data">
     {{- range $index, $page := partialCached "pages/search" . "search" -}}

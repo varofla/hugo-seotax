@@ -204,6 +204,10 @@ document.addEventListener('DOMContentLoaded', function() {
 {{- $categoryExpand := resources.Get "js/partials/category-expand.js" | resources.ExecuteAsTemplate "js/partials/category-expand.js" . | resources.Minify | resources.Fingerprint }}
 <script defer src="{{ partial `links/resource-precache` $categoryExpand }}" {{ template `integrity` $categoryExpand }}></script>
 
+<!-- Post cards -->
+{{- $postCardJS := resources.Get "js/partials/post-card.js" | resources.Minify | resources.Fingerprint }}
+<script defer src="{{ partial `links/resource-precache` $postCardJS }}" {{ template `integrity` $postCardJS }}></script>
+
 <!-- Index scroll -->
 {{- $indexScrollJS := resources.Get "js/partials/index-scroll.js" | resources.ExecuteAsTemplate "js/partials/index-scroll.js" . | resources.Minify | resources.Fingerprint }}
 <script defer src="{{ partial `links/resource-precache` $indexScrollJS }}" {{ template `integrity` $indexScrollJS }}></script>

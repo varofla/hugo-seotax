@@ -517,6 +517,10 @@ body[dir="rtl"] .site-menu {
   margin-bottom: space(8);
   font-size: font-size(16);
   font-weight: 400;
+
+  .post-categories {
+    margin-bottom: 0;
+  }
 }
 
 .content-title {
@@ -537,20 +541,6 @@ body[dir="rtl"] .site-menu {
 
   #reading-time {
     display: inline-block;
-  }
-}
-
-.markdown .content-category-link {
-  &[href] {
-    color: var(--body-font-color);
-  }
-
-  &[href]:visited {
-    color: var(--body-font-color);
-  }
-
-  &[href]:hover {
-    text-decoration: none;
   }
 }
 

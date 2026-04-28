@@ -3,6 +3,7 @@
 
   const SEARCH_PATH = '{{ "search/" | relURL }}';
   const STORAGE_KEY = 'search-filter-expanded';
+  const {createElement, composeUrl, getUrlState} = window.siteSearch.utils;
   const TEXT = {
     searchAction: '검색',
     searchClose: '닫기',
@@ -15,40 +16,6 @@
     tagsOpCheckbox: '모두 일치',
     noResults: '조건에 맞는 결과가 없습니다.'
   };
-
-  function createElement(tag, options = {}) {
-    const element = document.createElement(tag);
-
-    if (options.text) element.textContent = options.text;
-    if (options.html) element.innerHTML = options.html;
-    if (options.className) element.className = options.className;
-    if (options.id) element.id = options.id;
-
-    if (options.attrs) {
-      Object.entries(options.attrs).forEach(([key, value]) => {
-        element.setAttribute(key, value);
-      });
-    }
-
-    if (options.dataset) {
-      Object.entries(options.dataset).forEach(([key, value]) => {
-        element.dataset[key] = value;
-      });
-    }
-
-    if (options.styles) {
-      Object.entries(options.styles).forEach(([key, value]) => {
-        element.style[key] = value;
-      });
-    }
-
-    return element;
-  }
-
-  function composeUrl(basePath, urlParams) {
-    const queryString = urlParams.toString();
-    return queryString ? `${basePath}?${queryString}` : basePath;
-  }
 
   const searchInput = document.querySelector('#search-input');
   const menuSearch = document.querySelector('.menu-search');
@@ -92,16 +59,14 @@
   document.addEventListener('keypress', focusSearchFieldOnKeyPress);
 
   function createInitialModalState() {
-    const params = new URLSearchParams(window.location.search);
+    const state = getUrlState();
 
     return {
-      query: params.get('query') || '',
-      category1: params.get('category1') || '',
-      category2: params.get('category2') || '',
-      tags: params.get('tags')
-        ? [...new Set(params.get('tags').split(',').map((tag) => tag.trim()).filter(Boolean))]
-        : [],
-      tagsOp: params.get('tagsOp') || 'and'
+      query: state.query,
+      category1: state.category1,
+      category2: state.category2,
+      tags: state.tags,
+      tagsOp: state.tagsOp
     };
   }
 

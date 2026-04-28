@@ -1,4 +1,4 @@
-<article class="post-item" onclick="location.href='{{ .RelPermalink }}'">
+<article class="post-item" data-post-item data-post-item-url="{{ .RelPermalink }}">
 
   {{ $coverImage := cond .Params.thumbnail .Params.thumbnail .Params.cover }}
 
@@ -12,20 +12,12 @@
 
     <div class="post-text-area">
       {{ if .Params.categories }}
-      <div class="post-categories">
-        {{ $category1 := partial "categories/level1" .Params.categories }}
-        {{ if $category1 }}
-          <span onclick="event.stopPropagation(); location.href='{{ `categories/` | relURL }}?category1={{ $category1 }}'" class="post-cat-parent">{{ $category1 -}}</span>
-          {{ $category2 := partial "categories/level2" .Params.categories }}
-          {{ if $category2 }}
-          <span class="post-cat-sep">›</span>
-          <span onclick="event.stopPropagation(); location.href='{{ `categories/` | relURL }}?category1={{ $category1 }}&category2={{ $category2 }}'" class="post-cat-child">{{ $category2 -}}</span>
-          {{ end }}
-        {{ end }}
-      </div>
+      {{ partial "categories/pills" (dict "categories" .Params.categories) }}
       {{ end }}
 
-      <h2 class="post-title">{{ .Title }}</h2>
+      <h2 class="post-title">
+        <a href="{{ .RelPermalink }}" class="post-title-link">{{ .Title }}</a>
+      </h2>
 
       {{ with cond .Description .Description (cond .Summary .Summary "") }}
       <div class="post-summary">
@@ -41,7 +33,9 @@
         <span class="post-meta-sep">·</span>
         <div class="post-tags">
           {{ range first 5 .Params.tags }}
-          <span onclick="event.stopPropagation(); location.href='{{ `search/` | relURL }}?tags={{ . }}'" class="post-tag">#{{ . -}}</span>
+          <a
+            href="{{ printf "%s?%s" (`search/` | relURL) (querify `tags` .) }}"
+            class="post-tag">#{{ . }}</a>
           {{ end }}
         </div>
         {{ end }}

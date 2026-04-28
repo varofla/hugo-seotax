@@ -1,3 +1,73 @@
+window.siteSearch.utils = window.siteSearch.utils || {};
+
+window.siteSearch.utils.createElement = function(tag, options = {}) {
+  const element = document.createElement(tag);
+  const hasOwn = Object.prototype.hasOwnProperty;
+
+  if (hasOwn.call(options, 'text')) element.textContent = options.text;
+  if (hasOwn.call(options, 'html')) element.innerHTML = options.html;
+  if (options.className) element.className = options.className;
+  if (options.id) element.id = options.id;
+
+  if (options.attrs) {
+    Object.entries(options.attrs).forEach(([key, value]) => {
+      element.setAttribute(key, value);
+    });
+  }
+
+  if (options.dataset) {
+    Object.entries(options.dataset).forEach(([key, value]) => {
+      element.dataset[key] = value;
+    });
+  }
+
+  if (options.styles) {
+    Object.entries(options.styles).forEach(([key, value]) => {
+      element.style[key] = value;
+    });
+  }
+
+  if (options.on) {
+    Object.entries(options.on).forEach(([eventName, handler]) => {
+      element.addEventListener(eventName, handler);
+    });
+  }
+
+  return element;
+};
+
+window.siteSearch.utils.composeUrl = function(basePath, urlParams) {
+  const queryString = urlParams.toString();
+  return queryString ? `${basePath}?${queryString}` : basePath;
+};
+
+window.siteSearch.utils.capitalize = function(value) {
+  if (!value) {
+    return '';
+  }
+
+  return value
+    .split(' ')
+    .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1) : ''))
+    .join(' ');
+};
+
+window.siteSearch.utils.getUrlState = function(search = window.location.search) {
+  const params = new URLSearchParams(search);
+
+  return {
+    query: params.get('query') || '',
+    category1: params.get('category1') || '',
+    category2: params.get('category2') || '',
+    tags: params.get('tags')
+      ? [...new Set(params.get('tags').split(',').map((tag) => tag.trim()).filter(Boolean))]
+      : [],
+    tagsOp: params.get('tagsOp') || 'and',
+    page: Math.max(1, parseInt(params.get('page'), 10) || 1),
+    pageSize: Math.max(1, parseInt(params.get('pageSize'), 10) || 10)
+  };
+};
+
 window.siteSearch.getIndexConfig = function() {
   return Object.assign({
     encode: false,

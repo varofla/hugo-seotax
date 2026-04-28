@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const HOME_PATH = '{{ "/" | relURL }}';
   const SEARCH_PATH = '{{ "search/" | relURL }}';
   const CATEGORY_PATH = '{{ "categories/" | relURL }}';
+  const {capitalize, composeUrl, createElement, getUrlState} = window.siteSearch.utils;
   const currentPath = window.location.pathname;
   const isSearchPage = currentPath.startsWith(SEARCH_PATH);
   const isCategoriesPage = currentPath.startsWith(CATEGORY_PATH);
@@ -11,17 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   const params = new URLSearchParams(window.location.search);
-  const state = {
-    query: params.get('query') || '',
-    category1: params.get('category1') || '',
-    category2: params.get('category2') || '',
-    tags: (params.get('tags')
-      ? [...new Set(params.get('tags').split(',').map(tag => tag.trim()).filter(tag => tag))]
-      : []),
-    tagsOp: params.get('tagsOp') || 'and',
-    page: Math.max(1, parseInt(params.get('page')) || 1),
-    pageSize: Math.max(1, parseInt(params.get('pageSize')) || 10)
-  };
+  const state = getUrlState();
   const searchType = getSearchType(state);
   const STORAGE_KEY = 'search-filter-expanded';
 
@@ -41,55 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
     postPrevLink: '이전',
     postNextLink: '다음'
   };
-
-  /**
-   * Create a DOM element with specified properties.
-   * @param {string} tag - HTML tag name
-   * @param {Object} [options={}] - Element properties
-   * @param {string} [options.text] - Text content
-   * @param {string} [options.html] - HTML content
-   * @param {string} [options.className] - CSS class names
-   * @param {string} [options.id] - Element ID
-   * @param {Object} [options.attrs] - HTML attributes as key-value pairs
-   * @param {Object} [options.dataset] - Data attributes as key-value pairs
-   * @param {Object} [options.styles] - Inline styles as key-value pairs
-   * @param {Object} [options.on] - Event listeners as event-handler pairs
-   * @returns {HTMLElement} Created element
-   */
-  function createElement(tag, options = {}) {
-    const element = document.createElement(tag);
-
-    if (options.text) element.textContent = options.text;
-    if (options.html) element.innerHTML = options.html;
-    if (options.className) element.className = options.className;
-    if (options.id) element.id = options.id;
-
-    if (options.attrs) {
-      Object.entries(options.attrs).forEach(([key, value]) => {
-        element.setAttribute(key, value);
-      });
-    }
-
-    if (options.dataset) {
-      Object.entries(options.dataset).forEach(([key, value]) => {
-        element.dataset[key] = value;
-      });
-    }
-
-    if (options.styles) {
-      Object.entries(options.styles).forEach(([key, value]) => {
-        element.style[key] = value;
-      });
-    }
-
-    if (options.on) {
-      Object.entries(options.on).forEach(([eventName, handler]) => {
-        element.addEventListener(eventName, handler);
-      });
-    }
-
-    return element;
-  }
 
   const searchData = document.querySelector('#search-data');
   const searchResults = document.querySelector('#search-results');
@@ -182,43 +123,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (hasQuery) {
-      if (hasCategory1 | hasTags) return 'combined';
+      if (hasCategory1 || hasTags) return 'combined';
       else return 'search';
     } else {
       if (hasCategory1) return hasCategory2 ? 'category2' : 'category1';
       else if (hasTags) return 'tags';
       else return 'search';
     }
-  }
-
-  /**
-   * Capitalize first letter of each word in a string.
-   * @param {string} value - String to capitalize
-   * @returns {string} Capitalized string
-   */
-  function capitalize(value) {
-    return value ? value.split(' ').map(v => v ? v.charAt(0).toUpperCase() + v.slice(1) : '').join(' ') : '';
-  }
-
-  function composeUrl(basePath, urlParams) {
-    const queryString = urlParams.toString();
-    return queryString ? `${basePath}?${queryString}` : basePath;
-  }
-
-  function createBrowseUrl(nextState = {}) {
-    const urlParams = new URLSearchParams();
-
-    if (nextState.query) urlParams.set('query', nextState.query);
-    if (nextState.category1) urlParams.set('category1', nextState.category1);
-    if (nextState.category2) urlParams.set('category2', nextState.category2);
-    if (nextState.tags?.length > 0) {
-      urlParams.set('tags', nextState.tags.join(','));
-      urlParams.set('tagsOp', nextState.tagsOp || 'and');
-    }
-    if (nextState.page) urlParams.set('page', nextState.page.toString());
-    if (nextState.pageSize) urlParams.set('pageSize', nextState.pageSize.toString());
-
-    return composeUrl(browseActionPath, urlParams);
   }
 
   /**
@@ -312,25 +223,14 @@ document.addEventListener('DOMContentLoaded', function() {
       fragment.appendChild(title);
 
       if (browseHref) {
-        fragment.appendChild(createElement('span', {
+        fragment.appendChild(createElement('a', {
           className: 'category-header-action',
           text: '전체 보기',
-          attrs: {role: 'link', tabindex: '0'},
-          on: {
-            click: () => {
-              location.href = browseHref;
-            },
-            keydown: (event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                location.href = browseHref;
-              }
-            }
-          }
+          attrs: {href: browseHref}
         }));
       }
 
-      const count = createElement('p', {className: 'category-header-count'});
+      const count = createElement('p', {className: 'list-header-count'});
       count.appendChild(createElement('strong', {className: 'list-count', text: String(pageCount)}));
       count.appendChild(document.createTextNode('개'));
       fragment.appendChild(count);
@@ -1189,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', function() {
           '',
           '',
           {
-            browseHref: HOME_PATH,
+            browseHref: CATEGORY_PATH,
             useCategoryLayout: true
           }
         );
@@ -1228,7 +1128,7 @@ document.addEventListener('DOMContentLoaded', function() {
           '',
           '',
           {
-            browseHref: HOME_PATH,
+            browseHref: CATEGORY_PATH,
             useCategoryLayout: true
           }
         );
@@ -1368,7 +1268,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (state.page > totalPages) {
       const redirectParams = new URLSearchParams(params);
       redirectParams.set('page', totalPages);
-      window.location.href = `${window.location.pathname}?${redirectParams.toString()}#pagination-anchor`;
+      window.location.href = `${composeUrl(browseActionPath, redirectParams)}#pagination-anchor`;
       return;
     }
 

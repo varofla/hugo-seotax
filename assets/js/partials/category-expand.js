@@ -24,18 +24,13 @@
       return { category1, category2 };
     }
 
-    // Post page: extract from the category link in the content header
-    const categoryLink = document.querySelector('.content-category-link');
-    if (categoryLink) {
-      try {
-        const linkUrl = new URL(categoryLink.getAttribute('href'), window.location.origin);
-        return {
-          category1: linkUrl.searchParams.get('category1'),
-          category2: linkUrl.searchParams.get('category2'),
-        };
-      } catch (e) {
-        // ignore malformed href
-      }
+    // Post page: use rendered category metadata in the content header
+    const categoryMeta = document.querySelector('[data-current-category]');
+    if (categoryMeta) {
+      return {
+        category1: categoryMeta.dataset.category1 || null,
+        category2: categoryMeta.dataset.category2 || null,
+      };
     }
 
     return { category1: null, category2: null };

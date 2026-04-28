@@ -4,3 +4,4 @@ resources/
 assets/_images/
 .DS_Store
 .hugo_build.lock
+design

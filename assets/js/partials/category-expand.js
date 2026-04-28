@@ -17,7 +17,7 @@
   function getCurrentCategory() {
     const currentUrl = new URL(window.location.href);
 
-    // Search page: /search/?category1=...&category2=...
+    // Category/search pages: /categories/?category1=... or /search/?category1=...
     const category1 = currentUrl.searchParams.get('category1');
     const category2 = currentUrl.searchParams.get('category2');
     if (category1 || category2) {

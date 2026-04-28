@@ -45,6 +45,11 @@
     return element;
   }
 
+  function composeUrl(basePath, urlParams) {
+    const queryString = urlParams.toString();
+    return queryString ? `${basePath}?${queryString}` : basePath;
+  }
+
   const searchInput = document.querySelector('#search-input');
   const menuSearch = document.querySelector('.menu-search');
   const mobileSearch = document.querySelector('.mobile-search');
@@ -538,7 +543,6 @@
 
   function buildModalSearchUrl() {
     const params = new URLSearchParams();
-    params.set('from', 'modal');
     if (modalSearchState.query) params.set('query', modalSearchState.query);
     if (modalSearchState.category1) params.set('category1', modalSearchState.category1);
     if (modalSearchState.category2) params.set('category2', modalSearchState.category2);
@@ -547,7 +551,7 @@
       params.set('tagsOp', modalSearchState.tagsOp);
     }
 
-    return params.toString() ? `${SEARCH_PATH}?${params.toString()}` : SEARCH_PATH;
+    return composeUrl(SEARCH_PATH, params);
   }
 
   function focusSearchFieldOnKeyPress(event) {

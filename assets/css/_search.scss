@@ -340,9 +340,7 @@
   gap: space(8);
   margin-bottom: space(32);
   padding-top: space(20);
-  padding-bottom: space(20);
   max-width: $body-wide-width;
-  border-bottom: 1.5px solid oklch(0.92 0.005 200);
 
   p {
     margin-left: auto;
@@ -367,6 +365,10 @@
       font-size: font-size(24);
     }
   }
+}
+
+.search-filter-host {
+  margin-bottom: space(32);
 }
 
 .taxonomy-section {

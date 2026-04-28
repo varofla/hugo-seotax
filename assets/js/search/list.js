@@ -1,13 +1,16 @@
 document.addEventListener('DOMContentLoaded', function() {
   const SEARCH_PATH = '{{ "search/" | relURL }}';
+  const CATEGORY_PATH = '{{ "categories/" | relURL }}';
+  const currentPath = window.location.pathname;
+  const isSearchPage = currentPath.startsWith(SEARCH_PATH);
+  const isCategoriesPage = currentPath.startsWith(CATEGORY_PATH);
 
-  if (!window.location.pathname.startsWith(SEARCH_PATH)) {
+  if (!isSearchPage && !isCategoriesPage) {
     return;
   }
 
   const params = new URLSearchParams(window.location.search);
   const state = {
-    fromModal: params.get('from') === 'modal',
     query: params.get('query') || '',
     category1: params.get('category1') || '',
     category2: params.get('category2') || '',
@@ -26,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInputPlaceholder: '검색어를 입력해주세요',
     searchResultsTitle: '검색 결과',
     searchCountLabel: '"%q" 검색 결과 %s',
+    searchCountLabelNoQuery: '검색 결과 %s',
     searchTagsTitle: '검색 태그',
     listCountLabel: '전체 글 %s',
     categoriesParentSubtitle: '상위 카테고리',
@@ -83,6 +87,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const searchResults = document.querySelector('#search-results');
   const noResults = document.querySelector('#search-no-results');
   const listHeader = document.querySelector('#list-header');
+  const searchFilterHost = document.querySelector('#search-filter-host');
+  const categoriesBrowser = document.querySelector('#categories-browser');
+  const searchActionPath = SEARCH_PATH;
+  const browseActionPath = isCategoriesPage ? CATEGORY_PATH : SEARCH_PATH;
 
   switch (searchType) {
 
@@ -130,15 +138,19 @@ document.addEventListener('DOMContentLoaded', function() {
       break;
 
     default:
-      Promise.all([
-        window.siteSearch.initIndex(),
-        window.siteSearch.initCategories(),
-        window.siteSearch.initTags()
-      ]).then(() => {
-        clearHeader();
-        createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-file-lines'}, 0, '');
-        displayResults(new Set());
-      });
+      if (isCategoriesPage) {
+        showCategoriesBrowser();
+      } else {
+        Promise.all([
+          window.siteSearch.initIndex(),
+          window.siteSearch.initCategories(),
+          window.siteSearch.initTags()
+        ]).then(() => {
+          clearHeader();
+          createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-file-lines'}, 0, '');
+          displayResults(new Set());
+        });
+      }
       break;
   }
 
@@ -152,6 +164,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const hasCategory1 = (state.category1.length > 0);
     const hasCategory2 = (state.category2.length > 0);
     const hasTags = (state.tags.length > 0);
+
+    if (isCategoriesPage && !hasQuery && !hasCategory1 && !hasCategory2 && !hasTags) {
+      return 'none';
+    }
 
     if (hasQuery) {
       if (hasCategory1 | hasTags) return 'combined';
@@ -172,6 +188,27 @@ document.addEventListener('DOMContentLoaded', function() {
     return value ? value.split(' ').map(v => v ? v.charAt(0).toUpperCase() + v.slice(1) : '').join(' ') : '';
   }
 
+  function composeUrl(basePath, urlParams) {
+    const queryString = urlParams.toString();
+    return queryString ? `${basePath}?${queryString}` : basePath;
+  }
+
+  function createBrowseUrl(nextState = {}) {
+    const urlParams = new URLSearchParams();
+
+    if (nextState.query) urlParams.set('query', nextState.query);
+    if (nextState.category1) urlParams.set('category1', nextState.category1);
+    if (nextState.category2) urlParams.set('category2', nextState.category2);
+    if (nextState.tags?.length > 0) {
+      urlParams.set('tags', nextState.tags.join(','));
+      urlParams.set('tagsOp', nextState.tagsOp || 'and');
+    }
+    if (nextState.page) urlParams.set('page', nextState.page.toString());
+    if (nextState.pageSize) urlParams.set('pageSize', nextState.pageSize.toString());
+
+    return composeUrl(browseActionPath, urlParams);
+  }
+
   /**
    * Build search URL from current filter state.
    * @param {boolean} [preserveTaxonomy=false] - Preserve current taxonomy params (for simple search)
@@ -179,10 +216,6 @@ document.addEventListener('DOMContentLoaded', function() {
    */
   function buildSearchUrl(preserveTaxonomy = false) {
     const params = new URLSearchParams();
-
-    if (state.fromModal) {
-      params.set('from', 'modal');
-    }
 
     const queryInput = document.querySelector('#search-query-input');
     if (queryInput !== null) {
@@ -222,7 +255,19 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    return `${SEARCH_PATH}?${params.toString()}`;
+    return composeUrl(searchActionPath, params);
+  }
+
+  function showCategoriesBrowser() {
+    if (categoriesBrowser) {
+      categoriesBrowser.classList.remove('hidden');
+    }
+  }
+
+  function hideCategoriesBrowser() {
+    if (categoriesBrowser) {
+      categoriesBrowser.classList.add('hidden');
+    }
   }
 
   /**
@@ -230,6 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
    */
   function clearHeader() {
     listHeader.replaceChildren();
+    searchFilterHost?.replaceChildren();
 
     const section = document.querySelector('#taxonomy-section');
     if (section.classList.contains('hidden')) {
@@ -245,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {number} pageCount - The number of results
    * @param {string} [query=''] - Search query (optional)
    */
-  function createListHeader(titleInfo, pageCount, query = '') {
+  function createListHeader(titleInfo, pageCount, query = '', countLabelOverride = '') {
     const fragment = document.createDocumentFragment();
 
     const title = createElement('h1');
@@ -256,13 +302,26 @@ document.addEventListener('DOMContentLoaded', function() {
     title.appendChild(createElement('span', {text: titleInfo.text || ''}));
     fragment.appendChild(title);
 
-    const countLabel = query ? TEXT.searchCountLabel.replace('%q', query) : TEXT.listCountLabel;
+    const countLabel = countLabelOverride || (query ? TEXT.searchCountLabel.replace('%q', query) : TEXT.listCountLabel);
     const listCount = `<em class="list-count">${pageCount}</em>`;
     fragment.appendChild(createElement('p', {
       html: countLabel.replace('%s', listCount)
     }));
 
     listHeader.appendChild(fragment);
+  }
+
+  function createSearchResultsHeader(pageCount, query = '') {
+    const countLabel = query
+      ? TEXT.searchCountLabel.replace('%q', query)
+      : TEXT.searchCountLabelNoQuery;
+
+    createListHeader(
+      {text: TEXT.searchResultsTitle, icon: 'icon-file-text'},
+      pageCount,
+      query,
+      countLabel
+    );
   }
 
   /**
@@ -484,13 +543,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchFilter.appendChild(queryFilter);
     fragment.appendChild(searchFilter);
-    listHeader.appendChild(fragment);
+    searchFilterHost?.appendChild(fragment);
 
     setupQueryFilterEvents(true);
   }
 
   /**
-   * Create a search filter with taxonomy filters and append to list header.
+   * Create a search filter with taxonomy filters and append to dedicated host.
    * @param {Set.<number>} ids - Set of post IDs from search results
    * @param {'ture'|'false'|null} [isExpanded=null] - Initial expanded state
    */
@@ -518,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchFilter.appendChild(taxonomiesRow);
     fragment.appendChild(searchFilter);
-    listHeader.appendChild(fragment);
+    searchFilterHost?.appendChild(fragment);
 
     setupQueryFilterEvents(false);
     setupFilterToggle(isExpanded);
@@ -1049,9 +1108,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (appendHeader) {
+      hideCategoriesBrowser();
       clearHeader();
-      createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-file-text'}, searchPosts.size, state.query);
-      createSearchFilter(searchPosts);
+      createSearchResultsHeader(searchPosts.size, state.query);
+      if (isSearchPage) {
+        createSearchFilter(searchPosts);
+      }
     }
 
     return searchPosts;
@@ -1070,10 +1132,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const category1Posts = hasCategory1 ? category1['A']['ids'] : [];
 
     if (appendHeader) {
+      hideCategoriesBrowser();
       clearHeader();
-      createListHeader({text: category1Name, icon: 'icon-folder'}, category1Posts.length);
-      if (state.fromModal) {
+      if (isSearchPage) {
+        createSearchResultsHeader(category1Posts.length, state.query);
         createSearchFilter(category1Posts, 'false');
+      } else {
+        createListHeader({text: category1Name, icon: 'icon-folder'}, category1Posts.length);
       }
 
       const taxonomies = Object.keys(category1).toSorted()
@@ -1081,10 +1146,13 @@ document.addEventListener('DOMContentLoaded', function() {
         .map(key => ({
           text: category1[key]['name'],
           icon: 'icon-file',
-          href: `${SEARCH_PATH}?category1=${category1Name}&category2=${category1[key]['name']}`,
+          href: createBrowseUrl({
+            category1: category1Name,
+            category2: category1[key]['name']
+          }),
           pageCount: category1[key]['ids'].length,
         }));
-      if (taxonomies.length > 0) {
+      if (taxonomies.length > 0 && isCategoriesPage) {
         createTaxonomySection(TEXT.categoriesChildSubtitle, taxonomies);
       }
     }
@@ -1109,17 +1177,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const category2Posts = hasCategory2 ? category2['ids'] : [];
 
     if (appendHeader) {
+      hideCategoriesBrowser();
       clearHeader();
-      createListHeader({text: category2Name, icon: 'icon-file'}, category2Posts.length);
-      if (state.fromModal) {
+      if (isSearchPage) {
+        createSearchResultsHeader(category2Posts.length, state.query);
         createSearchFilter(category2Posts, 'false');
+      } else {
+        createListHeader({text: category2Name, icon: 'icon-file'}, category2Posts.length);
       }
 
-      if (category1Name) {
-        taxonomy = {
+      if (category1Name && isCategoriesPage) {
+        const taxonomy = {
           text: category1Name,
           icon: 'icon-folder-open',
-          href: `${SEARCH_PATH}?category1=${category1Name}`,
+          href: createBrowseUrl({category1: category1Name}),
           pageCount: category1['A']['ids'].length,
         };
         createTaxonomySection(TEXT.categoriesParentSubtitle, [taxonomy]);
@@ -1160,20 +1231,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     if (appendHeader) {
+      hideCategoriesBrowser();
       clearHeader();
-      if (hasSingleTag) {
+      if (isSearchPage) {
+        createSearchResultsHeader(tagPosts.size, state.query);
+        createSearchFilter(tagPosts, 'false');
+      } else if (hasSingleTag) {
         createListHeader({text: tagNames[0], icon: 'icon-tag'}, tagPosts.size);
       } else {
         createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-tags'}, tagPosts.size);
       }
-      createSearchFilter(tagPosts, 'false');
 
       if (!hasSingleTag) {
         const taxonomies = tagNames.toSorted()
           .map(tag => ({
             text: tag,
             icon: 'icon-tag',
-            href: `${SEARCH_PATH}?tags=${tag}`,
+            href: composeUrl(SEARCH_PATH, new URLSearchParams({
+              tags: tag
+            })),
             pageCount: tags[tag.toLowerCase()]['ids'].length,
           }));
         if (taxonomies.length > 0) {
@@ -1211,9 +1287,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (appendHeader) {
+      hideCategoriesBrowser();
       clearHeader();
-      createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-file-text'}, searchPosts.size, state.query);
-      createSearchFilter(searchPosts);
+      createSearchResultsHeader(searchPosts.size, state.query);
+      if (isSearchPage) {
+        createSearchFilter(searchPosts);
+      }
     }
 
     return searchPosts;
@@ -1313,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const createPageUrl = (page) => {
       const newParams = new URLSearchParams(params);
       newParams.set('page', page);
-      return `${SEARCH_PATH}?${newParams.toString()}#pagination-anchor`;
+      return `${composeUrl(browseActionPath, newParams)}#pagination-anchor`;
     };
 
     (function appendPrevLink() {

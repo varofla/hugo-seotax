@@ -2,8 +2,14 @@
 <div class="content-category">
   {{ $category1 := partial "categories/level1" .Params.categories }}
   {{ $category2 := partial "categories/level2" .Params.categories }}
-  <a href="{{ `categories/` | relURL }}?category1={{ $category1 }}&category2={{ $category2 }}" class="content-category-link">
-    {{ partial "categories/full" .Params.categories }}
-  </a>
+  <div class="post-categories">
+    {{ if $category1 }}
+      <a href="{{ `categories/` | relURL }}?category1={{ $category1 }}" class="post-cat-parent">{{ $category1 }}</a>
+      {{ if $category2 }}
+      <span class="post-cat-sep">›</span>
+      <a href="{{ `categories/` | relURL }}?category1={{ $category1 }}&category2={{ $category2 }}" class="post-cat-child">{{ $category2 }}</a>
+      {{ end }}
+    {{ end }}
+  </div>
 </div>
 {{ end }}

@@ -1,27 +1,4 @@
-<article class="post-item">
-
-  <div class="post-meta">
-    <time datetime="{{ .Date.Format `2006-01-02` }}">
-      {{- .Date.Format "2006년 01월 02일" -}}
-    </time>
-    {{ if .Params.categories }}
-    <div class="post-categories">
-      {{ $category1 := partial "categories/level1" .Params.categories }}
-      {{ if $category1 }}
-        <a href="{{ `categories/` | relURL }}?category1={{ $category1 }}" class="category">
-          <i class="icon-folder"></i> {{ $category1 -}}
-        </a>
-
-        {{ $category2 := partial "categories/level2" .Params.categories }}
-        {{ if $category2 }}
-        <a href="{{ `categories/` | relURL }}?category1={{ $category1 }}&category2={{ $category2 }}" class="category">
-        <i class="icon-file"></i> {{ $category2 -}}
-        </a>
-        {{ end }}
-      {{ end }}
-    </div>
-    {{ end }}
-  </div>
+<article class="post-item" onclick="location.href='{{ .RelPermalink }}'">
 
   {{ $coverImage := cond .Params.thumbnail .Params.thumbnail .Params.cover }}
 
@@ -34,9 +11,21 @@
     {{ end }}
 
     <div class="post-text-area">
-      <h2 class="post-title">
-        <a href="{{ .RelPermalink }}">{{ .Title }}</a>
-      </h2>
+      {{ if .Params.categories }}
+      <div class="post-categories">
+        {{ $category1 := partial "categories/level1" .Params.categories }}
+        {{ if $category1 }}
+          <span onclick="event.stopPropagation(); location.href='{{ `categories/` | relURL }}?category1={{ $category1 }}'" class="post-cat-parent">{{ $category1 -}}</span>
+          {{ $category2 := partial "categories/level2" .Params.categories }}
+          {{ if $category2 }}
+          <span class="post-cat-sep">›</span>
+          <span onclick="event.stopPropagation(); location.href='{{ `categories/` | relURL }}?category1={{ $category1 }}&category2={{ $category2 }}'" class="post-cat-child">{{ $category2 -}}</span>
+          {{ end }}
+        {{ end }}
+      </div>
+      {{ end }}
+
+      <h2 class="post-title">{{ .Title }}</h2>
 
       {{ with cond .Description .Description (cond .Summary .Summary "") }}
       <div class="post-summary">
@@ -44,13 +33,19 @@
       </div>
       {{ end }}
 
-      {{ if .Params.tags }}
-      <div class="post-tags">
-        {{ range first 5 .Params.tags }}
-        <a href="{{ `search/` | relURL }}?tags={{ . }}" class="tag"><i class="icon-tag"></i> {{ . -}}</a>
+      <div class="post-meta">
+        <time datetime="{{ .Date.Format `2006-01-02` }}">
+          {{- .Date.Format "2006.01.02" -}}
+        </time>
+        {{ if .Params.tags }}
+        <span class="post-meta-sep">·</span>
+        <div class="post-tags">
+          {{ range first 5 .Params.tags }}
+          <span onclick="event.stopPropagation(); location.href='{{ `search/` | relURL }}?tags={{ . }}'" class="post-tag">#{{ . -}}</span>
+          {{ end }}
+        </div>
         {{ end }}
       </div>
-      {{ end }}
     </div>
 
     {{ with $coverImage }}

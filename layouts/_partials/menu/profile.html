@@ -3,8 +3,8 @@
 <div class="menu-profile">
   <a class="menu-brand" href="{{ .Site.BaseURL }}">
     {{- with site.Params.menu.profileImage -}}
-    <span class="profile-image-wrap">
-      <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="Profile" class="profile-image" decoding="async" />
+    <span class="menu-brand-avatar" aria-hidden="true">
+      <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="" class="menu-brand-avatar-image" decoding="async" />
     </span>
     {{- end -}}
 

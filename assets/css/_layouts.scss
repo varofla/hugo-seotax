@@ -201,7 +201,7 @@ nav ul {
 .site-menu {
   width: $menu-width;
   flex-shrink: 0;
-  font-size: font-size(14);
+  font-size: 15px;
   transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out;
 
   -ms-overflow-style: none;  /* IE and Edge */

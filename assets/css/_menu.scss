@@ -113,7 +113,7 @@
   align-items: center;
   flex: 0 0 auto;
   font-family: "Pretendard Variable", Pretendard, sans-serif;
-  font-size: 0.69rem;
+  font-size: 0.7525rem;
   font-weight: 500;
   line-height: 1;
   letter-spacing: 0.005em;
@@ -186,7 +186,7 @@
   }
 
   .menu-brand-title {
-    font-size: 1.25rem;
+    font-size: 1.3125rem;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--site-menu-text);
@@ -194,9 +194,9 @@
 
   .menu-subtitle {
     display: block;
-    margin-top: 0.1875rem;
+    margin-top: 0.3125rem;
     font-family: "Pretendard Variable", Pretendard, sans-serif;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     letter-spacing: 0.01em;
     color: var(--site-menu-text-muted);
   }
@@ -284,7 +284,7 @@
     padding: 0.3125rem 0.875rem;
     border-radius: 999px;
     font-family: "Pretendard Variable", Pretendard, sans-serif;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.01em;
     border-width: 1.5px;
@@ -335,7 +335,7 @@
       gap: 0.4rem;
       min-width: 0;
       font-family: "DM Mono", monospace;
-      font-size: 0.75rem;
+      font-size: 0.8125rem;
       line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;
@@ -384,7 +384,7 @@
     padding: 0.25rem 1rem 0.5rem;
     margin: 0;
     font-family: "Pretendard Variable", Pretendard, sans-serif;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -417,7 +417,7 @@
     padding: 0.4375rem 0.75rem 0.4375rem 0.625rem;
     border-left: 2px solid transparent;
     font-family: "Pretendard Variable", Pretendard, sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     line-height: 1.2;
     color: var(--site-menu-text);
@@ -495,7 +495,7 @@
     align-items: center;
     margin-left: auto;
     font-family: "DM Mono", monospace;
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     line-height: 1;
     color: var(--site-menu-text-subtle);
     white-space: nowrap;
@@ -549,7 +549,7 @@
     gap: 0.55rem;
     padding: 0.3125rem 0.625rem 0.3125rem 0.5rem;
     font-family: "Pretendard Variable", Pretendard, sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     line-height: 1.2;
     color: var(--site-menu-text-muted);
     text-decoration: none;
@@ -645,7 +645,7 @@
   .recent-post-title {
     overflow: hidden;
     color: var(--site-menu-text);
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     line-height: 1.4;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -654,7 +654,7 @@
   .recent-post-date {
     margin-top: 0.0625rem;
     font-family: "DM Mono", monospace;
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     color: var(--site-menu-text-subtle);
   }
 }

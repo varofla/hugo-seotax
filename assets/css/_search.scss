@@ -188,6 +188,18 @@
       }
     }
 
+    .search-modal-filter-toggle {
+      padding: space(8) space(16);
+      border: 1px solid var(--gray-500);
+      border-radius: radius(search-input);
+      background: var(--gray-100);
+
+      &:hover {
+        background: var(--gray-200);
+        border-color: var(--color-link);
+      }
+    }
+
     .search-modal-button {
       background: transparent;
       border: none;
@@ -207,6 +219,28 @@
       i {
         font-size: font-size(24);
       }
+    }
+  }
+
+  .search-filter-modal {
+    flex-shrink: 0;
+    padding-top: space(12);
+    padding-bottom: space(12);
+    border-bottom: 1px solid var(--gray-200);
+
+    .search-taxonomies-row {
+      justify-content: stretch;
+      gap: space(12);
+    }
+
+    .search-categories-filter,
+    .search-tags-filter {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .taxonomy-filter {
+      flex: 1;
     }
   }
 
@@ -248,6 +282,11 @@
           line-height: 1.5;
         }
       }
+
+      &.search-result-empty {
+        padding: space(20) space(24);
+        border-bottom: none;
+      }
     }
   }
 
@@ -279,6 +318,11 @@
     .search-modal-header,
     .search-modal-input-container {
       padding: space(12) space(16);
+    }
+
+    .search-filter-modal {
+      padding-left: space(16);
+      padding-right: space(16);
     }
 
     .search-modal-results .search-result-item a,

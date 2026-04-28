@@ -43,6 +43,7 @@ window.siteSearch.initIndex = async function() {
     })
     .then(pages => {
       window.siteSearch.index = new Fuse(pages, indexConfig);
+      window.siteSearch.pages = pages;
       window.siteSearch.total = pages.length;
       return window.siteSearch.index;
     });

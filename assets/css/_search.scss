@@ -291,31 +291,37 @@
 /* Search Results */
 
 .list-header {
-  text-align: center;
-  margin: space(24) auto;
-  padding-bottom: space(24);
+  display: flex;
+  align-items: center;
+  gap: space(8);
+  margin-bottom: space(32);
+  padding-top: space(20);
+  padding-bottom: space(20);
   max-width: $body-wide-width;
-  border-bottom: 1px solid var(--body-font-color);
+  border-bottom: 1.5px solid oklch(0.92 0.005 200);
 
-  .list-count {
-    font-style: normal;
-    font-weight: bold;
-    color: var(--color-link);
+  p {
+    margin-left: auto;
+    font-family: monospace;
+    font-size: font-size(12);
+    color: var(--gray-500);
+
+    .list-count {
+      font-style: normal;
+      font-weight: 600;
+      color: var(--color-link);
+    }
   }
 }
 
 .markdown .list-header {
   h1 {
-    font-size: font-size(40);
-    margin: space(16) auto;
+    font-size: font-size(24);
+    margin: 0;
 
     i {
-      font-size: font-size(40);
+      font-size: font-size(24);
     }
-  }
-
-  p {
-    font-size: font-size(20);
   }
 }
 
@@ -923,7 +929,7 @@
 
 @media (max-width: $body-max-width) {
   .list-header h1 {
-    font-size: font-size(32);
+    font-size: font-size(20);
   }
 
   .post-title {

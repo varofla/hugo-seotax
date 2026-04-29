@@ -31,7 +31,6 @@
     </div>
 
     {{ template "toc-container" . }} <!-- Right ToC -->
-    {{ template "toolbar" . }} <!-- Right corner toolbar -->
   </main>
 </body>
 </html>
@@ -128,10 +127,4 @@
 
 {{ define "toc" }}
   {{ .TableOfContents }}
-{{ end }}
-
-{{ define "toolbar" }}
-<div class="site-toolbar" role="toolbar" aria-label="툴바">
-  {{ partial "toolbar" . }}
-</div>
 {{ end }}

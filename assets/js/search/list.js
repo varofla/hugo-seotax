@@ -191,6 +191,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function createListHeader(titleInfo, pageCount, query = '', countLabelOverride = '') {
     const fragment = document.createDocumentFragment();
 
+    listHeader?.classList.add('list-header--stacked');
+
     const title = createElement('h1');
     if (titleInfo.icon) {
       title.appendChild(createElement('i', {className: `${titleInfo.icon}`}))
@@ -202,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const countLabel = countLabelOverride || (query ? TEXT.searchCountLabel.replace('%q', query) : TEXT.listCountLabel);
     const listCount = `<em class="list-count">${pageCount}</em>`;
     fragment.appendChild(createElement('p', {
+      className: 'list-header-count',
       html: countLabel.replace('%s', listCount)
     }));
 

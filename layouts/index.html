@@ -2,9 +2,9 @@
 <article class="content-wrap markdown">
   {{ $pages := partialCached "pages/posts" . "posts" }}
 
-  <div class="list-header">
+  <div class="list-header list-header--stacked">
     <h1>
-      Posts
+      Blog Posts
     </h1>
     <p class="list-header-count">
       {{- $count := printf `<em class="list-count">%d</em>` (len $pages) -}}

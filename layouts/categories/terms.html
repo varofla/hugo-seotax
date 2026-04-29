@@ -3,7 +3,7 @@
   {{ $tree := partialCached "categories/tree" . "categories" }}
   {{ $categoryCount := len (partial "keys" $tree) }}
 
-  <div class="list-header">
+  <div class="list-header list-header--stacked">
     <h1>카테고리</h1>
     <p class="list-header-count">
       <em class="list-count">{{ $categoryCount }}</em>개

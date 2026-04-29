@@ -16,12 +16,12 @@
 {{ end }}
 {{- /* ... */ -}}
 <article class="markdown content-wrap">
-  <div class="list-header">
+  <div class="list-header list-header--stacked">
     <h1>
       <i class="icon-tags"></i>
       <span>태그</span>
     </h1>
-    <p>
+    <p class="list-header-count">
       {{- $count := printf `<em class="list-count">%d</em>` (len $tree) -}}
       {{- printf "전체 태그 %s" $count | safeHTML -}}
     </p>

@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.siteSearch.initPostItems()
   ]).then(() => {
     const categoryData = resolveCategoryData(state);
-    updateHeader(categoryData.title, categoryData.ids.length);
+    updateHeader(categoryData, categoryData.ids.length);
     displayResults(categoryData.ids, state);
   });
 
@@ -43,7 +43,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!state.category2) {
       return {
-        title: category1Name,
+        category1Name,
+        category1Value: hasCategory1 ? category1.A.name : state.category1,
+        category2Name: '',
+        category2Value: '',
         ids: hasCategory1 ? category1.A.ids : []
       };
     }
@@ -53,19 +56,54 @@ document.addEventListener('DOMContentLoaded', function() {
     const category2Name = hasCategory2 ? category2.name : capitalize(state.category2);
 
     return {
-      title: `${category1Name} \u203a ${category2Name}`,
+      category1Name,
+      category1Value: hasCategory1 ? category1.A.name : state.category1,
+      category2Name,
+      category2Value: hasCategory2 ? category2.name : state.category2,
       ids: hasCategory2 ? category2.ids : []
     };
   }
 
-  function updateHeader(title, count) {
+  function updateHeader(categoryData, count) {
     if (titleElement) {
-      titleElement.textContent = title;
+      titleElement.replaceChildren(createCategoryTitle(categoryData));
     }
 
     if (countElement) {
       countElement.textContent = count.toString();
     }
+  }
+
+  function createCategoryTitle({category1Name, category1Value, category2Name = '', category2Value = ''}) {
+    const fragment = document.createDocumentFragment();
+    const category1Params = new URLSearchParams();
+    category1Params.set('category1', category1Value);
+
+    fragment.appendChild(createElement('a', {
+      className: 'category-title-link category-title-link--parent',
+      text: category1Name,
+      attrs: {href: composeUrl(CATEGORY_PATH, category1Params)}
+    }));
+
+    if (!category2Name) {
+      return fragment;
+    }
+
+    const category2Params = new URLSearchParams();
+    category2Params.set('category1', category1Value);
+    category2Params.set('category2', category2Value);
+
+    fragment.appendChild(createElement('span', {
+      className: 'category-title-sep',
+      text: '›'
+    }));
+    fragment.appendChild(createElement('a', {
+      className: 'category-title-link category-title-link--child',
+      text: category2Name,
+      attrs: {href: composeUrl(CATEGORY_PATH, category2Params)}
+    }));
+
+    return fragment;
   }
 
   function clearResults() {

@@ -75,7 +75,9 @@
 {{ define "footer" }}
 <footer class="site-footer">
   {{ if eq .Section (default "posts" .Site.Params.posts.section) }}
+  {{ if not (and (eq .Kind "page") (eq .Type "posts")) }}
   {{ template "tags" . }}
+  {{ end }}
   {{ template "prev-next" . }}
   {{ template "comments" . }}
   {{ end }}
@@ -84,9 +86,7 @@
 {{ end }}
 
 {{ define "tags" }}
-  <div class="tags-wrap">
-    {{- partial "footer/tags" . -}}
-  </div>
+  {{- partial "footer/tags" . -}}
 {{ end }}
 
 {{ define "prev-next" }}

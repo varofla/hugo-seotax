@@ -1117,41 +1117,6 @@ a.post-tag:visited {
   }
 }
 
-.tags-wrap {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: space(8);
-  position: relative;
-
-  line-height: 1.6;
-  display: flex;
-  flex-wrap: wrap;
-
-  .tag {
-    display: inline-block;
-    flex-shrink: 0;
-    flex: none;
-    background: var(--gray-100);
-    color: var(--body-font-color);
-    padding: space(4) space(8);
-    font-size: font-size(14);
-    border: 1px solid var(--gray-200);
-    border-radius: radius(chip);
-    white-space: nowrap;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    width: 40px;
-    background: linear-gradient(to left, var(--body-background), transparent);
-    pointer-events: none;
-  }
-}
-
 .markdown .category,
 .markdown .tag,
 .markdown .taxonomy-link,
@@ -1172,6 +1137,13 @@ a.post-tag:visited {
     color: var(--body-font-color);
     text-decoration: none;
   }
+}
+
+.site-footer > .tag {
+  display: inline-block;
+  margin-right: space(8);
+  margin-bottom: space(8);
+  white-space: nowrap;
 }
 
 .post-cover {

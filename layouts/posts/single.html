@@ -3,18 +3,27 @@
   <a class="post-back-btn" href="{{ `/` | relURL }}">← Posts로 돌아가기</a>
   {{ partial "content/categories" . }}
   {{ partial "content/title" . }}
-  {{ with .Date }}
   <div class="post-meta-row">
-    <time class="post-meta-date" datetime="{{ .Format `2006-01-02T15:04:05Z07:00` }}">
-      {{ .Format "2006.01.02" }}
-    </time>
+    <a class="menu-brand" href="{{ .Site.Home.RelPermalink }}">
+      {{- with site.Params.menu.profileImage -}}
+      <span class="menu-brand-avatar">
+        <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="" class="menu-brand-avatar-image" decoding="async" />
+      </span>
+      {{- end -}}
+      <div class="menu-brand-copy">
+        <h2 class="profile-title">
+          <span class="menu-brand-title">{{ .Site.Params.Menu.Title }}</span>
+        </h2>
+        <span class="menu-subtitle">{{ .Site.Params.author }}{{ with .Date }}, {{ .Format "2006.01.02" }}{{ end }}</span>
+      </div>
+    </a>
     {{ if $.Params.tags }}
-    <span class="post-meta-sep">·</span>
-    {{ range $.Params.tags }}
-    <span class="post-view-tag">#{{ . }}</span>
-    {{ end }}
+    <div class="post-meta-tags">
+      {{ range $.Params.tags }}
+      <span class="post-view-tag">#{{ . }}</span>
+      {{ end }}
+    </div>
     {{ end }}
   </div>
-  {{ end }}
 </header>
 {{ end }}

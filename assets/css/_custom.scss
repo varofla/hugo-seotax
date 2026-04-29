@@ -219,20 +219,80 @@ body.site-kind-page.site-type-posts {
   .post-meta-row {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     flex-wrap: wrap;
-    gap: 6px 10px;
+    gap: 12px;
     margin-bottom: space(32);
     padding-bottom: space(24);
     border-bottom: 1px solid oklch(0.92 0.005 200);
 
-    .post-meta-date {
-      font-family: "DM Mono", monospace;
-      font-size: font-size(12);
-      color: oklch(0.67 0.006 220);
+    .menu-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: oklch(0.14 0.005 220);
+      text-decoration: none;
+
+      &:visited,
+      &:hover,
+      &:focus-visible {
+        color: oklch(0.14 0.005 220);
+        opacity: 1;
+        text-decoration: none;
+      }
+
+      .menu-brand-avatar {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 1px solid oklch(0.92 0.005 200);
+      }
+
+      .menu-brand-avatar-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+      }
+
+      .menu-brand-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-top: 6px;
+      }
+
+      .profile-title {
+        margin: 0;
+        font-family: "Pretendard Variable", Pretendard, sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.2;
+      }
+
+      .menu-brand-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: oklch(0.14 0.005 220);
+      }
+
+      .menu-subtitle {
+        display: block;
+        font-family: "DM Mono", monospace;
+        font-size: 11px;
+        color: oklch(0.67 0.006 220);
+        margin-top: 0;
+        letter-spacing: 0;
+      }
     }
 
-    .post-meta-sep {
-      color: oklch(0.92 0.005 200);
+    .post-meta-tags {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
     }
 
     .post-view-tag {

@@ -1,7 +1,7 @@
 {{- $host := replaceRE "^https?://([^/]+)/?.*$" "$1" .Site.BaseURL -}}
 {{- $author := .Site.Params.author | default "" -}}
 <div class="menu-profile">
-  <a class="menu-brand" href="{{ .Site.BaseURL }}">
+  <a class="menu-brand" href="{{ .Site.Home.RelPermalink }}">
     {{- with site.Params.menu.profileImage -}}
     <span class="menu-brand-avatar" aria-hidden="true">
       <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="" class="menu-brand-avatar-image" decoding="async" />

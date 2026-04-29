@@ -1,0 +1,66 @@
+{{- $page := .Page -}}
+{{- $imageUrl := .Url -}}
+{{- $class := .Class -}}
+{{- $alt := .Alt | default "Cover Image" -}}
+{{- $loading := .Loading | default "lazy" -}}
+{{- $decoding := .Decoding | default "async" -}}
+{{- $width := int (.Width | default 0) -}}
+{{- $height := int (.Height | default 0) -}}
+{{- $sizes := .Sizes -}}
+
+{{- $src := $imageUrl | absURL -}}
+{{- $attrs := partial "content/img-attr" (dict "Page" $page "Url" $imageUrl) -}}
+{{- $srcset := "" -}}
+{{- $res := false -}}
+{{- $desktop1xWidth := div (mul $width 3) 2 -}}
+{{- $desktop1xHeight := div (mul $height 3) 2 -}}
+{{- $desktop2xWidth := mul $width 3 -}}
+{{- $desktop2xHeight := mul $height 3 -}}
+
+{{- if and $page $imageUrl -}}
+  {{- $pageDir := cond $page.File $page.File.Dir "" -}}
+  {{- $relPath := strings.TrimPrefix (site.Params.posts.section | default "posts/") $pageDir -}}
+  {{- $rootPath := site.Params.image.rootPath | default "_images" -}}
+  {{- $urlParts := split (index (split $imageUrl "?") 0) "/" -}}
+  {{- $fileName := index $urlParts (sub (len $urlParts) 1) -}}
+
+  {{- $res = $page.Resources.GetMatch $fileName -}}
+  {{- if not $res -}}
+    {{- $baseName := path.BaseName $fileName -}}
+    {{- $res = $page.Resources.GetMatch (printf "%s.*" $baseName) -}}
+  {{- end -}}
+  {{- if not $res -}}
+    {{- $imagePath := printf "%s/%s/%s" $rootPath $relPath $fileName -}}
+    {{- $res = resources.Get $imagePath -}}
+  {{- end -}}
+  {{- if not $res -}}
+    {{- $baseName := path.BaseName $fileName -}}
+    {{- $imagePath := printf "%s/%s/%s.*" $rootPath $relPath $baseName -}}
+    {{- with resources.Match $imagePath -}}
+      {{- $res = index . 0 -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- with $res -}}
+  {{- if and (reflect.IsImageResourceWithMeta .) (gt $width 0) (gt $height 0) -}}
+    {{- if and (ge .Width $width) (ge .Height $height) -}}
+      {{- $desktop1x := .Fill (printf "%dx%d Center q95" $desktop1xWidth $desktop1xHeight) -}}
+      {{- $src = $desktop1x.RelPermalink -}}
+      {{- $attrs = printf `width="%d" height="%d"` $width $height -}}
+      {{- $srcsetParts := slice (printf "%s %dw" $desktop1x.RelPermalink $desktop1x.Width) -}}
+
+      {{- if and (ge .Width $desktop2xWidth) (ge .Height $desktop2xHeight) -}}
+        {{- $desktop2x := .Fill (printf "%dx%d Center q95" $desktop2xWidth $desktop2xHeight) -}}
+        {{- $srcsetParts = $srcsetParts | append (printf "%s %dw" $desktop2x.RelPermalink $desktop2x.Width) -}}
+      {{- end -}}
+
+      {{- $srcset = delimit $srcsetParts ", " -}}
+    {{- else -}}
+      {{- $src = .RelPermalink -}}
+      {{- $attrs = printf `width="%d" height="%d"` .Width .Height -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+<img src="{{ $src }}" alt="{{ $alt }}" class="{{ $class }}"{{ with $attrs }} {{ . | safeHTMLAttr }}{{ end }} loading="{{ $loading }}" decoding="{{ $decoding }}"{{ with $srcset }} srcset="{{ . }}"{{ end }}{{ with $sizes }} sizes="{{ . }}"{{ end }}>

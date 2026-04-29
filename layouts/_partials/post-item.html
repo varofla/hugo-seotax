@@ -44,8 +44,15 @@
 
     {{ with $coverImage }}
     <div class="post-cover{{ if site.Params.image.roundedCorners }} rounded{{ end }}">
-      {{- $coverAttrs := partial "content/img-attr" (dict "Page" $ "Url" .) -}}
-      <img src="{{ . | absURL }}" alt="Cover Image" class="post-cover-img" {{ $coverAttrs | safeHTMLAttr }} loading="lazy" decoding="async">
+      {{ partial "content/post-card-cover-img.html" (dict
+        "Page" $
+        "Url" .
+        "Alt" "Cover Image"
+        "Class" "post-cover-img"
+        "Width" 200
+        "Height" 170
+        "Sizes" "200px"
+      ) }}
     </div>
     {{ end }}
   </div>

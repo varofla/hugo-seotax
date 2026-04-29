@@ -1149,8 +1149,10 @@ a.post-tag:visited {
 .post-cover {
   width: $preview-width;
   height: $preview-height;
+  overflow: hidden;
 
   .post-cover-img {
+    display: block;
     width: 100%;
     height: 100%;
     object-fit: cover;

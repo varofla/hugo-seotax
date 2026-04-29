@@ -1,36 +1,15 @@
 {{ define "content" }}
-<article class="content-wrap markdown categories-page">
+<article class="content-wrap markdown">
   {{ $tree := partialCached "categories/tree" . "categories" }}
   {{ $categoryCount := len (partial "keys" $tree) }}
 
-  <div class="list-header" id="list-header">
+  <div class="list-header">
     <h1>카테고리</h1>
     <p class="list-header-count">
-      {{- $count := printf `<em class="list-count">%d</em>` $categoryCount -}}
-      {{- printf "Total %s" $count | safeHTML -}}
+      <em class="list-count">{{ $categoryCount }}</em>개
     </p>
   </div>
-  <div class="search-filter-host" id="search-filter-host"></div>
 
-  <div id="categories-browser">
-    {{ partial "menu/categories" . }}
-  </div>
-
-  <div class="search-data hidden" id="search-data">
-    {{- range $index, $page := partialCached "pages/search" . "search" -}}
-      <div class="search-item" data-id="{{ $index }}">
-        {{ partial "post-item.html" . }}
-      </div>
-    {{- end -}}
-  </div>
-
-  <div class="search-no-results hidden" id="search-no-results">
-    <p>결과가 없습니다.</p>
-  </div>
-
-  <div class="post-list hidden" id="search-results"></div>
-
-  <div id="pagination-anchor"></div>
-  <nav class="pagination hidden" id="pagination"></nav>
+  {{ partial "menu/categories" . }}
 </article>
 {{ end }}

@@ -162,3 +162,26 @@ window.siteSearch.initTags = async function() {
       return window.siteSearch.tags;
     });
 };
+
+/**
+ * Initialize rendered post items for category list pages
+ * @returns {Promise<Map<number, {id:number, html:string}>>}
+ */
+window.siteSearch.initPostItems = async function() {
+  if (window.siteSearch.postItemsMap) {
+    return Promise.resolve(window.siteSearch.postItemsMap);
+  }
+
+  return fetch(window.siteSearch.postItemsUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(items => {
+      window.siteSearch.postItems = items;
+      window.siteSearch.postItemsMap = new Map(items.map(item => [item.id, item]));
+      return window.siteSearch.postItemsMap;
+    });
+};

@@ -1,0 +1,19 @@
+{{ define "content" }}
+<article class="content-wrap markdown">
+  <div class="list-header">
+    <h1 id="category-title">카테고리</h1>
+    <p class="list-header-count">
+      <em class="list-count" id="category-count">0</em>개
+    </p>
+  </div>
+
+  <div class="category-no-results hidden" id="category-no-results">
+    <p>결과가 없습니다.</p>
+  </div>
+
+  <div class="post-list hidden" id="category-results"></div>
+
+  <div id="pagination-anchor"></div>
+  <nav class="pagination hidden" id="pagination"></nav>
+</article>
+{{ end }}

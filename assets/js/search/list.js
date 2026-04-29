@@ -1,13 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const HOME_PATH = '{{ "/" | relURL }}';
   const SEARCH_PATH = '{{ "search/" | relURL }}';
-  const CATEGORY_PATH = '{{ "categories/" | relURL }}';
-  const {capitalize, composeUrl, createElement, getUrlState} = window.siteSearch.utils;
+  const {composeUrl, createElement, getUrlState} = window.siteSearch.utils;
   const currentPath = window.location.pathname;
   const isSearchPage = currentPath.startsWith(SEARCH_PATH);
-  const isCategoriesPage = currentPath.startsWith(CATEGORY_PATH);
 
-  if (!isSearchPage && !isCategoriesPage) {
+  if (!isSearchPage) {
     return;
   }
 
@@ -38,16 +35,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const noResults = document.querySelector('#search-no-results');
   const listHeader = document.querySelector('#list-header');
   const searchFilterHost = document.querySelector('#search-filter-host');
-  const categoriesBrowser = document.querySelector('#categories-browser');
   const searchActionPath = SEARCH_PATH;
-  const browseActionPath = isCategoriesPage ? CATEGORY_PATH : SEARCH_PATH;
-
-  function finishInitialRender() {
-    document.documentElement.classList.remove('categories-query-pending');
-  }
+  const browseActionPath = SEARCH_PATH;
 
   switch (searchType) {
-
     case 'search':
       Promise.all([
         window.siteSearch.initIndex(),
@@ -92,19 +83,15 @@ document.addEventListener('DOMContentLoaded', function() {
       break;
 
     default:
-      if (isCategoriesPage) {
-        showCategoriesBrowser();
-      } else {
-        Promise.all([
-          window.siteSearch.initIndex(),
-          window.siteSearch.initCategories(),
-          window.siteSearch.initTags()
-        ]).then(() => {
-          clearHeader();
-          createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-file-lines'}, 0, '');
-          displayResults(new Set());
-        });
-      }
+      Promise.all([
+        window.siteSearch.initIndex(),
+        window.siteSearch.initCategories(),
+        window.siteSearch.initTags()
+      ]).then(() => {
+        clearHeader();
+        createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-file-lines'}, 0, '');
+        displayResults(new Set());
+      });
       break;
   }
 
@@ -118,10 +105,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const hasCategory1 = (state.category1.length > 0);
     const hasCategory2 = (state.category2.length > 0);
     const hasTags = (state.tags.length > 0);
-
-    if (isCategoriesPage && !hasQuery && !hasCategory1 && !hasCategory2 && !hasTags) {
-      return 'none';
-    }
 
     if (hasQuery) {
       if (hasCategory1 || hasTags) return 'combined';
@@ -182,23 +165,14 @@ document.addEventListener('DOMContentLoaded', function() {
     return composeUrl(searchActionPath, params);
   }
 
-  function showCategoriesBrowser() {
-    if (categoriesBrowser) {
-      categoriesBrowser.classList.remove('hidden');
-    }
-    finishInitialRender();
-  }
-
-  function hideCategoriesBrowser() {
-    if (categoriesBrowser) {
-      categoriesBrowser.classList.add('hidden');
-    }
-  }
-
   /**
    * Clear list header and taxonomy section.
    */
   function clearHeader() {
+    if (!isSearchPage || !listHeader) {
+      return;
+    }
+
     listHeader.replaceChildren();
     searchFilterHost?.replaceChildren();
 
@@ -214,29 +188,8 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {number} pageCount - The number of results
    * @param {string} [query=''] - Search query (optional)
    */
-  function createListHeader(titleInfo, pageCount, query = '', countLabelOverride = '', options = {}) {
+  function createListHeader(titleInfo, pageCount, query = '', countLabelOverride = '') {
     const fragment = document.createDocumentFragment();
-    const {browseHref = '', useCategoryLayout = false} = options;
-
-    if (useCategoryLayout) {
-      const title = createElement('h1');
-      title.textContent = titleInfo.text || '';
-      fragment.appendChild(title);
-
-      if (browseHref) {
-        fragment.appendChild(createElement('a', {
-          className: 'category-header-action',
-          text: '전체 보기',
-          attrs: {href: browseHref}
-        }));
-      }
-
-      const count = createElement('p', {className: 'list-header-count'});
-      count.innerHTML = `Total <em class="list-count">${pageCount}</em>`;
-      fragment.appendChild(count);
-      listHeader.appendChild(fragment);
-      return;
-    }
 
     const title = createElement('h1');
     if (titleInfo.icon) {
@@ -1053,7 +1006,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (appendHeader) {
-      hideCategoriesBrowser();
       clearHeader();
       createSearchResultsHeader(searchPosts.size, state.query);
       if (isSearchPage) {
@@ -1073,27 +1025,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function searchCategory1(state, appendHeader = false) {
     const category1 = window.siteSearch.categories[state.category1.toLowerCase()];
     const hasCategory1 = (category1 instanceof Object) && (Object.keys(category1).length > 0);
-    const category1Name = hasCategory1 ? category1['A']['name'] : capitalize(state.category1);
     const category1Posts = hasCategory1 ? category1['A']['ids'] : [];
 
     if (appendHeader) {
-      hideCategoriesBrowser();
       clearHeader();
-      if (isSearchPage) {
-        createSearchResultsHeader(category1Posts.length, state.query);
-        createSearchFilter(category1Posts, 'false');
-      } else {
-        createListHeader(
-          {text: category1Name, icon: 'icon-folder'},
-          category1Posts.length,
-          '',
-          '',
-          {
-            browseHref: HOME_PATH,
-            useCategoryLayout: true
-          }
-        );
-      }
+      createSearchResultsHeader(category1Posts.length, state.query);
+      createSearchFilter(category1Posts, 'false');
     }
 
     return new Set(category1Posts);
@@ -1108,31 +1045,15 @@ document.addEventListener('DOMContentLoaded', function() {
   function searchCategory2(state, appendHeader = false) {
     const category1 = window.siteSearch.categories[state.category1.toLowerCase()];
     const hasCategory1 = (category1 instanceof Object) && (Object.keys(category1).length > 0);
-    const category1Name = hasCategory1 ? category1['A']['name'] : '';
 
     const category2 = hasCategory1 ? category1[state.category2.toLowerCase()] : null;
     const hasCategory2 = hasCategory1 && (category2 instanceof Object) && (Object.keys(category2).length > 0);
-    const category2Name = hasCategory2 ? category2['name'] : capitalize(state.category2);
     const category2Posts = hasCategory2 ? category2['ids'] : [];
 
     if (appendHeader) {
-      hideCategoriesBrowser();
       clearHeader();
-      if (isSearchPage) {
-        createSearchResultsHeader(category2Posts.length, state.query);
-        createSearchFilter(category2Posts, 'false');
-      } else {
-        createListHeader(
-          {text: `${category1Name} \u203a ${category2Name}`, icon: 'icon-file'},
-          category2Posts.length,
-          '',
-          '',
-          {
-            browseHref: HOME_PATH,
-            useCategoryLayout: true
-          }
-        );
-      }
+      createSearchResultsHeader(category2Posts.length, state.query);
+      createSearchFilter(category2Posts, 'false');
     }
 
     return new Set(category2Posts);
@@ -1148,7 +1069,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const tags = window.siteSearch.tags;
     const union = (state.tagsOp === 'or');
     const tagNames = new Array();
-    const hasSingleTag = (state.tags.length === 1);
     let tagPosts = new Set();
 
     state.tags.forEach((t, index) => {
@@ -1169,31 +1089,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     if (appendHeader) {
-      hideCategoriesBrowser();
       clearHeader();
-      if (isSearchPage) {
-        createSearchResultsHeader(tagPosts.size, state.query);
-        createSearchFilter(tagPosts, 'false');
-      } else if (hasSingleTag) {
-        createListHeader({text: tagNames[0], icon: 'icon-tag'}, tagPosts.size);
-      } else {
-        createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-tags'}, tagPosts.size);
-      }
-
-      if (!hasSingleTag) {
-        const taxonomies = tagNames.toSorted()
-          .map(tag => ({
-            text: tag,
-            icon: 'icon-tag',
-            href: composeUrl(SEARCH_PATH, new URLSearchParams({
-              tags: tag
-            })),
-            pageCount: tags[tag.toLowerCase()]['ids'].length,
-          }));
-        if (taxonomies.length > 0) {
-          createTaxonomySection(TEXT.searchTagsTitle, taxonomies);
-        }
-      }
+      createSearchResultsHeader(tagPosts.size, state.query);
+      createSearchFilter(tagPosts, 'false');
     }
 
     return tagPosts;
@@ -1225,7 +1123,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (appendHeader) {
-      hideCategoriesBrowser();
       clearHeader();
       createSearchResultsHeader(searchPosts.size, state.query);
       if (isSearchPage) {
@@ -1255,7 +1152,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalPosts = ids.size;
 
     if (totalPosts === 0) {
-      finishInitialRender();
       return;
     }
 
@@ -1283,7 +1179,6 @@ document.addEventListener('DOMContentLoaded', function() {
     noResults.classList.add('hidden');
     searchResults.classList.remove('hidden');
     searchResults.appendChild(fragment);
-    finishInitialRender();
 
     if (totalPages > 1) {
       const groupNumber = Math.floor((state.page - 1) / 10);

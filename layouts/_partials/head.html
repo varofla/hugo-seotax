@@ -55,11 +55,12 @@ https://github.com/minyeamer/hugo-miny
 (function() {
   var path = window.location.pathname || '';
   var search = window.location.search || '';
-  var categoryPath = '{{ "categories/" | relURL }}';
-  var isCategoriesQueryPage = path.indexOf(categoryPath) === 0 && search.length > 1;
+  var categoriesPath = '{{ "categories/" | relURL }}';
+  var categoryPath = '{{ "category/" | relURL }}';
+  var params = new URLSearchParams(search);
 
-  if (isCategoriesQueryPage) {
-    document.documentElement.classList.add('categories-query-pending');
+  if (path.indexOf(categoriesPath) === 0 && (params.get('category1') || params.get('category2'))) {
+    window.location.replace(categoryPath + search);
   }
 })();
 </script>
@@ -280,8 +281,24 @@ document.addEventListener('DOMContentLoaded', function() {
   {{- $searchInputJS := resources.Get "js/search/input.js" | resources.ExecuteAsTemplate "js/search/input.js" . | resources.Minify | resources.Fingerprint }}
   <script defer src="{{ partial `links/resource-precache` $searchInputJS }}" {{ template `integrity` $searchInputJS }}></script>
 
-  <!-- Search List -->
-  {{- $searchListJS := resources.Get "js/search/list.js" | resources.ExecuteAsTemplate "js/search/list.js" . | resources.Minify | resources.Fingerprint }}
-  <script defer src="{{ partial `links/resource-precache` $searchListJS }}" {{ template `integrity` $searchListJS }}></script>
+  {{- if eq .Type "category" }}
+    <!-- Category Post Items -->
+    {{- $postItemsData := resources.Get "data/post-items.json" | resources.ExecuteAsTemplate "data/post-items.json" . | resources.Minify | resources.Fingerprint }}
+    <script>
+      window.siteSearch.postItemsUrl = "{{ $postItemsData.RelPermalink }}";
+    </script>
+  {{- end }}
+
+  {{- if eq .Type "search" }}
+    <!-- Search List -->
+    {{- $searchListJS := resources.Get "js/search/list.js" | resources.ExecuteAsTemplate "js/search/list.js" . | resources.Minify | resources.Fingerprint }}
+    <script defer src="{{ partial `links/resource-precache` $searchListJS }}" {{ template `integrity` $searchListJS }}></script>
+  {{- end }}
+
+  {{- if eq .Type "category" }}
+    <!-- Category List -->
+    {{- $categoryListJS := resources.Get "js/category/list.js" | resources.ExecuteAsTemplate "js/category/list.js" . | resources.Minify | resources.Fingerprint }}
+    <script defer src="{{ partial `links/resource-precache` $categoryListJS }}" {{ template `integrity` $categoryListJS }}></script>
+  {{- end }}
 {{- end -}}
 <!-- Search: End -->

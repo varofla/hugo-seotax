@@ -1,6 +1,6 @@
 {{ define "content-header" }}
 <header class="content-header post-view-header">
-  <a class="post-back-btn" href="{{ `posts/` | relURL }}">← Posts로 돌아가기</a>
+  <a class="post-back-btn" href="{{ `/` | relURL }}">← Posts로 돌아가기</a>
   {{ partial "content/categories" . }}
   {{ partial "content/title" . }}
   {{ with .Date }}

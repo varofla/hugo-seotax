@@ -75,6 +75,108 @@ body.site-kind-page.site-type-posts {
   }
 }
 
+// ── Post View: TOC Styles ────────────────────────────────────────────────────
+
+body.site-kind-page.site-type-posts {
+  // TOC container: narrower width and left border separator
+  @media screen and (min-width: breakpoint(toc)) {
+    .site-toc {
+      width: 220px;
+      border-left: 1px solid oklch(0.92 0.005 200);
+
+      // Remove existing padding; items handle their own horizontal padding
+      .toc-content {
+        padding: space(32) 0;
+
+        // "목차" label
+        &::before {
+          content: "목차";
+          display: block;
+          font-family: "Pretendard Variable", Pretendard, sans-serif;
+          font-size: 11px;
+          font-weight: 600;
+          color: oklch(0.5 0.008 220);
+          letter-spacing: 0.07em;
+          text-transform: uppercase;
+          margin-bottom: 14px;
+          padding-left: 16px;
+        }
+      }
+
+      // Hide the JS-inserted toggle button (not part of the post-view design)
+      .toc-toggle-button {
+        display: none;
+      }
+    }
+  }
+
+  // #TableOfContents link styling
+  #TableOfContents {
+    margin-top: 0;
+    padding-left: 0;
+    border-left: none;
+
+    // Reset global nav ul indent
+    ul {
+      padding-inline-start: 0;
+    }
+
+    // Reset global nav a padding/display
+    a {
+      padding: 0;
+      display: block;
+    }
+
+    // H2 links (> ul > li > a)
+    > ul > li > a {
+      border-left: 2px solid transparent;
+      padding: 4px 16px;
+      font-family: "Pretendard Variable", Pretendard, sans-serif;
+      font-size: 12.5px;
+      color: oklch(0.14 0.005 220);
+      font-weight: 500;
+      transition: border-color 0.15s, color 0.15s, font-weight 0.15s;
+      line-height: 1.5;
+
+      &.active,
+      &.toc-flash {
+        border-left-color: oklch(0.5 0.13 198);
+        color: oklch(0.5 0.13 198);
+        font-weight: 600;
+      }
+
+      &[href]:hover {
+        opacity: 1;
+        color: oklch(0.5 0.13 198);
+      }
+    }
+
+    // H3 links (> ul > li > ul > li > a)
+    > ul > li > ul > li > a {
+      border-left: 2px solid transparent;
+      padding: 3px 16px 3px 28px;
+      font-family: "Pretendard Variable", Pretendard, sans-serif;
+      font-size: 11.5px;
+      color: oklch(0.5 0.008 220);
+      font-weight: 400;
+      transition: border-color 0.15s, color 0.15s, font-weight 0.15s;
+      line-height: 1.5;
+
+      &.active,
+      &.toc-flash {
+        border-left-color: oklch(0.5 0.13 198);
+        color: oklch(0.5 0.13 198);
+        font-weight: 600;
+      }
+
+      &[href]:hover {
+        opacity: 1;
+        color: oklch(0.5 0.13 198);
+      }
+    }
+  }
+}
+
 // ── Post View: Content Header ────────────────────────────────────────────────
 
 .post-view-header {

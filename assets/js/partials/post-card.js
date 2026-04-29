@@ -181,6 +181,35 @@
     return true;
   }
 
+  function shouldPreparePostEntry(anchor, href) {
+    if (!href || isPostViewPage()) {
+      return false;
+    }
+
+    if (anchor.target && anchor.target.toLowerCase() !== '_self') {
+      return false;
+    }
+
+    if (anchor.hasAttribute('download')) {
+      return false;
+    }
+
+    if (isNonHttpNavigation(href)) {
+      return false;
+    }
+
+    const url = parseUrl(href);
+    if (!url) {
+      return false;
+    }
+
+    if (!isSameOrigin(url) || isHashOnlyNavigation(url)) {
+      return false;
+    }
+
+    return isPostDestination(url);
+  }
+
   function continueHistoryBack() {
     window.setTimeout(() => {
       window.history.back();
@@ -334,6 +363,25 @@
     });
   }
 
+  function handlePostEntryPreparation(event) {
+    const link = event.target.closest(LINK_SELECTOR);
+    if (!link || isModifiedEvent(event)) {
+      return;
+    }
+
+    const href = link.getAttribute('href');
+    if (!shouldPreparePostEntry(link, href)) {
+      return;
+    }
+
+    const url = parseUrl(href);
+    if (!url) {
+      return;
+    }
+
+    writePendingPostTransition('post-card', url.pathname);
+  }
+
   function handlePostExitNavigation(event) {
     const link = event.target.closest(LINK_SELECTOR);
     if (!link || !isPostViewPage()) {
@@ -357,6 +405,7 @@
   }
 
   document.addEventListener('click', function(event) {
+    handlePostEntryPreparation(event);
     handlePostExitNavigation(event);
 
     const card = event.target.closest(CARD_SELECTOR);

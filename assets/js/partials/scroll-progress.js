@@ -3,16 +3,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (!progressBar) return;
 
-  /**
-   * Update the scroll progress bar width based on current scroll position
-   */
+  // On post pages, .main-wrap handles scrolling instead of the window.
+  // Detect this by checking the computed overflow-y of .main-wrap.
+  const mainWrap = document.querySelector('.main-wrap');
+  const mainWrapOverflows = mainWrap &&
+    ['auto', 'scroll'].includes(window.getComputedStyle(mainWrap).overflowY);
+  const scrollContainer = mainWrapOverflows ? mainWrap : window;
+
   function updateScrollProgress() {
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    let scrollTop, scrollHeight;
+
+    if (mainWrapOverflows && mainWrap) {
+      scrollTop = mainWrap.scrollTop;
+      scrollHeight = mainWrap.scrollHeight - mainWrap.clientHeight;
+    } else {
+      scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    }
+
     const scrollProgress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
     progressBar.style.width = scrollProgress + '%';
   }
 
-  window.addEventListener('scroll', updateScrollProgress, { passive: true });
+  scrollContainer.addEventListener('scroll', updateScrollProgress, { passive: true });
   updateScrollProgress();
 });

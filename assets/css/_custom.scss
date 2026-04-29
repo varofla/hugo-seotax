@@ -1,1 +1,145 @@
 // Reserved for site-specific overrides that should remain outside shared components.
+
+// ── Post View: Layout ────────────────────────────────────────────────────────
+// On post pages (posts section single pages), the left menu is hidden and the
+// scrollbar moves from the window to the main-wrap element.
+
+body.site-kind-page.site-type-posts {
+  // Hide the left menu (and its mobile icon) on post pages
+  .site-menu {
+    display: none;
+  }
+
+  #menu-icon {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  // Desktop: move the scrollbar to .main-wrap
+  @media screen and (min-width: breakpoint(menu)) {
+    overflow: hidden;
+
+    .container {
+      height: 100vh;
+      overflow: hidden;
+      align-items: stretch;
+    }
+
+    .main-wrap {
+      max-width: none;
+      height: 100vh;
+      overflow-y: auto;
+      margin: 0;
+      padding: space(32) space(40);
+
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+      }
+    }
+
+    // Center the content and footer within main-wrap
+    .content-wrap,
+    .site-footer {
+      max-width: $body-max-width;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  // Desktop: remove sticky positioning from TOC (container is fixed-height)
+  @media screen and (min-width: breakpoint(toc)) {
+    .site-toc {
+      position: relative;
+      top: auto;
+    }
+  }
+}
+
+// html element: reset scrollbar-gutter so the window doesn't reserve space
+// for a scrollbar that won't appear (scroll is on .main-wrap instead)
+@media screen and (min-width: breakpoint(menu)) {
+  html:has(body.site-kind-page.site-type-posts) {
+    scrollbar-gutter: auto;
+  }
+}
+
+// ── Post View: Content Header ────────────────────────────────────────────────
+
+.post-view-header {
+  text-align: left;
+  border-bottom: none;
+  padding-bottom: 0;
+
+  .post-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: oklch(0.5 0.008 220);
+    font-size: font-size(14);
+    margin-bottom: space(24);
+    text-decoration: none;
+    padding: 0;
+
+    &[href]:hover {
+      color: var(--color-link);
+      text-decoration: none;
+    }
+  }
+
+  .content-category {
+    margin-bottom: space(12);
+  }
+
+  .content-title {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: space(16);
+    color: oklch(0.14 0.005 220);
+    text-align: left;
+  }
+
+  .post-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-bottom: space(32);
+    padding-bottom: space(24);
+    border-bottom: 1px solid oklch(0.92 0.005 200);
+
+    .post-meta-date {
+      font-family: "DM Mono", monospace;
+      font-size: font-size(12);
+      color: oklch(0.67 0.006 220);
+    }
+
+    .post-meta-sep {
+      color: oklch(0.92 0.005 200);
+    }
+
+    .post-view-tag {
+      font-family: "DM Mono", monospace;
+      font-size: font-size(12);
+      color: oklch(0.5 0.008 220);
+      background: oklch(0.91 0.006 200);
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+  }
+}

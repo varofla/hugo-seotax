@@ -1,0 +1,20 @@
+{{ define "content-header" }}
+<header class="content-header post-view-header">
+  <a class="post-back-btn" href="{{ `posts/` | relURL }}">← Posts로 돌아가기</a>
+  {{ partial "content/categories" . }}
+  {{ partial "content/title" . }}
+  {{ with .Date }}
+  <div class="post-meta-row">
+    <time class="post-meta-date" datetime="{{ .Format `2006-01-02T15:04:05Z07:00` }}">
+      {{ .Format "2006.01.02" }}
+    </time>
+    {{ if $.Params.tags }}
+    <span class="post-meta-sep">·</span>
+    {{ range $.Params.tags }}
+    <span class="post-view-tag">#{{ . }}</span>
+    {{ end }}
+    {{ end }}
+  </div>
+  {{ end }}
+</header>
+{{ end }}

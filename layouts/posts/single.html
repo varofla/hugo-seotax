@@ -20,7 +20,9 @@
     {{ if $.Params.tags }}
     <div class="post-meta-tags">
       {{ range $.Params.tags }}
-      <span class="post-view-tag">#{{ . }}</span>
+      <a
+        href="{{ printf "%s?%s" (`search/` | relURL) (querify `tags` .) }}"
+        class="post-view-tag post-tag">#{{ . }}</a>
       {{ end }}
     </div>
     {{ end }}

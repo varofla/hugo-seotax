@@ -14,6 +14,7 @@
   const RETURN_TRANSITION_TTL = 10000;
   const HISTORY_BASE_FLAG = '__postViewHistoryBase';
   const HISTORY_TRAP_FLAG = '__postViewHistoryTrap';
+  const HISTORY_PREV_POST_FLAG = '__postViewPreviousIsPost';
   let hasBoundHistoryPopState = false;
 
   function normalizePath(path) {
@@ -49,6 +50,14 @@
     return url.origin === window.location.origin;
   }
 
+  function parseUrl(href) {
+    try {
+      return new URL(href, window.location.href);
+    } catch (error) {
+      return null;
+    }
+  }
+
   function isHashOnlyNavigation(url) {
     return normalizePath(url.pathname) === normalizePath(window.location.pathname) && Boolean(url.hash);
   }
@@ -66,6 +75,19 @@
     }
 
     return destinationPath.startsWith(postsSectionRoot + '/');
+  }
+
+  function detectPreviousHistoryIsPost() {
+    if (!document.referrer) {
+      return false;
+    }
+
+    const referrerUrl = parseUrl(document.referrer);
+    if (!referrerUrl || !isSameOrigin(referrerUrl)) {
+      return false;
+    }
+
+    return isPostDestination(referrerUrl);
   }
 
   function readPendingPostTransition() {
@@ -147,9 +169,8 @@
     }
 
     let url;
-    try {
-      url = new URL(href, window.location.href);
-    } catch (error) {
+    url = parseUrl(href);
+    if (!url) {
       return false;
     }
 
@@ -198,6 +219,11 @@
       return;
     }
 
+    if (event.state[HISTORY_PREV_POST_FLAG]) {
+      continueHistoryBack();
+      return;
+    }
+
     writePendingPostTransition('post-return');
 
     if (canAnimatePostExit()) {
@@ -223,9 +249,15 @@
       return;
     }
 
+    const hasPreviousPostFlag = Object.prototype.hasOwnProperty.call(currentState, HISTORY_PREV_POST_FLAG);
+    const previousIsPost = hasPreviousPostFlag
+      ? Boolean(currentState[HISTORY_PREV_POST_FLAG])
+      : detectPreviousHistoryIsPost();
+
     const baseState = {
       ...currentState,
-      [HISTORY_BASE_FLAG]: true
+      [HISTORY_BASE_FLAG]: true,
+      [HISTORY_PREV_POST_FLAG]: previousIsPost
     };
 
     const trapState = {

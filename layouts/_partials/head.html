@@ -49,7 +49,7 @@ https://github.com/minyeamer/hugo-miny
   window.sitePostViewConfig = window.sitePostViewConfig || {};
 
   if (isPostView) {
-    window.sitePostViewConfig.postsSectionRoot = '{{ with .CurrentSection }}{{ .RelPermalink }}{{ else }}{{ `/` | relURL }}{{ end }}';
+    window.sitePostViewConfig.postsSectionRoot = '{{ .RelPermalink | replaceRE "/[^/]+/?$" "/" }}';
   }
 
   function normalizePath(path) {

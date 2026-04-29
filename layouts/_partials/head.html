@@ -36,6 +36,71 @@ https://github.com/minyeamer/hugo-miny
 
 <title>{{- partial "title" . -}}</title>
 
+<script>
+(function() {
+  var isPostView = {{ if and (eq .Kind "page") (eq .Type "posts") }}true{{ else }}false{{ end }};
+  var hasSideToc = {{ if partial "toc-show" . }}true{{ else }}false{{ end }};
+  var storageKey = 'postView.enterTransition';
+  var tocDesktopQuery = '(min-width: 1357px)';
+  var supportedSources = {
+    'post-card': true,
+    'post-return': true
+  };
+  window.sitePostViewConfig = window.sitePostViewConfig || {};
+
+  if (isPostView) {
+    window.sitePostViewConfig.postsSectionRoot = '{{ with .CurrentSection }}{{ .RelPermalink }}{{ else }}{{ `/` | relURL }}{{ end }}';
+  }
+
+  function normalizePath(path) {
+    var normalized = (path || '/').replace(/\/+$/, '');
+    return normalized || '/';
+  }
+
+  if (!isPostView || !hasSideToc) {
+    return;
+  }
+
+  try {
+    var raw = window.sessionStorage.getItem(storageKey);
+    if (!raw) {
+      return;
+    }
+
+    window.sessionStorage.removeItem(storageKey);
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    if (!window.matchMedia(tocDesktopQuery).matches) {
+      return;
+    }
+
+    var data = JSON.parse(raw);
+    if (!data || !supportedSources[data.source]) {
+      return;
+    }
+
+    if (data.expiresAt && Date.now() > data.expiresAt) {
+      return;
+    }
+
+    if (normalizePath(data.pathname) !== normalizePath(window.location.pathname)) {
+      return;
+    }
+
+    document.documentElement.classList.add('post-view-enter-pending');
+  } catch (error) {
+    try {
+      window.sessionStorage.removeItem(storageKey);
+    } catch (storageError) {
+      // Ignore cleanup failures.
+    }
+  }
+})();
+</script>
+
 <!-- Preload icon font for better CLS performance (placed early for faster loading) -->
 <link rel="preload" href="{{ `fonts/icomoon.woff?jrhayr` | relURL }}" as="font" type="font/woff">
 

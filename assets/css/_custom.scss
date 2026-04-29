@@ -1,20 +1,17 @@
 // Reserved for site-specific overrides that should remain outside shared components.
 
+$post-view-menu-enter-duration: 460ms;
+$post-view-menu-enter-easing: cubic-bezier(0.22, 1, 0.36, 1);
+$post-view-menu-collapse-fade-duration: 340ms;
+$post-view-menu-collapse-fade-delay: 120ms;
+$post-view-toc-width: 220px;
+
 // ── Post View: Layout ────────────────────────────────────────────────────────
-// On post pages (posts section single pages), the left menu is hidden and the
+// On post pages (posts section single pages), the left menu stays mounted in a
+// collapsed state so we can animate into the article view from post cards.
 // scrollbar moves from the window to the main-wrap element.
 
 body.site-kind-page.site-type-posts {
-  // Hide the left menu (and its mobile icon) on post pages
-  .site-menu {
-    display: none;
-  }
-
-  #menu-icon {
-    visibility: hidden;
-    pointer-events: none;
-  }
-
   // Desktop: move the scrollbar to .main-wrap
   @media screen and (min-width: breakpoint(menu)) {
     overflow: hidden;
@@ -56,13 +53,111 @@ body.site-kind-page.site-type-posts {
       margin-left: auto;
       margin-right: auto;
     }
+
+    .site-menu {
+      --post-view-panel-duration: #{$post-view-menu-enter-duration};
+      display: block;
+      width: 0;
+      margin-right: 0 !important;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        width var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity $post-view-menu-collapse-fade-duration $post-view-menu-enter-easing $post-view-menu-collapse-fade-delay,
+        visibility 0s linear var(--post-view-panel-duration);
+    }
+
+    .site-menu .menu-content {
+      transform: translateX(calc(-1 * #{$menu-width}));
+      opacity: 0;
+      transition:
+        transform var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity $post-view-menu-collapse-fade-duration $post-view-menu-enter-easing $post-view-menu-collapse-fade-delay;
+    }
   }
 
   // Desktop: remove sticky positioning from TOC (container is fixed-height)
   @media screen and (min-width: breakpoint(toc)) {
     .site-toc {
+      --post-view-panel-duration: #{$post-view-menu-enter-duration};
+      display: flex;
+      justify-content: flex-end;
       position: relative;
       top: auto;
+      width: $post-view-toc-width;
+      overflow: hidden;
+      transition:
+        width var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity var(--post-view-panel-duration) $post-view-menu-enter-easing;
+    }
+
+    .site-toc .toc-content {
+      flex: 0 0 $post-view-toc-width;
+      width: $post-view-toc-width;
+      min-width: $post-view-toc-width;
+      max-width: none;
+      margin-left: auto;
+      transform: none;
+      transition:
+        opacity var(--post-view-panel-duration) $post-view-menu-enter-easing;
+      will-change: opacity;
+    }
+  }
+}
+
+html.post-view-enter-pending body.site-kind-page.site-type-posts {
+  @media screen and (min-width: breakpoint(toc)) {
+    .site-menu {
+      transition:
+        width var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        visibility 0s linear 0s;
+      width: $menu-width;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .site-menu .menu-content {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .site-toc {
+      width: 0;
+      opacity: 0;
+    }
+
+    .site-toc .toc-content {
+      opacity: 0;
+    }
+  }
+}
+
+html.post-view-exit-pending body.site-kind-page.site-type-posts {
+  @media screen and (min-width: breakpoint(toc)) {
+    .site-menu {
+      transition:
+        width var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        visibility 0s linear 0s;
+      width: $menu-width;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .site-menu .menu-content {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .site-toc {
+      width: 0;
+      opacity: 0;
+    }
+
+    .site-toc .toc-content {
+      opacity: 0;
     }
   }
 }
@@ -81,7 +176,6 @@ body.site-kind-page.site-type-posts {
   // TOC container: narrower width and left border separator
   @media screen and (min-width: breakpoint(toc)) {
     .site-toc {
-      width: 220px;
       border-left: 1px solid oklch(0.92 0.005 200);
 
       // Remove existing padding; items handle their own horizontal padding

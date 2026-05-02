@@ -107,6 +107,45 @@
     return isPostDestination(referrerUrl);
   }
 
+  function getNavigationType() {
+    const navigationEntry = window.performance?.getEntriesByType?.('navigation')?.[0];
+    return navigationEntry?.type || 'navigate';
+  }
+
+  function shouldAnimateEntryFromReferrer() {
+    if (!isPostViewPage()) {
+      return false;
+    }
+
+    if (!document.referrer) {
+      return false;
+    }
+
+    if (getNavigationType() !== 'navigate') {
+      return false;
+    }
+
+    const referrerUrl = parseUrl(document.referrer);
+    const currentUrl = parseUrl(window.location.href);
+    if (!referrerUrl || !currentUrl) {
+      return false;
+    }
+
+    if (!isSameOrigin(referrerUrl)) {
+      return false;
+    }
+
+    if (normalizePath(referrerUrl.pathname) === normalizePath(currentUrl.pathname)) {
+      return false;
+    }
+
+    if (isPostDestination(referrerUrl)) {
+      return false;
+    }
+
+    return true;
+  }
+
   function parseTransitionData(raw) {
     if (!raw) {
       return null;
@@ -316,16 +355,20 @@
     }, EXIT_TRANSITION_DURATION);
   }
 
-  function playPostEntryTransition() {
+  function playPostEntryTransition(options = {}) {
+    const { allowReferrerFallback = true } = options;
     const pendingTransition = findMatchingPendingTransition(window.location.pathname, ['post-card', 'post-return']);
-    if (!pendingTransition) {
+    const shouldUseReferrerFallback = allowReferrerFallback && !pendingTransition && shouldAnimateEntryFromReferrer();
+    if (!pendingTransition && !shouldUseReferrerFallback) {
       return false;
     }
 
-    clearPendingPostTransition();
-
     if (!canAnimatePostEntry()) {
       return false;
+    }
+
+    if (pendingTransition) {
+      clearPendingPostTransition();
     }
 
     const root = document.documentElement;
@@ -506,7 +549,7 @@
 
   window.addEventListener('pageshow', function() {
     resetPostExitTransitionState();
-    playPostEntryTransition();
+    playPostEntryTransition({ allowReferrerFallback: false });
     setupPostHistoryExitTrap();
   });
 })();

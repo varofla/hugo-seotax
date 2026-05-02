@@ -33,6 +33,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (request.cache === "only-if-cached" && request.mode !== "same-origin") {
+    return;
+  }
+
   /**
    * @param {Response} response
    * @returns {Promise<Response>}
@@ -51,8 +55,15 @@ self.addEventListener("fetch", (event) => {
   /**
    * @param {Error} error
    */
-  function serveFromCache(error) {
-    return caches.open(cacheName).then((cache) => cache.match(request.url));
+  async function serveFromCache(error) {
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    throw error;
   }
 
   /**

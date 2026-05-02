@@ -4,11 +4,11 @@
 {{- /* Create categories map with name and post IDs */ -}}
 {{- range $key1 := (partial "keys" $treeL1) -}}
   {{- $ids1 := slice -}}
-  {{- $pagesL1 := dict -}}
+  {{- $pagesL1 := slice -}}
   {{- range $id1, $page1 := $pages -}}
     {{- if eq (partial "categories/level1" $page1.Params.categories | default "") $key1 -}}
       {{- $ids1 = $ids1 | append $id1 -}}
-      {{- $pagesL1 = $pagesL1 | merge (dict (string $id1) $page1) -}}
+      {{- $pagesL1 = $pagesL1 | append (dict "id" $id1 "page" $page1) -}}
     {{- end -}}
   {{- end -}}
   {{- /* Add level-1 category to map */ -}}
@@ -19,9 +19,11 @@
     {{- $category2 := dict -}}
     {{- range $key2 := (partial "keys" $treeL2) -}}
       {{- $ids2 := slice -}}
-      {{- range $id2, $page2 := $pagesL1 -}}
+      {{- range $pageEntry := $pagesL1 -}}
+        {{- $id2 := index $pageEntry "id" -}}
+        {{- $page2 := index $pageEntry "page" -}}
         {{- if eq (partial "categories/level2" $page2.Params.categories | default "") $key2 -}}
-          {{- $ids2 = $ids2 | append (int $id2) -}}
+          {{- $ids2 = $ids2 | append $id2 -}}
         {{- end -}}
       {{- end -}}
       {{- $category2 = $category2 | merge (dict (lower $key2) (dict "name" $key2 "ids" $ids2)) -}}

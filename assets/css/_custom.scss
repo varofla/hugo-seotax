@@ -180,20 +180,7 @@ body.site-kind-page.site-type-posts {
 
       // Remove existing padding; items handle their own horizontal padding
       .toc-content {
-        padding: space(32) 0;
-
-        // "목차" label
-        &::before {
-          display: block;
-          font-family: "Pretendard Variable", Pretendard, sans-serif;
-          font-size: 11px;
-          font-weight: 600;
-          color: oklch(0.5 0.008 220);
-          letter-spacing: 0.07em;
-          text-transform: uppercase;
-          margin-bottom: 14px;
-          padding-left: 16px;
-        }
+        padding: space(16) 0;
       }
 
       // Hide the JS-inserted toggle button (not part of the post-view design)
@@ -243,13 +230,7 @@ body.site-kind-page.site-type-posts {
         color: oklch(0.5 0.13 198);
       }
     }
-
-    > ul > li.toc-top-item {
-      margin-bottom: 0px;
-      padding-bottom: 0px;
-      border-bottom: 1px solid oklch(0.92 0.005 200);
-    }
-
+    
     > ul > li.toc-top-item > a {
       overflow: hidden;
       text-overflow: ellipsis;

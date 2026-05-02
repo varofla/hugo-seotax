@@ -5,21 +5,30 @@
   const INTERACTIVE_SELECTOR = 'a, button, input, select, textarea, label, summary, [role="button"]';
   const TITLE_LINK_SELECTOR = '.post-title-link';
   const LINK_SELECTOR = 'a[href]';
-  const STORAGE_KEY = 'postView.enterTransition';
   const POST_VIEW_EXIT_CLASS = 'post-view-exit-pending';
   const POST_VIEW_ENTER_CLASS = 'post-view-enter-pending';
   const POST_VIEW_TYPE_CLASS = 'site-type-posts';
-  const TOC_DESKTOP_MEDIA_QUERY = '(min-width: 1255px)';
   const EXIT_TRANSITION_DURATION = 220;
   const RETURN_TRANSITION_TTL = 10000;
   const HISTORY_BASE_FLAG = '__postViewHistoryBase';
   const HISTORY_TRAP_FLAG = '__postViewHistoryTrap';
   const HISTORY_PREV_POST_FLAG = '__postViewPreviousIsPost';
+
+  const sitePostViewConfig = window.sitePostViewConfig || {};
+  const transitionConfig = sitePostViewConfig.transition || {};
+  const STORAGE_KEY = transitionConfig.storageKey || 'postView.enterTransition';
+  const TOC_DESKTOP_MEDIA_QUERY = transitionConfig.desktopMediaQuery || '(min-width: 1255px)';
+  const SUPPORTED_SOURCES = new Set(transitionConfig.supportedSources || ['post-card', 'post-return']);
+
   let hasBoundHistoryPopState = false;
 
   function normalizePath(path) {
     const normalized = (path || '/').replace(/\/+$/, '');
     return normalized || '/';
+  }
+
+  function normalizeTransitionPath(pathname) {
+    return normalizePath(pathname || window.location.pathname);
   }
 
   function isModifiedEvent(event) {
@@ -30,12 +39,20 @@
     return window.matchMedia(TOC_DESKTOP_MEDIA_QUERY).matches;
   }
 
-  function normalizeTransitionPath(pathname) {
-    return normalizePath(pathname || window.location.pathname);
+  function prefersReducedMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   function isPostViewPage() {
     return document.body?.classList.contains(POST_VIEW_TYPE_CLASS);
+  }
+
+  function hasSideTocConfigured() {
+    return Boolean(sitePostViewConfig.hasSideToc);
+  }
+
+  function hasPostPanels() {
+    return Boolean(document.querySelector('.site-menu') && document.querySelector('.site-toc'));
   }
 
   function cloneHistoryState(state) {
@@ -43,7 +60,7 @@
   }
 
   function getPostsSectionRoot() {
-    return normalizePath(window.sitePostViewConfig?.postsSectionRoot || '/');
+    return normalizePath(sitePostViewConfig.postsSectionRoot || '/');
   }
 
   function isSameOrigin(url) {
@@ -90,20 +107,18 @@
     return isPostDestination(referrerUrl);
   }
 
-  function readPendingPostTransition() {
-    try {
-      const raw = window.sessionStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        return null;
-      }
+  function parseTransitionData(raw) {
+    if (!raw) {
+      return null;
+    }
 
+    try {
       const data = JSON.parse(raw);
-      if (!data || !data.pathname || !data.source) {
+      if (!data || !data.pathname || !SUPPORTED_SOURCES.has(data.source)) {
         return null;
       }
 
       if (data.expiresAt && Date.now() > data.expiresAt) {
-        window.sessionStorage.removeItem(STORAGE_KEY);
         return null;
       }
 
@@ -113,7 +128,42 @@
     }
   }
 
+  function getBootstrapTransition() {
+    return parseTransitionData(transitionConfig.pendingTransition ? JSON.stringify(transitionConfig.pendingTransition) : null);
+  }
+
+  function setBootstrapTransition(data) {
+    transitionConfig.pendingTransition = data || null;
+    sitePostViewConfig.transition = transitionConfig;
+    window.sitePostViewConfig = sitePostViewConfig;
+  }
+
+  function readStoredTransition() {
+    try {
+      return parseTransitionData(window.sessionStorage.getItem(STORAGE_KEY));
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function getPendingPostTransition() {
+    const bootstrapped = getBootstrapTransition();
+    if (bootstrapped) {
+      return bootstrapped;
+    }
+
+    const stored = readStoredTransition();
+    if (stored) {
+      setBootstrapTransition(stored);
+      return stored;
+    }
+
+    return null;
+  }
+
   function clearPendingPostTransition() {
+    setBootstrapTransition(null);
+
     try {
       window.sessionStorage.removeItem(STORAGE_KEY);
     } catch (error) {
@@ -121,30 +171,58 @@
     }
   }
 
-  function writePendingPostTransition(source, pathname) {
+  function cachePendingPostTransition(data) {
+    setBootstrapTransition(data);
+
     try {
-      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-        pathname: normalizeTransitionPath(pathname),
-        source,
-        expiresAt: Date.now() + RETURN_TRANSITION_TTL
-      }));
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
       // Ignore storage failures.
     }
   }
 
+  function writePendingPostTransition(source, pathname) {
+    if (!SUPPORTED_SOURCES.has(source)) {
+      return;
+    }
+
+    cachePendingPostTransition({
+      pathname: normalizeTransitionPath(pathname),
+      source,
+      expiresAt: Date.now() + RETURN_TRANSITION_TTL
+    });
+  }
+
+  function findMatchingPendingTransition(pathname = window.location.pathname, sources = null) {
+    const data = getPendingPostTransition();
+    if (!data) {
+      return null;
+    }
+
+    if (sources && !sources.includes(data.source)) {
+      return null;
+    }
+
+    if (normalizeTransitionPath(data.pathname) !== normalizeTransitionPath(pathname)) {
+      return null;
+    }
+
+    return data;
+  }
+
+  function canAnimatePostEntry() {
+    return isPostViewPage()
+      && hasSideTocConfigured()
+      && hasPostPanels()
+      && isDesktopTocViewport()
+      && !prefersReducedMotion();
+  }
+
   function canAnimatePostExit() {
-    if (!isPostViewPage()) {
-      return false;
-    }
-
-    if (!isDesktopTocViewport() || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return false;
-    }
-
-    const tocPanel = document.querySelector('.site-toc');
-    const siteMenu = document.querySelector('.site-menu');
-    return Boolean(tocPanel && siteMenu);
+    return isPostViewPage()
+      && hasPostPanels()
+      && isDesktopTocViewport()
+      && !prefersReducedMotion();
   }
 
   function shouldAnimatePostExit(anchor, href) {
@@ -168,8 +246,7 @@
       return false;
     }
 
-    let url;
-    url = parseUrl(href);
+    const url = parseUrl(href);
     if (!url) {
       return false;
     }
@@ -239,6 +316,30 @@
     }, EXIT_TRANSITION_DURATION);
   }
 
+  function playPostEntryTransition() {
+    const pendingTransition = findMatchingPendingTransition(window.location.pathname, ['post-card', 'post-return']);
+    if (!pendingTransition) {
+      return false;
+    }
+
+    clearPendingPostTransition();
+
+    if (!canAnimatePostEntry()) {
+      return false;
+    }
+
+    const root = document.documentElement;
+    root.classList.add(POST_VIEW_ENTER_CLASS);
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        root.classList.remove(POST_VIEW_ENTER_CLASS);
+      });
+    });
+
+    return true;
+  }
+
   function handlePostHistoryPopState(event) {
     if (!isPostViewPage()) {
       return;
@@ -304,63 +405,26 @@
       return;
     }
 
-    try {
-      const url = new URL(href, window.location.origin);
-      writePendingPostTransition('post-card', url.pathname);
-    } catch (error) {
-      // Ignore invalid URLs and storage failures.
+    const url = parseUrl(href);
+    if (!url) {
+      return;
     }
+
+    writePendingPostTransition('post-card', url.pathname);
   }
 
   function navigateToCard(card) {
     const href = card?.dataset?.postItemUrl;
-    if (href) {
-      persistPostViewTransition(href);
-      window.location.href = href;
-    }
-  }
-
-  function settlePendingPostViewTransition() {
-    const root = document.documentElement;
-    if (!root.classList.contains('post-view-enter-pending')) {
+    if (!href) {
       return;
     }
 
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        root.classList.remove('post-view-enter-pending');
-      });
-    });
+    persistPostViewTransition(href);
+    window.location.href = href;
   }
 
   function resetPostExitTransitionState() {
     document.documentElement.classList.remove(POST_VIEW_EXIT_CLASS);
-  }
-
-  function maybeAnimatePostReturnFromCache() {
-    if (!isPostViewPage() || !canAnimatePostExit()) {
-      return;
-    }
-
-    const pendingTransition = readPendingPostTransition();
-    if (!pendingTransition || pendingTransition.source !== 'post-return') {
-      return;
-    }
-
-    if (normalizeTransitionPath(pendingTransition.pathname) !== normalizeTransitionPath(window.location.pathname)) {
-      return;
-    }
-
-    clearPendingPostTransition();
-
-    const root = document.documentElement;
-    root.classList.add(POST_VIEW_ENTER_CLASS);
-
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        root.classList.remove(POST_VIEW_ENTER_CLASS);
-      });
-    });
   }
 
   function handlePostEntryPreparation(event) {
@@ -429,21 +493,20 @@
     navigateToCard(card);
   });
 
+  resetPostExitTransitionState();
+  playPostEntryTransition();
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-      resetPostExitTransitionState();
-      settlePendingPostViewTransition();
       setupPostHistoryExitTrap();
     }, { once: true });
   } else {
-    resetPostExitTransitionState();
-    settlePendingPostViewTransition();
     setupPostHistoryExitTrap();
   }
 
   window.addEventListener('pageshow', function() {
     resetPostExitTransitionState();
-    maybeAnimatePostReturnFromCache();
+    playPostEntryTransition();
     setupPostHistoryExitTrap();
   });
 })();

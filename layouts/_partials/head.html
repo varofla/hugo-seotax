@@ -47,16 +47,23 @@ https://github.com/minyeamer/hugo-miny
   var hasSideToc = {{ if partial "toc-show" . }}true{{ else }}false{{ end }};
   var storageKey = 'postView.enterTransition';
   var tocDesktopQuery = '(min-width: 1255px)';
-  var supportedSources = {
-    'post-card': true,
-    'post-return': true
-  };
   window.sitePostViewConfig = window.sitePostViewConfig || {};
+  window.sitePostViewConfig.isPostView = isPostView;
+  window.sitePostViewConfig.hasSideToc = hasSideToc;
   window.sitePostViewConfig.postsSectionRoot = '{{ $postRoot }}';
+  window.sitePostViewConfig.transition = window.sitePostViewConfig.transition || {};
+  window.sitePostViewConfig.transition.storageKey = storageKey;
+  window.sitePostViewConfig.transition.desktopMediaQuery = tocDesktopQuery;
+  window.sitePostViewConfig.transition.supportedSources = ['post-card', 'post-return'];
+  window.sitePostViewConfig.transition.pendingTransition = null;
 
   function normalizePath(path) {
     var normalized = (path || '/').replace(/\/+$/, '');
     return normalized || '/';
+  }
+
+  function isSupportedSource(source) {
+    return source === 'post-card' || source === 'post-return';
   }
 
   if (!isPostView || !hasSideToc) {
@@ -69,18 +76,8 @@ https://github.com/minyeamer/hugo-miny
       return;
     }
 
-    window.sessionStorage.removeItem(storageKey);
-
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
-
-    if (!window.matchMedia(tocDesktopQuery).matches) {
-      return;
-    }
-
     var data = JSON.parse(raw);
-    if (!data || !supportedSources[data.source]) {
+    if (!data || !isSupportedSource(data.source)) {
       return;
     }
 
@@ -92,13 +89,19 @@ https://github.com/minyeamer/hugo-miny
       return;
     }
 
+    window.sitePostViewConfig.transition.pendingTransition = data;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    if (!window.matchMedia(tocDesktopQuery).matches) {
+      return;
+    }
+
     document.documentElement.classList.add('post-view-enter-pending');
   } catch (error) {
-    try {
-      window.sessionStorage.removeItem(storageKey);
-    } catch (storageError) {
-      // Ignore cleanup failures.
-    }
+    window.sitePostViewConfig.transition.pendingTransition = null;
   }
 })();
 </script>

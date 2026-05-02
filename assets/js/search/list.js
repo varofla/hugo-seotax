@@ -11,21 +11,19 @@ document.addEventListener('DOMContentLoaded', function() {
   const params = new URLSearchParams(window.location.search);
   const state = getUrlState();
   const searchType = getSearchType(state);
-  const STORAGE_KEY = 'search-filter-expanded';
 
   const TEXT = {
     searchAction: '검색',
     searchInputPlaceholder: '검색어를 입력해주세요',
-    searchResultsTitle: '검색 결과',
+    searchResultsTitle: 'Search',
     searchCountLabel: '"%q" 검색 결과 %s',
-    searchCountLabelNoQuery: '검색 결과 %s',
+    searchCountLabelNoQuery: 'Total %s',
     searchTagsTitle: '검색 태그',
     listCountLabel: '전체 글 %s',
     categoriesParentSubtitle: '상위 카테고리',
     categoriesChildSubtitle: '하위 카테고리',
     tagsTermsTitle: '태그',
     tagsOpCheckbox: '모두 일치',
-    searchFiltersToggle: '고급 필터',
     postPrevLink: '이전',
     postNextLink: '다음'
   };
@@ -89,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.siteSearch.initTags()
       ]).then(() => {
         clearHeader();
-        createListHeader({text: TEXT.searchResultsTitle, icon: 'icon-file-lines'}, 0, '');
+        createListHeader(TEXT.searchResultsTitle, 0, '');
         displayResults(new Set());
       });
       break;
@@ -184,21 +182,17 @@ document.addEventListener('DOMContentLoaded', function() {
   /**
    * Create header contents (title, icon, and result count)
    * and append to list header.
-   * @param {Object} titleInfo - {text:string, icon?:string}
+   * @param {string} titleText - Header title text
    * @param {number} pageCount - The number of results
    * @param {string} [query=''] - Search query (optional)
    */
-  function createListHeader(titleInfo, pageCount, query = '', countLabelOverride = '') {
+  function createListHeader(titleText, pageCount, query = '', countLabelOverride = '') {
     const fragment = document.createDocumentFragment();
 
     listHeader?.classList.add('list-header--stacked');
 
     const title = createElement('h1');
-    if (titleInfo.icon) {
-      title.appendChild(createElement('i', {className: `${titleInfo.icon}`}))
-      title.appendChild(document.createTextNode(' '));
-    }
-    title.appendChild(createElement('span', {text: titleInfo.text || ''}));
+    title.textContent = titleText || '';
     fragment.appendChild(title);
 
     const countLabel = countLabelOverride || (query ? TEXT.searchCountLabel.replace('%q', query) : TEXT.listCountLabel);
@@ -217,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
       : TEXT.searchCountLabelNoQuery;
 
     createListHeader(
-      {text: TEXT.searchResultsTitle, icon: 'icon-file-text'},
+      TEXT.searchResultsTitle,
       pageCount,
       query,
       countLabel
@@ -296,12 +290,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     inputWrapper.appendChild(queryButton);
     queryRow.appendChild(inputWrapper);
-
-    const toggleButton = createElement('button', {className: 'search-filter-toggle', attrs: {type: 'button'}});
-    toggleButton.appendChild(createElement('i', {className: 'icon-caret-up'}))
-    toggleButton.appendChild(document.createTextNode(' '));
-    toggleButton.appendChild(createElement('span', {text: TEXT.searchFiltersToggle}))
-    queryRow.appendChild(toggleButton);
 
     return queryRow;
   }
@@ -452,9 +440,8 @@ document.addEventListener('DOMContentLoaded', function() {
   /**
    * Create a search filter with taxonomy filters and append to dedicated host.
    * @param {Set.<number>} ids - Set of post IDs from search results
-   * @param {'ture'|'false'|null} [isExpanded=null] - Initial expanded state
    */
-  function createSearchFilter(ids, isExpanded=null) {
+  function createSearchFilter(ids) {
     const fragment = document.createDocumentFragment();
     const searchFilter = createElement('div', {className: 'search-filter'});
 
@@ -462,9 +449,6 @@ document.addEventListener('DOMContentLoaded', function() {
     searchFilter.appendChild(queryFilter);
 
     const taxonomiesRow = createElement('div', {className: 'search-taxonomies-row'});
-    if (!(state.category1 || state.category2 || (state.tags && state.tags.length > 0))) {
-      taxonomiesRow.classList.add('hidden');
-    }
 
     const categoriesFilter = createElement('div', {className: 'search-categories-filter'});
     categoriesFilter.appendChild(createCategoryFilter('category1'));
@@ -481,43 +465,8 @@ document.addEventListener('DOMContentLoaded', function() {
     searchFilterHost?.appendChild(fragment);
 
     setupQueryFilterEvents(false);
-    setupFilterToggle(isExpanded);
     setupTaxonomyFilterEvents(ids);
     initFiltersFromState();
-  }
-
-  /**
-   * Setup event listener for advanced filter toggle button.
-   * @param {'ture'|'false'|null} [isExpanded=null] - Initial expanded state
-   */
-  function setupFilterToggle(isExpanded=null) {
-    const filterToggle = document.querySelector('.search-filter-toggle');
-    const taxonomiesRow = document.querySelector('.search-taxonomies-row');
-    const isCombinedSearch = (searchType === 'combined');
-
-    isExpanded = isExpanded ?? localStorage.getItem(STORAGE_KEY);
-    if (isCombinedSearch || (isExpanded === 'true')) {
-      taxonomiesRow.classList.remove('hidden');
-      filterToggle.classList.add('expanded');
-      localStorage.setItem(STORAGE_KEY, 'true');
-    } else {
-      taxonomiesRow.classList.add('hidden');
-      filterToggle.classList.remove('expanded');
-    }
-
-    filterToggle.addEventListener('click', function() {
-      const isHidden = taxonomiesRow.classList.contains('hidden');
-
-      if (isHidden) {
-        taxonomiesRow.classList.remove('hidden');
-        filterToggle.classList.add('expanded');
-        localStorage.setItem(STORAGE_KEY, 'true');
-      } else {
-        taxonomiesRow.classList.add('hidden');
-        filterToggle.classList.remove('expanded');
-        localStorage.setItem(STORAGE_KEY, 'false');
-      }
-    });
   }
 
   /**
@@ -1033,7 +982,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (appendHeader) {
       clearHeader();
       createSearchResultsHeader(category1Posts.length, state.query);
-      createSearchFilter(category1Posts, 'false');
+      createSearchFilter(category1Posts);
     }
 
     return new Set(category1Posts);
@@ -1056,7 +1005,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (appendHeader) {
       clearHeader();
       createSearchResultsHeader(category2Posts.length, state.query);
-      createSearchFilter(category2Posts, 'false');
+      createSearchFilter(category2Posts);
     }
 
     return new Set(category2Posts);
@@ -1094,7 +1043,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (appendHeader) {
       clearHeader();
       createSearchResultsHeader(tagPosts.size, state.query);
-      createSearchFilter(tagPosts, 'false');
+      createSearchFilter(tagPosts);
     }
 
     return tagPosts;

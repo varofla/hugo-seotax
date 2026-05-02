@@ -2,14 +2,12 @@
   'use strict';
 
   const SEARCH_PATH = '{{ "search/" | relURL }}';
-  const STORAGE_KEY = 'search-filter-expanded';
   const {createElement, composeUrl, getUrlState} = window.siteSearch.utils;
   const TEXT = {
     searchAction: '검색',
     searchClose: '닫기',
     searchPlaceholder: '검색어를 입력해주세요',
     searchMore: '전체 %d개 결과 보기',
-    searchFiltersToggle: '고급 필터',
     categoriesParentSubtitle: '상위 카테고리',
     categoriesChildSubtitle: '하위 카테고리',
     tagsTermsTitle: '태그',
@@ -24,7 +22,6 @@
   let modalSearchResults;
   let searchOverlay;
   let searchModal;
-  let modalFilterToggle;
   let modalFiltersRow;
   let modalSearchState = createInitialModalState();
   let modalDraftFilters = createEmptyDraftFilters();
@@ -147,16 +144,6 @@
       }
     });
     modalInputContainer.appendChild(modalSearchInput);
-
-    modalFilterToggle = createElement('button', {
-      className: 'search-filter-toggle search-modal-filter-toggle',
-      attrs: {type: 'button', 'aria-label': TEXT.searchFiltersToggle}
-    });
-    modalFilterToggle.appendChild(createElement('i', {className: 'icon-caret-up'}));
-    modalFilterToggle.appendChild(document.createTextNode(' '));
-    modalFilterToggle.appendChild(createElement('span', {text: TEXT.searchFiltersToggle}));
-    modalFilterToggle.addEventListener('click', toggleModalFilters);
-    modalInputContainer.appendChild(modalFilterToggle);
 
     const modalSearchButton = createElement('button', {
       className: 'search-modal-button',
@@ -373,21 +360,6 @@
     });
   }
 
-  function toggleModalFilters() {
-    const isHidden = modalFiltersRow.classList.contains('hidden');
-
-    if (isHidden) {
-      modalFiltersRow.classList.remove('hidden');
-      modalFilterToggle.classList.add('expanded');
-      localStorage.setItem(STORAGE_KEY, 'true');
-    } else {
-      modalFiltersRow.classList.add('hidden');
-      modalFilterToggle.classList.remove('expanded');
-      localStorage.setItem(STORAGE_KEY, 'false');
-      hideAllDropdowns();
-    }
-  }
-
   function syncModalControlsFromState() {
     if (!searchModal) return;
 
@@ -396,12 +368,7 @@
     document.querySelector('#search-modal-filter-category2').value = '';
     document.querySelector('#search-modal-filter-tags').value = '';
     document.querySelector('#search-modal-filter-tagsOp').checked = (modalSearchState.tagsOp === 'and');
-
-    const shouldExpand = (modalSearchState.category1 || modalSearchState.category2 || modalSearchState.tags.length > 0)
-      || localStorage.getItem(STORAGE_KEY) === 'true';
-
-    modalFiltersRow.classList.toggle('hidden', !shouldExpand);
-    modalFilterToggle.classList.toggle('expanded', shouldExpand);
+    modalFiltersRow.classList.remove('hidden');
 
     const category2Input = document.querySelector('#search-modal-filter-category2');
     category2Input.disabled = !modalSearchState.category1;

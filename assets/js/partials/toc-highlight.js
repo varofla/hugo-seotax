@@ -1,12 +1,16 @@
 document.addEventListener('DOMContentLoaded', function() {
   const config = document.querySelector('#toc-config');
   if (!config) return;
+  const TOP_TARGET_ID = 'post-top';
 
   function getHeadings() {
     const start = parseInt(config.dataset.start) || 2;
     const end = parseInt(config.dataset.end) || 3;
     const selectors = Array.from({ length: end - start + 1 }, (_, i) => `h${start + i}[id]`);
-    return Array.from(document.querySelectorAll(selectors.join(', ')));
+    const headings = Array.from(document.querySelectorAll(selectors.join(', ')));
+    const topTarget = document.getElementById('post-top');
+
+    return topTarget ? [topTarget, ...headings] : headings;
   }
 
   function getVisibleToc() {
@@ -69,6 +73,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const targetEl = document.getElementById(targetId);
         if (targetEl) {
           e.preventDefault();
+          if (targetId === TOP_TARGET_ID) {
+            mainWrap.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+          }
+
           targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       });

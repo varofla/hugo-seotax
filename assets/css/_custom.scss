@@ -4,7 +4,7 @@ $post-view-menu-enter-duration: 460ms;
 $post-view-menu-enter-easing: cubic-bezier(0.22, 1, 0.36, 1);
 $post-view-menu-collapse-fade-duration: 340ms;
 $post-view-menu-collapse-fade-delay: 120ms;
-$post-view-toc-width: 220px;
+$post-view-toc-width: 240px;
 
 // ── Post View: Layout ────────────────────────────────────────────────────────
 // On post pages (posts section single pages), the left menu stays mounted in a
@@ -228,20 +228,32 @@ body.site-kind-page.site-type-posts {
       font-size: 12.5px;
       color: oklch(0.14 0.005 220);
       font-weight: 500;
-      transition: border-color 0.15s, color 0.15s, font-weight 0.15s;
+      transition: border-color 0.15s, color 0.15s;
       line-height: 1.5;
 
       &.active,
       &.toc-flash {
         border-left-color: oklch(0.5 0.13 198);
         color: oklch(0.5 0.13 198);
-        font-weight: 600;
+        font-weight: 500;
       }
 
       &[href]:hover {
         opacity: 1;
         color: oklch(0.5 0.13 198);
       }
+    }
+
+    > ul > li.toc-top-item {
+      margin-bottom: 0px;
+      padding-bottom: 0px;
+      border-bottom: 1px solid oklch(0.92 0.005 200);
+    }
+
+    > ul > li.toc-top-item > a {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     // H3 links (> ul > li > ul > li > a)
@@ -252,7 +264,7 @@ body.site-kind-page.site-type-posts {
       font-size: 11.5px;
       color: oklch(0.5 0.008 220);
       font-weight: 400;
-      transition: border-color 0.15s, color 0.15s, font-weight 0.15s;
+      transition: border-color 0.15s, color 0.15s;
       line-height: 1.5;
 
       &.active,

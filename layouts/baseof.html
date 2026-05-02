@@ -126,5 +126,10 @@
 {{ end }}
 
 {{ define "toc" }}
-  {{ .TableOfContents }}
+  {{- $toc := .TableOfContents -}}
+  {{- if and (eq .Type "posts") (eq .Kind "page") -}}
+    {{- $topItem := printf `<li class="toc-top-item"><a href="#post-top">%s</a></li>` (.Title | plainify | htmlEscape) -}}
+    {{- $toc = replaceRE `(?s)(<nav id="TableOfContents">\s*<ul>)` (printf `${1}%s` $topItem) $toc -}}
+  {{- end -}}
+  {{- $toc | safeHTML -}}
 {{ end }}

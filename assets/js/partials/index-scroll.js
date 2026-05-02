@@ -6,6 +6,7 @@ const HEADER_OFFSET = 80;
 const HIGHLIGHT_DURATION = 2000;
 const SCROLL_DURATION = 500;
 const INITIAL_SCROLL_DELAY = 80;
+const TOP_TARGET_ID = 'post-top';
 
 function getHashFromLink(link) {
   const href = link.getAttribute('href');
@@ -19,6 +20,10 @@ function getTargetFromHash(hash) {
 
   const id = decodeURIComponent(hash.slice(1));
   return document.getElementById(id);
+}
+
+function isTopTarget(target) {
+  return Boolean(target && target.id === TOP_TARGET_ID);
 }
 
 function flashTocLink(targetId) {
@@ -59,7 +64,9 @@ function highlightHeading(el) {
 
 function smoothScrollToTarget(target, hash) {
   const start = window.scrollY;
-  const end = target.getBoundingClientRect().top + start - HEADER_OFFSET;
+  const end = isTopTarget(target)
+    ? 0
+    : target.getBoundingClientRect().top + start - HEADER_OFFSET;
   let startTime = null;
 
   function scrollStep(timestamp) {
@@ -87,7 +94,9 @@ function smoothScrollToTarget(target, hash) {
 }
 
 function jumpToTarget(target, hash) {
-  const end = target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
+  const end = isTopTarget(target)
+    ? 0
+    : target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
   window.scrollTo(0, end);
 
   if (hash) {

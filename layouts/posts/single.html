@@ -1,5 +1,6 @@
 {{ define "content-header" }}
 <header class="content-header post-view-header">
+  <div id="post-top" aria-hidden="true"></div>
   <a class="post-back-btn" href="{{ `/` | relURL }}">← Posts로 돌아가기</a>
   {{ partial "content/categories" . }}
   {{ partial "content/title" . }}

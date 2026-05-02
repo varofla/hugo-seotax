@@ -8,9 +8,11 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
-  const params = new URLSearchParams(window.location.search);
-  const state = getUrlState();
-  const searchType = getSearchType(state);
+  let params = new URLSearchParams(window.location.search);
+  let state = getUrlState();
+  let liveSearchFrame = null;
+  let taxonomyOutsideClickBound = false;
+  let isQueryComposing = false;
 
   const TEXT = {
     searchAction: '검색',
@@ -36,61 +38,16 @@ document.addEventListener('DOMContentLoaded', function() {
   const searchActionPath = SEARCH_PATH;
   const browseActionPath = SEARCH_PATH;
 
-  switch (searchType) {
-    case 'search':
-      Promise.all([
-        window.siteSearch.initIndex(),
-        window.siteSearch.initCategories(),
-        window.siteSearch.initTags()
-      ]).then(() => {
-        const ids = searchQuery(state, true);
-        displayResults(ids, state);
-      });
-      break;
+  initializeSearchData().then(() => {
+    renderSearchPage(state, {replaceUrl: false});
+  });
 
-    case 'category1':
-      window.siteSearch.initCategories().then(() => {
-        const ids = searchCategory1(state, true);
-        displayResults(ids, state);
-      });
-      break;
-
-    case 'category2':
-      window.siteSearch.initCategories().then(() => {
-        const ids = searchCategory2(state, true);
-        displayResults(ids, state);
-      });
-      break;
-
-    case 'tags':
-      window.siteSearch.initTags().then(() => {
-        const ids = searchTags(state, true);
-        displayResults(ids, state);
-      });
-      break;
-
-    case 'combined':
-      Promise.all([
-        window.siteSearch.initIndex(),
-        window.siteSearch.initCategories(),
-        window.siteSearch.initTags()
-      ]).then(() => {
-        const ids = searchCombined(state, true);
-        displayResults(ids, state);
-      });
-      break;
-
-    default:
-      Promise.all([
-        window.siteSearch.initIndex(),
-        window.siteSearch.initCategories(),
-        window.siteSearch.initTags()
-      ]).then(() => {
-        clearHeader();
-        createListHeader(TEXT.searchResultsTitle, 0, '');
-        displayResults(new Set());
-      });
-      break;
+  function initializeSearchData() {
+    return Promise.all([
+      window.siteSearch.initIndex(),
+      window.siteSearch.initCategories(),
+      window.siteSearch.initTags()
+    ]);
   }
 
   /**
@@ -103,76 +60,127 @@ document.addEventListener('DOMContentLoaded', function() {
     const hasCategory1 = (state.category1.length > 0);
     const hasCategory2 = (state.category2.length > 0);
     const hasTags = (state.tags.length > 0);
+    const hasCategoryFilters = hasCategory1 || hasCategory2;
 
     if (hasQuery) {
-      if (hasCategory1 || hasTags) return 'combined';
+      if (hasCategoryFilters || hasTags) return 'combined';
       else return 'search';
     } else {
+      if (hasCategoryFilters && hasTags) return 'combined';
       if (hasCategory1) return hasCategory2 ? 'category2' : 'category1';
       else if (hasTags) return 'tags';
       else return 'search';
     }
   }
 
-  /**
-   * Build search URL from current filter state.
-   * @param {boolean} [preserveTaxonomy=false] - Preserve current taxonomy params (for simple search)
-   * @returns {string} Search URL with parameters
-   */
-  function buildSearchUrl(preserveTaxonomy = false) {
-    const params = new URLSearchParams();
+  function buildSearchParamsFromState(searchState) {
+    const nextParams = new URLSearchParams();
 
+    if (searchState.query) nextParams.set('query', searchState.query);
+    if (searchState.category1) nextParams.set('category1', searchState.category1);
+    if (searchState.category2) nextParams.set('category2', searchState.category2);
+    if (searchState.tags.length > 0) {
+      nextParams.set('tags', searchState.tags.join(','));
+      nextParams.set('tagsOp', searchState.tagsOp);
+    }
+    if (searchState.page > 1) nextParams.set('page', searchState.page);
+    if (searchState.pageSize !== 10) nextParams.set('pageSize', searchState.pageSize);
+
+    return nextParams;
+  }
+
+  function buildSearchUrlFromState(searchState) {
+    return composeUrl(searchActionPath, buildSearchParamsFromState(searchState));
+  }
+
+  function collectStateFromControls({preservePage = false} = {}) {
     const queryInput = document.querySelector('#search-query-input');
-    if (queryInput !== null) {
-      params.set('query', queryInput.value.trim());
-    }
+    const category1Chip = document.querySelector('#filter-category1-chips .search-filter-chip');
+    const category2Chip = document.querySelector('#filter-category2-chips .search-filter-chip');
+    const tagChips = document.querySelectorAll('#filter-tags-chips .search-filter-chip');
+    const tagsOpCheckbox = document.querySelector('#filter-tagsOp');
 
-    if (preserveTaxonomy) {
-      if (state.category1) params.set('category1', state.category1);
-      if (state.category2) params.set('category2', state.category2);
-      if (state.tags.length > 0) {
-        params.set('tags', state.tags.join(','));
-        params.set('tagsOp', state.tagsOp);
-      }
+    return {
+      query: queryInput?.value.trim() || '',
+      category1: category1Chip?.dataset.name || '',
+      category2: category1Chip ? (category2Chip?.dataset.name || '') : '',
+      tags: Array.from(tagChips).map((chip) => chip.dataset.name),
+      tagsOp: tagsOpCheckbox?.checked ? 'and' : 'or',
+      page: preservePage ? state.page : 1,
+      pageSize: state.pageSize
+    };
+  }
+
+  function runSearch(searchState, appendHeader = false) {
+    switch (getSearchType(searchState)) {
+      case 'category1':
+        return searchCategory1(searchState, appendHeader);
+      case 'category2':
+        return searchCategory2(searchState, appendHeader);
+      case 'tags':
+        return searchTags(searchState, appendHeader);
+      case 'combined':
+        return searchCombined(searchState, appendHeader);
+      case 'search':
+      default:
+        return searchQuery(searchState, appendHeader);
+    }
+  }
+
+  function renderSearchPage(nextState, options = {}) {
+    const {
+      replaceUrl = true,
+      refreshControls = true,
+      focusQuery = false,
+      selectionStart = null,
+      selectionEnd = null
+    } = options;
+
+    state = nextState;
+    params = buildSearchParamsFromState(state);
+
+    const ids = runSearch(state, false);
+
+    if (refreshControls) {
+      clearHeader();
+      createSearchResultsHeader(ids.size, state.query);
+      createSearchFilter();
     } else {
-      const category1Chips = document.querySelector('#filter-category1-chips');
-      const category1Chip = category1Chips?.querySelector('.search-filter-chip');
-      if (category1Chip) {
-        params.set('category1', category1Chip.dataset.name);
+      clearHeader({preserveFilters: true});
+      createSearchResultsHeader(ids.size, state.query);
+    }
 
-        const category2Chips = document.querySelector('#filter-category2-chips');
-        const category2Chip = category2Chips?.querySelector('.search-filter-chip');
-        if (category2Chip) {
-          params.set('category2', category2Chip.dataset.name);
-        }
-      }
+    displayResults(ids, state);
 
-      const tagsChips = document.querySelector('#filter-tags-chips');
-      const tagChips = tagsChips?.querySelectorAll('.search-filter-chip');
-      if (tagChips && tagChips.length > 0) {
-        const tagNames = Array.from(tagChips).map(chip => chip.dataset.name);
-        params.set('tags', tagNames.join(','));
+    if (replaceUrl) {
+      window.history.replaceState(null, '', buildSearchUrlFromState(state));
+    }
 
-        const tagsOpCheckbox = document.querySelector('#filter-tagsOp');
-        if (tagsOpCheckbox) {
-          params.set('tagsOp', tagsOpCheckbox.checked ? 'and' : 'or');
+    if (focusQuery) {
+      const queryInput = document.querySelector('#search-query-input');
+      if (queryInput) {
+        queryInput.focus();
+        if (selectionStart !== null && selectionEnd !== null) {
+          queryInput.setSelectionRange(selectionStart, selectionEnd);
         }
       }
     }
-
-    return composeUrl(searchActionPath, params);
   }
 
   /**
    * Clear list header and taxonomy section.
    */
-  function clearHeader() {
+  function clearHeader(options = {}) {
+    const {preserveFilters = false} = options;
+
     if (!isSearchPage || !listHeader) {
       return;
     }
 
     listHeader.replaceChildren();
-    searchFilterHost?.replaceChildren();
+    if (!preserveFilters) {
+      searchFilterHost?.replaceChildren();
+    }
 
     const section = document.querySelector('#taxonomy-section');
     section?.classList.add('hidden');
@@ -296,16 +304,61 @@ document.addEventListener('DOMContentLoaded', function() {
 
   /**
    * Setup event listeners for query row in search filter.
-   * @param {boolean} [preserveTaxonomy=false] - Preserve taxonomy params when searching
    */
-  function setupQueryFilterEvents(preserveTaxonomy = false) {
+  function setupQueryFilterEvents() {
     const queryInput = document.querySelector('#search-query-input');
     const queryButton = document.querySelector('.search-query-button');
 
     const performSearch = () => {
-      const url = buildSearchUrl(preserveTaxonomy);
-      window.location.href = url;
+      cancelLiveSearchFrame();
+
+      renderSearchPage(collectStateFromControls({preservePage: false}), {
+        replaceUrl: true,
+        refreshControls: false,
+        focusQuery: true,
+        selectionStart: queryInput.selectionStart,
+        selectionEnd: queryInput.selectionEnd
+      });
     };
+
+    queryInput.addEventListener('compositionstart', function() {
+      isQueryComposing = true;
+    });
+
+    queryInput.addEventListener('compositionend', function() {
+      isQueryComposing = false;
+      const selectionStart = this.selectionStart;
+      const selectionEnd = this.selectionEnd;
+
+      scheduleLiveSearch(() => {
+        renderSearchPage(collectStateFromControls({preservePage: false}), {
+          replaceUrl: false,
+          refreshControls: false,
+          focusQuery: true,
+          selectionStart,
+          selectionEnd
+        });
+      });
+    });
+
+    queryInput.addEventListener('input', function() {
+      if (isQueryComposing) {
+        return;
+      }
+
+      const selectionStart = this.selectionStart;
+      const selectionEnd = this.selectionEnd;
+
+      scheduleLiveSearch(() => {
+        renderSearchPage(collectStateFromControls({preservePage: false}), {
+          replaceUrl: false,
+          refreshControls: false,
+          focusQuery: true,
+          selectionStart,
+          selectionEnd
+        });
+      });
+    });
 
     queryInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
@@ -315,6 +368,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     queryButton.addEventListener('click', performSearch);
+  }
+
+  function cancelLiveSearchFrame() {
+    if (liveSearchFrame !== null) {
+      window.cancelAnimationFrame(liveSearchFrame);
+      liveSearchFrame = null;
+    }
+  }
+
+  function scheduleLiveSearch(callback) {
+    cancelLiveSearchFrame();
+    liveSearchFrame = window.requestAnimationFrame(() => {
+      liveSearchFrame = null;
+      callback();
+    });
   }
 
   /**
@@ -434,14 +502,14 @@ document.addEventListener('DOMContentLoaded', function() {
     fragment.appendChild(searchFilter);
     searchFilterHost?.appendChild(fragment);
 
-    setupQueryFilterEvents(true);
+    setupQueryFilterEvents();
   }
 
   /**
    * Create a search filter with taxonomy filters and append to dedicated host.
    * @param {Set.<number>} ids - Set of post IDs from search results
    */
-  function createSearchFilter(ids) {
+  function createSearchFilter() {
     const fragment = document.createDocumentFragment();
     const searchFilter = createElement('div', {className: 'search-filter'});
 
@@ -464,16 +532,15 @@ document.addEventListener('DOMContentLoaded', function() {
     fragment.appendChild(searchFilter);
     searchFilterHost?.appendChild(fragment);
 
-    setupQueryFilterEvents(false);
-    setupTaxonomyFilterEvents(ids);
+    setupQueryFilterEvents();
+    setupTaxonomyFilterEvents();
     initFiltersFromState();
   }
 
   /**
    * Setup event listeners for taxonomy filter inputs and dropdowns.
-   * @param {Set.<number>} ids - Set of post IDs from search results
    */
-  function setupTaxonomyFilterEvents(ids) {
+  function setupTaxonomyFilterEvents() {
     const category1Input = document.querySelector('#filter-category1');
     const category1Dropdown = document.querySelector('#filter-category1-dropdown');
     const category2Input = document.querySelector('#filter-category2');
@@ -486,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     category1Input.addEventListener('input', function() {
       const query = this.value.trim().toLowerCase();
-      const matches = filterCategories1(query, ids);
+      const matches = filterCategories1(query, getLiveSearchIds());
 
       if (matches.length > 0) {
         renderDropdownFilter(category1Dropdown, matches, 'category1');
@@ -506,7 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
       tagsDropdown.classList.add('hidden');
 
       const query = this.value.trim().toLowerCase();
-      const matches = filterCategories1(query, ids);
+      const matches = filterCategories1(query, getLiveSearchIds());
       if (matches.length > 0) {
         renderDropdownFilter(category1Dropdown, matches, 'category1');
         category1Dropdown.classList.remove('hidden');
@@ -516,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     category2Input.addEventListener('input', function() {
       const query = this.value.trim().toLowerCase();
-      const matches = filterCategories2(query, ids);
+      const matches = filterCategories2(query, getLiveSearchIds());
 
       if (matches.length > 0) {
         renderDropdownFilter(category2Dropdown, matches, 'category2');
@@ -538,7 +605,7 @@ document.addEventListener('DOMContentLoaded', function() {
       tagsDropdown.classList.add('hidden');
 
       const query = this.value.trim().toLowerCase();
-      const matches = filterCategories2(query, ids);
+      const matches = filterCategories2(query, getLiveSearchIds());
       if (matches.length > 0) {
         renderDropdownFilter(category2Dropdown, matches, 'category2');
         category2Dropdown.classList.remove('hidden');
@@ -548,7 +615,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     tagsInput.addEventListener('input', function() {
       const query = this.value.trim().toLowerCase();
-      const matches = filterTags(query, ids);
+      const matches = filterTags(query, getLiveSearchIds());
 
       if (matches.length > 0) {
         renderDropdownFilter(tagsDropdown, matches, 'tags');
@@ -568,7 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
       category2Dropdown.classList.add('hidden');
 
       const query = this.value.trim().toLowerCase();
-      const matches = filterTags(query, ids);
+      const matches = filterTags(query, getLiveSearchIds());
       if (matches.length > 0) {
         renderDropdownFilter(tagsDropdown, matches, 'tags');
         tagsDropdown.classList.remove('hidden');
@@ -618,26 +685,15 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.taxonomy-filter')) {
-        [category1Dropdown, category2Dropdown, tagsDropdown].forEach(dropdown => {
-          dropdown.classList.add('hidden');
-        });
-        activeDropdown = null;
-        activeIndex = -1;
-      }
-    });
+    bindTaxonomyOutsideClick();
     
     // TagsOp checkbox change listener
     const tagsOpCheckbox = document.querySelector('#filter-tagsOp');
     tagsOpCheckbox.addEventListener('change', function() {
-      // Only trigger search if there are selected tags
-      const tagsChips = document.querySelector('#filter-tags-chips');
-      const tagChips = tagsChips?.querySelectorAll('.search-filter-chip');
-      if (tagChips && tagChips.length > 0) {
-        window.location.href = buildSearchUrl();
-      }
+      renderSearchPage(collectStateFromControls({preservePage: false}), {
+        replaceUrl: false,
+        refreshControls: false
+      });
     });
 
     /**
@@ -653,6 +709,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       });
     }
+  }
+
+  function getLiveSearchIds() {
+    return runSearch(collectStateFromControls({preservePage: true}), false);
+  }
+
+  function bindTaxonomyOutsideClick() {
+    if (taxonomyOutsideClickBound) {
+      return;
+    }
+
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.taxonomy-filter')) {
+        return;
+      }
+
+      document.querySelectorAll('.search-filter-dropdown').forEach((dropdown) => {
+        dropdown.classList.add('hidden');
+      });
+    });
+
+    taxonomyOutsideClickBound = true;
   }
 
   /**
@@ -881,8 +959,10 @@ document.addEventListener('DOMContentLoaded', function() {
       chipsContainer.appendChild(chip);
     }
 
-    // Navigate to search URL with updated filters
-    window.location.href = buildSearchUrl();
+    renderSearchPage(collectStateFromControls({preservePage: false}), {
+      replaceUrl: false,
+      refreshControls: false
+    });
   }
 
   /**
@@ -937,8 +1017,10 @@ document.addEventListener('DOMContentLoaded', function() {
       category2Dropdown.classList.add('hidden');
     }
 
-    // Navigate to search URL with updated filters
-    window.location.href = buildSearchUrl();
+    renderSearchPage(collectStateFromControls({preservePage: false}), {
+      replaceUrl: false,
+      refreshControls: false
+    });
   }
 
   /**
@@ -1056,8 +1138,14 @@ document.addEventListener('DOMContentLoaded', function() {
    * @returns {Set.<number>} Set of matching post IDs
    */
   function searchCombined(state, appendHeader = false) {
-    const searchHits = window.siteSearch.index.search(state.query);
-    let searchPosts = new Set(searchHits.map(result => result.item.id));
+    let searchPosts;
+
+    if (state.query) {
+      const searchHits = window.siteSearch.index.search(state.query);
+      searchPosts = new Set(searchHits.map(result => result.item.id));
+    } else {
+      searchPosts = new Set(Array.from({length: window.siteSearch.total}, (_, i) => i));
+    }
 
     if ((searchPosts.size > 0) && state.category1) {
       if (state.category2) {
@@ -1102,8 +1190,10 @@ document.addEventListener('DOMContentLoaded', function() {
   function displayResults(ids, state) {
     clearResults();
     const totalPosts = ids.size;
+    const paginationNav = document.querySelector('#pagination');
 
     if (totalPosts === 0) {
+      paginationNav?.classList.add('hidden');
       return;
     }
 
@@ -1152,7 +1242,6 @@ document.addEventListener('DOMContentLoaded', function() {
         pages: pages,
       });
     } else {
-      const paginationNav = document.querySelector('#pagination');
       if (paginationNav) {
         paginationNav.classList.add('hidden');
       }

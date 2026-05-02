@@ -14,7 +14,11 @@
         <h2 class="profile-title">
           <span class="menu-brand-title">{{ .Site.Params.Menu.Title }}</span>
         </h2>
-        <span class="menu-subtitle">{{ .Site.Params.author }}{{ with .Date }} · {{ .Format "2006.01.02" }}{{ end }}</span>
+        <span class="menu-subtitle">
+          {{ .Site.Params.author }}{{ with .Date }} · {{ .Format "2006.01.02 15:04" }}{{ end }} ·
+          <span data-reading-time data-reading-time-format="compact" hidden>{{ .ReadingTime }}min</span>
+          <noscript><span>{{ .ReadingTime }}min</span></noscript>
+        </span>
       </div>
     </a>
     {{ if $.Params.tags }}

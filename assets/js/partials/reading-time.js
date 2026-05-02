@@ -13,6 +13,10 @@
     // 1. Proximity Detection & Text Preparation
     const contentClone = element.cloneNode(true);
 
+    // Exclude page chrome so the estimate is based on the post body itself.
+    const EXCLUDE_ROOT_SELECTORS = '.content-header, .content-cover-wrap, [data-reading-time], #reading-time, script, style, noscript';
+    contentClone.querySelectorAll(EXCLUDE_ROOT_SELECTORS).forEach(el => el.remove());
+
     // Handle Tabbed content: Only keep the first tab content to avoid double counting hidden text
     contentClone.querySelectorAll('.sc-tabs').forEach(tabContainer => {
       const contents = tabContainer.querySelectorAll('.sc-tabs-content');
@@ -126,12 +130,18 @@
    * @param {number} seconds - Total reading time in seconds
    * @returns {HTMLSpanElement} Span element containing the formatted reading time
    */
-  function createReadingTime(seconds) {
+  function createReadingTime(seconds, format = 'long') {
+    const span = document.createElement('span');
+
+    if (format === 'compact') {
+      span.textContent = `${Math.max(1, Math.ceil(seconds / 60))}min`;
+      return span;
+    }
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
 
-    const span = document.createElement('span');
     if (hours > 0) {
       span.textContent = `읽는데 ${hours}시간 ${minutes}분`;
     } else if (minutes > 0) {
@@ -147,11 +157,15 @@
    */
   const init = () => {
     const content = document.querySelector('.content-wrap.markdown');
-    const target = document.getElementById('reading-time');
+    const targets = Array.from(document.querySelectorAll('[data-reading-time], #reading-time'));
 
-    if (content && target) {
+    if (content && targets.length > 0) {
       const seconds = estimateReadingTime(content);
-      target.replaceChildren(createReadingTime(seconds));
+      targets.forEach((target) => {
+        const format = target.dataset?.readingTimeFormat || 'long';
+        target.replaceChildren(createReadingTime(seconds, format));
+        target.hidden = false;
+      });
     }
   };
 

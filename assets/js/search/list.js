@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInputPlaceholder: '검색어를 입력해주세요',
     searchResultsTitle: 'Search',
     searchCountLabel: '"%q" 검색 결과 %s',
-    searchCountLabelNoQuery: 'Total %s',
+    searchCountLabelNoQuery: '검색 결과 %s',
     searchTagsTitle: '검색 태그',
     listCountLabel: '전체 글 %s',
     categoriesParentSubtitle: '상위 카테고리',
@@ -281,9 +281,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const queryRow = createElement('div', {className: 'search-query-row'});
     const inputWrapper = createElement('div', {className: 'query-input-wrapper'});
 
-    const queryIcon = createElement('i', {className: 'icon-search search-query-icon'});
-    inputWrapper.appendChild(queryIcon);
-
     const queryInput = createElement('input', {
       id: 'search-query-input',
       className: 'search-query-input',
@@ -293,9 +290,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const queryButton = createElement('button', {
       className: 'search-query-button',
-      text: TEXT.searchAction,
       attrs: {type: 'button'}
     });
+    const queryButtonIcon = createElement('i', {className: 'icon-search'});
+    queryButton.appendChild(queryButtonIcon);
     inputWrapper.appendChild(queryButton);
     queryRow.appendChild(inputWrapper);
 

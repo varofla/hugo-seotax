@@ -1,7 +1,12 @@
 {{ define "content-header" }}
 <header class="content-header post-view-header">
   <div id="post-top" aria-hidden="true"></div>
-  <a class="post-back-btn" href="{{ `/` | relURL }}">← Posts로 돌아가기</a>
+  <a
+    class="post-back-btn"
+    href="{{ `/` | relURL }}"
+    data-post-back-btn
+    data-default-label="← 전체 포스팅"
+    data-referrer-label="← 돌아가기">← 전체 포스팅</a>
   {{ partial "content/categories" . }}
   {{ partial "content/title" . }}
   <div class="post-meta-row">
@@ -33,4 +38,61 @@
     {{ end }}
   </div>
 </header>
+<script>
+  (function() {
+    const backButton = document.querySelector('[data-post-back-btn]');
+    if (!backButton) {
+      return;
+    }
+
+    function normalizePath(path) {
+      const normalized = (path || '/').replace(/\/+$/, '');
+      return normalized || '/';
+    }
+
+    function isWithinPostsSection(path) {
+      const normalizedPath = normalizePath(path);
+      return normalizedPath === postsSectionRoot || normalizedPath.startsWith(postsSectionRoot + '/');
+    }
+
+    const fallbackHref = backButton.getAttribute('href') || '/';
+    const fallbackLabel = backButton.dataset.defaultLabel || '← 전체 포스팅';
+    const referrerLabel = backButton.dataset.referrerLabel || '← 돌아가기';
+    const postsSectionRoot = normalizePath(window.sitePostViewConfig?.postsSectionRoot || '/');
+    const referrer = document.referrer;
+
+    if (!referrer) {
+      backButton.href = fallbackHref;
+      backButton.textContent = fallbackLabel;
+      return;
+    }
+
+    let referrerUrl;
+    let currentUrl;
+
+    try {
+      referrerUrl = new URL(referrer, window.location.href);
+      currentUrl = new URL(window.location.href);
+    } catch (error) {
+      backButton.href = fallbackHref;
+      backButton.textContent = fallbackLabel;
+      return;
+    }
+
+    if (referrerUrl.href === currentUrl.href) {
+      backButton.href = fallbackHref;
+      backButton.textContent = fallbackLabel;
+      return;
+    }
+
+    if (isWithinPostsSection(referrerUrl.pathname)) {
+      backButton.href = fallbackHref;
+      backButton.textContent = fallbackLabel;
+      return;
+    }
+
+    backButton.href = referrerUrl.href;
+    backButton.textContent = referrerLabel;
+  })();
+</script>
 {{ end }}

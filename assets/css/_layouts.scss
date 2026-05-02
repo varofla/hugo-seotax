@@ -713,8 +713,13 @@ body[dir="rtl"] .site-menu {
       max-height: $toc-overlay-height;
       margin: 0;
       transform: translateX(-50%);
-      background: var(--body-background);
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      background:
+        radial-gradient(circle at top right, rgba(0, 119, 181, 0.08), transparent 28%),
+        linear-gradient(180deg, #f8fbff 0%, #f4f7fb 100%);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      box-shadow:
+        0 8px 40px rgba(15, 23, 42, 0.16),
+        0 2px 8px rgba(15, 23, 42, 0.08);
       z-index: z-index(modal);
       overflow-y: auto;
       border-radius: radius(overlay);
@@ -729,8 +734,9 @@ body[dir="rtl"] .site-menu {
         display: block;
       }
 
+      // padding handled per-link; no extra margin needed
       #TableOfContents > ul {
-        margin-left: space(16);
+        margin-left: 0;
       }
     }
   }
@@ -760,15 +766,14 @@ body[dir="rtl"] .site-menu {
   }
 
   .toc-section-title {
-    // margin: 0 0 space(12);
-    padding: space(4) space(16) space(8);
+    padding: 0.25rem 1rem 0.5rem;
+    margin: 0;
     font-family: "Pretendard Variable", Pretendard, sans-serif;
-    font-size: font-size(12);
+    font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--toc-font-color);
-    opacity: 0.65;
+    color: oklch(0.5 0.008 220);
   }
 
   .toc-toggle-button {
@@ -802,22 +807,50 @@ body[dir="rtl"] .site-menu {
 }
 
 #TableOfContents {
-  margin-top: 2rem;
-  padding-left: 1rem;
-  border-left: 1px solid var(--toc-font-color);
+  margin-top: 1rem;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
 
   a {
-    color: var(--toc-font-color);
+    display: block;
+    border-left: 2px solid transparent;
+    padding: 4px 16px;
+    font-family: "Pretendard Variable", Pretendard, sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: oklch(0.14 0.005 220);
+    line-height: 1.5;
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+
+    &.active,
+    &.toc-flash {
+      border-left-color: oklch(0.5 0.13 198);
+      color: oklch(0.5 0.13 198);
+    }
+
+    &[href]:hover {
+      color: oklch(0.5 0.13 198);
+    }
   }
 
-  a.active {
-    color: var(--toc-active-color);
-    font-weight: bold;
-  }
+  // h3+ links: indent and slightly smaller
+  > ul > li > ul > li > a {
+    padding-left: 28px;
+    font-size: 11.5px;
+    font-weight: 400;
+    color: oklch(0.5 0.008 220);
 
-  a.toc-flash {
-    color: var(--toc-active-color);
-    font-weight: bold;
+    &.active,
+    &.toc-flash {
+      border-left-color: oklch(0.5 0.13 198);
+      color: oklch(0.5 0.13 198);
+      font-weight: 600;
+    }
   }
 }
 

@@ -46,7 +46,7 @@ https://github.com/minyeamer/hugo-miny
   var isPostView = {{ if and (eq .Kind "page") (eq .Type "posts") }}true{{ else }}false{{ end }};
   var hasSideToc = {{ if partial "toc-show" . }}true{{ else }}false{{ end }};
   var storageKey = 'postView.enterTransition';
-  var tocDesktopQuery = '(min-width: 1357px)';
+  var tocDesktopQuery = '(min-width: 1255px)';
   var supportedSources = {
     'post-card': true,
     'post-return': true

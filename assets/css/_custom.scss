@@ -78,7 +78,7 @@ body.site-kind-page.site-type-posts {
   }
 
   // Desktop: remove sticky positioning from TOC (container is fixed-height)
-  @media screen and (min-width: breakpoint(toc)) {
+  @media screen and (min-width: breakpoint(menu)) {
     .site-toc {
       --post-view-panel-duration: #{$post-view-menu-enter-duration};
       display: flex;
@@ -107,7 +107,7 @@ body.site-kind-page.site-type-posts {
 }
 
 html.post-view-enter-pending body.site-kind-page.site-type-posts {
-  @media screen and (min-width: breakpoint(toc)) {
+  @media screen and (min-width: breakpoint(menu)) {
     .site-menu {
       transition:
         width var(--post-view-panel-duration) $post-view-menu-enter-easing,
@@ -135,7 +135,7 @@ html.post-view-enter-pending body.site-kind-page.site-type-posts {
 }
 
 html.post-view-exit-pending body.site-kind-page.site-type-posts {
-  @media screen and (min-width: breakpoint(toc)) {
+  @media screen and (min-width: breakpoint(menu)) {
     .site-menu {
       transition:
         width var(--post-view-panel-duration) $post-view-menu-enter-easing,
@@ -174,7 +174,7 @@ html.post-view-exit-pending body.site-kind-page.site-type-posts {
 
 body.site-kind-page.site-type-posts {
   // TOC container: narrower width and left border separator
-  @media screen and (min-width: breakpoint(toc)) {
+  @media screen and (min-width: breakpoint(menu)) {
     .site-toc {
       border-left: 1px solid oklch(0.92 0.005 200);
 

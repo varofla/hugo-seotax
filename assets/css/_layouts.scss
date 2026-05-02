@@ -460,8 +460,8 @@ body[dir="rtl"] .site-menu {
 .site-header {
   display: none;
 
-  // Show on mobile
-  @media screen and (max-width: breakpoint(toc)) {
+  // Show when side panels collapse into mobile controls
+  @media screen and (max-width: breakpoint(menu)) {
     display: block;
     position: sticky;
     z-index: z-index(header);
@@ -502,7 +502,7 @@ body[dir="rtl"] .site-menu {
 .content-wrap {
   margin-bottom: space(48);
 
-  @media screen and (max-width: breakpoint(toc)) {
+  @media screen and (max-width: breakpoint(menu)) {
     margin-top: space(16);
   }
 }
@@ -682,7 +682,7 @@ body[dir="rtl"] .site-menu {
   }
 
   // Desktop: sticky positioning
-  @media screen and (min-width: breakpoint(toc)) {
+  @media screen and (min-width: breakpoint(menu)) {
     position: sticky;
     top: 0;
     height: 100vh;
@@ -691,7 +691,7 @@ body[dir="rtl"] .site-menu {
   }
 
   // Mobile: hidden by default, overlay when active
-  @media screen and (max-width: breakpoint(toc)) {
+  @media screen and (max-width: breakpoint(menu)) {
     display: none;
     position: fixed;
     top: 0;
@@ -754,7 +754,7 @@ body[dir="rtl"] .site-menu {
     padding: space(32) space(16);
 
     // Desktop: no fixed height needed
-    @media screen and (min-width: breakpoint(toc)) {
+    @media screen and (min-width: breakpoint(menu)) {
       height: auto;
     }
   }
@@ -940,14 +940,14 @@ body[dir="rtl"] .site-menu {
   }
 
   // Reduce body max-width between ToC breakpoint and wide breakpoint
-  @media (min-width: breakpoint(toc)) and (max-width: breakpoint(wide)) {
+  @media (min-width: breakpoint(menu)) and (max-width: breakpoint(wide)) {
     .main-wrap {
       max-width: $body-max-width;
     }
   }
 
   // Restore content width when side ToC disappears
-  @media screen and (max-width: breakpoint(toc)) {
+  @media screen and (max-width: breakpoint(menu)) {
     .site-toc {
       margin-right: 0;
     }
@@ -955,7 +955,7 @@ body[dir="rtl"] .site-menu {
 }
 
 // Enable ToC control in mobile header when side ToC disappears
-@media screen and (max-width: breakpoint(toc)) {
+@media screen and (max-width: breakpoint(menu)) {
   #menu-control,
   #toc-control {
     display: inline;

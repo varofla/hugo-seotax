@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  const tocBreakpoint = 256 + 768 * 1.1 + 256;
+  const tocBreakpoint = 1254;
   let scrollPosition = 0;
 
   // Toggle ToC with overlay

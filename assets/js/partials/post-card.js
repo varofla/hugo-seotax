@@ -9,7 +9,7 @@
   const POST_VIEW_EXIT_CLASS = 'post-view-exit-pending';
   const POST_VIEW_ENTER_CLASS = 'post-view-enter-pending';
   const POST_VIEW_TYPE_CLASS = 'site-type-posts';
-  const TOC_DESKTOP_MEDIA_QUERY = '(min-width: 1357px)';
+  const TOC_DESKTOP_MEDIA_QUERY = '(min-width: 1255px)';
   const EXIT_TRANSITION_DURATION = 220;
   const RETURN_TRANSITION_TTL = 10000;
   const HISTORY_BASE_FLAG = '__postViewHistoryBase';

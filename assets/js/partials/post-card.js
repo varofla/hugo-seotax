@@ -374,10 +374,14 @@
     const root = document.documentElement;
     root.classList.add(POST_VIEW_ENTER_CLASS);
 
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        root.classList.remove(POST_VIEW_ENTER_CLASS);
-      });
+    // Force a synchronous layout so the browser registers the "before" computed
+    // styles before the class is removed. Without this, fast-loading cached pages
+    // (CDN) can process both the add and remove in the same rendering frame,
+    // causing the browser to skip the CSS transition entirely.
+    void root.offsetWidth;
+
+    requestAnimationFrame(() => {
+      root.classList.remove(POST_VIEW_ENTER_CLASS);
     });
 
     return true;
@@ -537,14 +541,16 @@
   });
 
   resetPostExitTransitionState();
-  playPostEntryTransition();
+
+  function onDomReady() {
+    playPostEntryTransition();
+    setupPostHistoryExitTrap();
+  }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      setupPostHistoryExitTrap();
-    }, { once: true });
+    document.addEventListener('DOMContentLoaded', onDomReady, { once: true });
   } else {
-    setupPostHistoryExitTrap();
+    onDomReady();
   }
 
   window.addEventListener('pageshow', function() {

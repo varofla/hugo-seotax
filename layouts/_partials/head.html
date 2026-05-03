@@ -47,7 +47,8 @@ https://github.com/minyeamer/hugo-miny
   var isAboutView = {{ if and (eq .Kind "page") (eq .Type "about") }}true{{ else }}false{{ end }};
   var hasSideToc = {{ if partial "toc-show" . }}true{{ else }}false{{ end }};
   var storageKey = 'postView.enterTransition';
-  var tocDesktopQuery = '(min-width: 1255px)';
+  // Keep this aligned with the SCSS breakpoint(menu) value.
+  var tocDesktopQuery = '(min-width: calc(77.4rem + 0.02px))';
   window.sitePostViewConfig = window.sitePostViewConfig || {};
   window.sitePostViewConfig.isPostView = isPostView;
   window.sitePostViewConfig.isAboutView = isAboutView;

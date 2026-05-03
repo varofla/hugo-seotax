@@ -2,7 +2,6 @@
   'use strict';
 
   const STORAGE_KEY = 'siteMenu.scrollTop';
-  const MENU_BREAKPOINT = 1254;
   const SELECTORS = {
     menu: '[data-site-menu]',
     menuControl: '#menu-control',
@@ -28,8 +27,14 @@
     return document.querySelector(SELECTORS.menuScrollRegion);
   }
 
+  function getMenuBreakpointValue() {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue('--menu-breakpoint')
+      .trim() || '77.4rem';
+  }
+
   function isMobileViewport() {
-    return window.innerWidth <= MENU_BREAKPOINT;
+    return window.matchMedia(`(max-width: ${getMenuBreakpointValue()})`).matches;
   }
 
   function rememberPageScroll() {

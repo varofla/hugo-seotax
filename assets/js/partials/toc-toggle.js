@@ -1,8 +1,17 @@
 (function() {
   'use strict';
 
-  const tocBreakpoint = 1254;
   let scrollPosition = 0;
+
+  function getMenuBreakpointValue() {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue('--menu-breakpoint')
+      .trim() || '77.4rem';
+  }
+
+  function isDesktopViewport() {
+    return window.matchMedia(`(min-width: calc(${getMenuBreakpointValue()} + 0.02px))`).matches;
+  }
 
   // Toggle ToC with overlay
   function toggleToC(forceState) {
@@ -100,7 +109,7 @@
         const tocOverlay = document.getElementById('toc-overlay');
         const tocPanel = document.querySelector('.site-toc');
 
-        if (window.innerWidth > tocBreakpoint) {
+        if (isDesktopViewport()) {
           // Desktop: reset states
           if (tocControl) {
             tocControl.checked = false;

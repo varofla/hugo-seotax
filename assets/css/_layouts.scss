@@ -3,6 +3,7 @@ html {
   scroll-behavior: auto;
   touch-action: manipulation;
   scrollbar-gutter: stable;
+  --menu-breakpoint: #{breakpoint(menu)};
 }
 
 body {

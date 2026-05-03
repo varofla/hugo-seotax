@@ -19,7 +19,7 @@
   const sitePostViewConfig = window.sitePostViewConfig || {};
   const transitionConfig = sitePostViewConfig.transition || {};
   const STORAGE_KEY = transitionConfig.storageKey || 'postView.enterTransition';
-  const TOC_DESKTOP_MEDIA_QUERY = transitionConfig.desktopMediaQuery || '(min-width: 1255px)';
+  const TOC_DESKTOP_MEDIA_QUERY = transitionConfig.desktopMediaQuery || '(min-width: calc(77.4rem + 0.02px))';
   const SUPPORTED_SOURCES = new Set(transitionConfig.supportedSources || ['post-card', 'post-return']);
 
   let hasBoundHistoryPopState = false;

@@ -350,6 +350,12 @@
       padding: space(12) space(16);
     }
 
+    .search-modal-input-container input,
+    .search-filter-modal .search-filter-input {
+      // Prevent iOS Safari from zooming when the modal autofocuses an input.
+      font-size: font-size(16);
+    }
+
     .search-filter-modal {
       padding-left: space(16);
       padding-right: space(16);

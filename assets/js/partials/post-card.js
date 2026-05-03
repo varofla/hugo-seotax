@@ -8,7 +8,8 @@
   const POST_VIEW_EXIT_CLASS = 'post-view-exit-pending';
   const POST_VIEW_ENTER_CLASS = 'post-view-enter-pending';
   const POST_VIEW_TYPE_CLASS = 'site-type-posts';
-  const EXIT_TRANSITION_DURATION = 220;
+  const EXIT_TRANSITION_FALLBACK = 500;
+  const ENTER_TRANSITION_CLEANUP_DELAY = 600;
   const RETURN_TRANSITION_TTL = 10000;
   const HISTORY_BASE_FLAG = '__postViewHistoryBase';
   const HISTORY_TRAP_FLAG = '__postViewHistoryTrap';
@@ -350,9 +351,29 @@
 
     root.classList.add(POST_VIEW_EXIT_CLASS);
 
-    window.setTimeout(() => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
       onComplete();
-    }, EXIT_TRANSITION_DURATION);
+    };
+
+    // Wait for the menu's width transition to complete before navigating.
+    // A fixed timeout previously caused jitter on cached/fast-loading pages
+    // because the new page could load before the CSS transition finished.
+    const menu = document.querySelector('.site-menu');
+    if (menu) {
+      const onTransitionEnd = (e) => {
+        if (e.propertyName === 'width') {
+          menu.removeEventListener('transitionend', onTransitionEnd);
+          finish();
+        }
+      };
+      menu.addEventListener('transitionend', onTransitionEnd);
+    }
+
+    // Fallback in case transitionend never fires (e.g. element removed).
+    window.setTimeout(finish, EXIT_TRANSITION_FALLBACK);
   }
 
   function playPostEntryTransition(options = {}) {
@@ -372,17 +393,20 @@
     }
 
     const root = document.documentElement;
-    root.classList.add(POST_VIEW_ENTER_CLASS);
 
-    // Force a synchronous layout so the browser registers the "before" computed
-    // styles before the class is removed. Without this, fast-loading cached pages
-    // (CDN) can process both the add and remove in the same rendering frame,
-    // causing the browser to skip the CSS transition entirely.
-    void root.offsetWidth;
+    // The inline <head> script adds this class before first paint. The CSS
+    // animation starts automatically — no JS timing needed. This fallback
+    // handles edge cases where the class wasn't set (e.g. bfcache restore).
+    if (!root.classList.contains(POST_VIEW_ENTER_CLASS)) {
+      root.classList.add(POST_VIEW_ENTER_CLASS);
+    }
 
-    requestAnimationFrame(() => {
+    // Remove the class after the animation finishes. This is cleanup only:
+    // the animation's final state matches the base CSS, so there is no
+    // visual change when the class is removed.
+    setTimeout(() => {
       root.classList.remove(POST_VIEW_ENTER_CLASS);
-    });
+    }, ENTER_TRANSITION_CLEANUP_DELAY);
 
     return true;
   }

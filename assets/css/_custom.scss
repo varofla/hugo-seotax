@@ -106,30 +106,84 @@ body.site-kind-page.site-type-posts {
   }
 }
 
+// ── Post-view entry: keyframes ───────────────────────────────────────────────
+// CSS animations are used (not transitions) because they start playing the
+// moment the class is applied by the inline <head> script — independent of
+// when deferred JS executes. With browser cache enabled, defer scripts run
+// before the first paint, making transition-based approaches unreliable.
+
+@keyframes post-view-enter-menu-width {
+  from { width: #{$menu-width}; }
+  to   { width: 0; }
+}
+@keyframes post-view-enter-menu-opacity {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes post-view-enter-menu-transform {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-1 * #{$menu-width})); }
+}
+@keyframes post-view-enter-content-opacity-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes post-view-enter-toc-width {
+  from { width: 0; }
+  to   { width: #{$post-view-toc-width}; }
+}
+@keyframes post-view-enter-opacity-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 html.post-view-enter-pending body.site-kind-page.site-type-posts {
   @media screen and (min-width: breakpoint(menu)) {
     .site-menu {
-      transition:
-        width var(--post-view-panel-duration) $post-view-menu-enter-easing,
-        opacity var(--post-view-panel-duration) $post-view-menu-enter-easing,
-        visibility 0s linear 0s;
-      width: $menu-width;
-      opacity: 1;
       visibility: visible;
+      animation:
+        post-view-enter-menu-width
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both,
+        post-view-enter-menu-opacity
+          #{$post-view-menu-collapse-fade-duration}
+          #{$post-view-menu-enter-easing}
+          #{$post-view-menu-collapse-fade-delay}
+          both;
     }
 
     .site-menu .menu-content {
-      transform: translateX(0);
-      opacity: 1;
+      animation:
+        post-view-enter-menu-transform
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both,
+        post-view-enter-content-opacity-out
+          #{$post-view-menu-collapse-fade-duration}
+          #{$post-view-menu-enter-easing}
+          #{$post-view-menu-collapse-fade-delay}
+          both;
     }
 
     .site-toc {
-      width: 0;
-      opacity: 0;
+      animation:
+        post-view-enter-toc-width
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both,
+        post-view-enter-opacity-in
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both;
     }
 
     .site-toc .toc-content {
-      opacity: 0;
+      animation:
+        post-view-enter-opacity-in
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both;
     }
   }
 }

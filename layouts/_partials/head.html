@@ -44,13 +44,16 @@ https://github.com/minyeamer/hugo-miny
     {{- $postRoot = .RelPermalink | replaceRE "/[^/]+/?$" "/" -}}
   {{- end -}}
   var isPostView = {{ if and (eq .Kind "page") (eq .Type "posts") }}true{{ else }}false{{ end }};
+  var isAboutView = {{ if and (eq .Kind "page") (eq .Type "about") }}true{{ else }}false{{ end }};
   var hasSideToc = {{ if partial "toc-show" . }}true{{ else }}false{{ end }};
   var storageKey = 'postView.enterTransition';
   var tocDesktopQuery = '(min-width: 1255px)';
   window.sitePostViewConfig = window.sitePostViewConfig || {};
   window.sitePostViewConfig.isPostView = isPostView;
+  window.sitePostViewConfig.isAboutView = isAboutView;
   window.sitePostViewConfig.hasSideToc = hasSideToc;
   window.sitePostViewConfig.postsSectionRoot = '{{ $postRoot }}';
+  window.sitePostViewConfig.aboutPath = '{{ `/about/` | relURL }}';
   window.sitePostViewConfig.transition = window.sitePostViewConfig.transition || {};
   window.sitePostViewConfig.transition.storageKey = storageKey;
   window.sitePostViewConfig.transition.desktopMediaQuery = tocDesktopQuery;
@@ -66,7 +69,12 @@ https://github.com/minyeamer/hugo-miny
     return source === 'post-card' || source === 'post-return';
   }
 
-  if (!isPostView || !hasSideToc) {
+  var isCollapsedMenuView = isPostView || isAboutView;
+  if (!isCollapsedMenuView) {
+    return;
+  }
+  // 포스트 뷰는 ToC가 있어야 애니메이션 적용, About 뷰는 ToC 불필요
+  if (isPostView && !hasSideToc) {
     return;
   }
 

@@ -1,0 +1,140 @@
+{{- define "content-header" -}}
+<header class="content-header about-view-header">
+  <a class="post-back-btn"
+     href="{{ `/` | relURL }}"
+     data-about-back-btn
+     data-default-label="← 처음으로"
+     data-referrer-label="← 돌아가기">← 처음으로</a>
+  <section class="about-hero">
+    <div class="about-hero__left">
+      {{- with site.Params.menu.profileImage -}}
+      <div class="about-hero__avatar">
+        <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="" class="about-hero__avatar-img" decoding="async" />
+      </div>
+      {{- end -}}
+    </div>
+    <div class="about-hero__right">
+      <h1 class="about-hero__name">{{ site.Params.author }}</h1>
+      {{- with .Params.tagline -}}
+      <div class="about-hero__tagline">{{ . }}</div>
+      {{- end -}}
+      {{- with .Params.bio -}}
+      <p class="about-hero__bio">{{ . | safeHTML }}</p>
+      {{- end -}}
+      <div class="about-hero__links">
+        {{- with site.Params.social.github -}}
+        <a href="{{ . }}" target="_blank" rel="noopener noreferrer" class="about-link-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          GitHub
+        </a>
+        {{- end -}}
+        <a href="{{ with site.Home.OutputFormats.Get `rss` }}{{ .RelPermalink }}{{ else }}{{ `/index.xml` | relURL }}{{ end }}" class="about-link-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.38 20 6.18 20 4.98 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg>
+          RSS
+        </a>
+      </div>
+    </div>
+  </section>
+</header>
+{{- end -}}
+
+{{- define "content" -}}
+<script>
+(function() {
+  var backBtn = document.querySelector('[data-about-back-btn]');
+  if (!backBtn) return;
+
+  var fallbackHref = backBtn.getAttribute('href') || '/';
+  var fallbackLabel = backBtn.dataset.defaultLabel || '← 처음으로';
+  var referrerLabel = backBtn.dataset.referrerLabel || '← 돌아가기';
+  var referrer = document.referrer;
+
+  if (!referrer) return;
+
+  var referrerUrl, currentUrl;
+  try {
+    referrerUrl = new URL(referrer, window.location.href);
+    currentUrl = new URL(window.location.href);
+  } catch (e) { return; }
+
+  if (referrerUrl.href === currentUrl.href) return;
+  if (referrerUrl.origin !== currentUrl.origin) return;
+
+  backBtn.href = referrerUrl.href;
+  backBtn.textContent = referrerLabel;
+})();
+</script>
+<article class="content-wrap about-content-wrap" id="content-wrap">
+  {{ template "content-header" . }}
+
+  {{- if .Content -}}
+  <div class="markdown about-body">
+    {{- .Content -}}
+  </div>
+  {{- end -}}
+
+  {{- with .Params.skills -}}
+  {{- $skills := . -}}
+  <section class="about-section about-section--skills">
+    <h2 class="about-section-title">Skills</h2>
+    {{- $groups := slice
+      (dict "label" "Main" "key" "main")
+      (dict "label" "Occasional" "key" "occasional")
+      (dict "label" "Experienced" "key" "experienced")
+    -}}
+    {{- range $groups -}}
+    {{- $label := .label -}}
+    {{- $items := index $skills .key -}}
+    {{- with $items -}}
+    <div class="about-skills-row">
+      <div class="about-skills-label">{{ $label }}</div>
+      <div class="about-skills-tags">
+        {{- range . -}}
+        <span class="about-skill-tag{{ if eq $label "Main" }} about-skill-tag--main{{ end }}">{{ . }}</span>
+        {{- end -}}
+      </div>
+    </div>
+    {{- end -}}
+    {{- end -}}
+  </section>
+  {{- end -}}
+
+  {{- with .Params.projects -}}
+  {{- $projects := . -}}
+  {{- $years := slice -}}
+  {{- range $projects -}}
+    {{- if not (in $years .year) -}}
+      {{- $years = $years | append .year -}}
+    {{- end -}}
+  {{- end -}}
+  <section class="about-section about-section--projects">
+    <h2 class="about-section-title">Projects</h2>
+    {{- range $years -}}
+    {{- $year := . -}}
+    <div class="about-projects-group">
+      <div class="about-projects-year-label">{{ $year }}</div>
+      {{- range $projects -}}
+      {{- if eq .year $year -}}
+      {{- $status := .status -}}
+      {{- $mod := "default" -}}
+      {{- if eq $status "완료" -}}{{- $mod = "done" -}}{{- end -}}
+      {{- if eq $status "개발중" -}}{{- $mod = "active" -}}{{- end -}}
+      {{- if eq $status "운영중" -}}{{- $mod = "running" -}}{{- end -}}
+      {{- if eq $status "드랍" -}}{{- $mod = "dropped" -}}{{- end -}}
+      <div class="about-project-item">
+        <div class="about-project-info">
+          <div class="about-project-name">{{ .name }}</div>
+          <div class="about-project-desc">{{ .desc }}</div>
+        </div>
+        <span class="about-status about-status--{{ $mod }}">{{ $status }}</span>
+      </div>
+      {{- end -}}
+      {{- end -}}
+    </div>
+    {{- end -}}
+  </section>
+  {{- end -}}
+</article>
+{{- end -}}
+
+{{- define "toc-container" -}}{{- end -}}

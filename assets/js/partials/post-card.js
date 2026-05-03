@@ -8,6 +8,7 @@
   const POST_VIEW_EXIT_CLASS = 'post-view-exit-pending';
   const POST_VIEW_ENTER_CLASS = 'post-view-enter-pending';
   const POST_VIEW_TYPE_CLASS = 'site-type-posts';
+  const ABOUT_VIEW_TYPE_CLASS = 'site-type-about';
   const EXIT_TRANSITION_FALLBACK = 500;
   const ENTER_TRANSITION_CLEANUP_DELAY = 600;
   const RETURN_TRANSITION_TTL = 10000;
@@ -46,6 +47,23 @@
 
   function isPostViewPage() {
     return document.body?.classList.contains(POST_VIEW_TYPE_CLASS);
+  }
+
+  function isAboutViewPage() {
+    return document.body?.classList.contains(ABOUT_VIEW_TYPE_CLASS);
+  }
+
+  function isCollapsedMenuPage() {
+    return isPostViewPage() || isAboutViewPage();
+  }
+
+  function isAboutDestination(url) {
+    const aboutPath = normalizePath(sitePostViewConfig.aboutPath || '/about');
+    return normalizePath(url.pathname) === aboutPath;
+  }
+
+  function hasMenuPanel() {
+    return Boolean(document.querySelector('.site-menu'));
   }
 
   function hasSideTocConfigured() {
@@ -114,7 +132,7 @@
   }
 
   function shouldAnimateEntryFromReferrer() {
-    if (!isPostViewPage()) {
+    if (!isCollapsedMenuPage()) {
       return false;
     }
 
@@ -140,7 +158,7 @@
       return false;
     }
 
-    if (isPostDestination(referrerUrl)) {
+    if (isPostDestination(referrerUrl) || isAboutDestination(referrerUrl)) {
       return false;
     }
 
@@ -251,6 +269,9 @@
   }
 
   function canAnimatePostEntry() {
+    if (isAboutViewPage()) {
+      return hasMenuPanel() && isDesktopTocViewport() && !prefersReducedMotion();
+    }
     return isPostViewPage()
       && hasSideTocConfigured()
       && hasPostPanels()
@@ -259,6 +280,9 @@
   }
 
   function canAnimatePostExit() {
+    if (isAboutViewPage()) {
+      return hasMenuPanel() && isDesktopTocViewport() && !prefersReducedMotion();
+    }
     return isPostViewPage()
       && hasPostPanels()
       && isDesktopTocViewport()
@@ -266,7 +290,7 @@
   }
 
   function shouldAnimatePostExit(anchor, href) {
-    if (!isPostViewPage() || !href) {
+    if (!isCollapsedMenuPage() || !href) {
       return false;
     }
 
@@ -291,7 +315,8 @@
       return false;
     }
 
-    if (!isSameOrigin(url) || isHashOnlyNavigation(url) || isPostDestination(url)) {
+    // Don't animate if destination is also a collapsed-menu page (post or about)
+    if (!isSameOrigin(url) || isHashOnlyNavigation(url) || isPostDestination(url) || isAboutDestination(url)) {
       return false;
     }
 
@@ -299,7 +324,7 @@
   }
 
   function shouldPreparePostEntry(anchor, href) {
-    if (!href || isPostViewPage()) {
+    if (!href || isCollapsedMenuPage()) {
       return false;
     }
 
@@ -324,7 +349,7 @@
       return false;
     }
 
-    return isPostDestination(url);
+    return isPostDestination(url) || isAboutDestination(url);
   }
 
   function continueHistoryBack() {
@@ -412,7 +437,7 @@
   }
 
   function handlePostHistoryPopState(event) {
-    if (!isPostViewPage()) {
+    if (!isCollapsedMenuPage()) {
       return;
     }
 
@@ -436,7 +461,7 @@
   }
 
   function setupPostHistoryExitTrap() {
-    if (!isPostViewPage() || !window.history?.pushState || !window.history?.replaceState) {
+    if (!isCollapsedMenuPage() || !window.history?.pushState || !window.history?.replaceState) {
       return;
     }
 
@@ -519,7 +544,7 @@
 
   function handlePostExitNavigation(event) {
     const link = event.target.closest(LINK_SELECTOR);
-    if (!link || !isPostViewPage()) {
+    if (!link || !isCollapsedMenuPage()) {
       return;
     }
 

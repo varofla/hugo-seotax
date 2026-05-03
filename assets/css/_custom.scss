@@ -317,9 +317,359 @@ body.site-kind-page.site-type-posts {
   }
 }
 
+// ── About View: Layout ───────────────────────────────────────────────────────
+// About 페이지: 포스트 뷰와 동일하게 좌측 사이드바 접힘, ToC 없음.
+
+body.site-kind-page.site-type-about {
+  @media screen and (min-width: breakpoint(menu)) {
+    overflow: hidden;
+
+    .container {
+      height: 100vh;
+      overflow: hidden;
+      align-items: stretch;
+    }
+
+    .main-wrap {
+      max-width: none;
+      height: 100vh;
+      overflow-y: auto;
+      margin: 0;
+      padding: space(32) space(40);
+
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+
+      &::-webkit-scrollbar { width: 6px; }
+      &::-webkit-scrollbar-track { background: transparent; }
+      &::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 3px; }
+    }
+
+    .content-wrap {
+      max-width: $body-max-width;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .site-menu {
+      --post-view-panel-duration: #{$post-view-menu-enter-duration};
+      display: block;
+      width: 0;
+      margin-right: 0 !important;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        width var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity $post-view-menu-collapse-fade-duration $post-view-menu-enter-easing $post-view-menu-collapse-fade-delay,
+        visibility 0s linear var(--post-view-panel-duration);
+    }
+
+    .site-menu .menu-content {
+      transform: translateX(calc(-1 * #{$menu-width}));
+      opacity: 0;
+      transition:
+        transform var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity $post-view-menu-collapse-fade-duration $post-view-menu-enter-easing $post-view-menu-collapse-fade-delay;
+    }
+  }
+}
+
+html.post-view-enter-pending body.site-kind-page.site-type-about {
+  @media screen and (min-width: breakpoint(menu)) {
+    .site-menu {
+      visibility: visible;
+      animation:
+        post-view-enter-menu-width
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both,
+        post-view-enter-menu-opacity
+          #{$post-view-menu-collapse-fade-duration}
+          #{$post-view-menu-enter-easing}
+          #{$post-view-menu-collapse-fade-delay}
+          both;
+    }
+
+    .site-menu .menu-content {
+      animation:
+        post-view-enter-menu-transform
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both,
+        post-view-enter-content-opacity-out
+          #{$post-view-menu-collapse-fade-duration}
+          #{$post-view-menu-enter-easing}
+          #{$post-view-menu-collapse-fade-delay}
+          both;
+    }
+  }
+}
+
+html.post-view-exit-pending body.site-kind-page.site-type-about {
+  @media screen and (min-width: breakpoint(menu)) {
+    .site-menu {
+      transition:
+        width var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        visibility 0s linear 0s;
+      width: $menu-width;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .site-menu .menu-content {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+}
+
+@media screen and (min-width: breakpoint(menu)) {
+  html:has(body.site-kind-page.site-type-about) {
+    scrollbar-gutter: auto;
+  }
+}
+
+// About 버튼 활성 상태 (About 페이지 방문 중)
+body.site-type-about .menu-link-pill--about {
+  background: var(--site-menu-accent-bg, oklch(0.93 0.02 198));
+  color: var(--site-menu-accent, oklch(0.5 0.13 198));
+  border-color: oklch(0.5 0.13 198 / 0.3);
+}
+
+// ── About View: Page Styles ──────────────────────────────────────────────────
+
+.about-content-wrap {
+  border-top: none;
+  padding-top: 0;
+}
+
+// Hero
+.about-view-header {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.about-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding-bottom: space(40);
+  border-bottom: 1px solid oklch(0.92 0.005 200);
+  margin-bottom: space(48);
+}
+
+.about-hero__avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid oklch(0.92 0.005 200);
+  flex-shrink: 0;
+}
+
+.about-hero__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.about-hero__right {
+  flex: 1;
+}
+
+.about-hero__name {
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: oklch(0.14 0.005 220);
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+
+.about-hero__tagline {
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: oklch(0.5 0.13 198);
+  margin-bottom: 10px;
+}
+
+.about-hero__bio {
+  font-size: 14px;
+  color: oklch(0.55 0.006 220);
+  line-height: 1.7;
+  margin: 0 0 18px;
+}
+
+.about-hero__links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.about-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: oklch(0.55 0.006 220);
+  background: none;
+  border: 1px solid oklch(0.88 0.005 200);
+  border-radius: 8px;
+  padding: 6px 14px;
+  text-decoration: none;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+
+  &:visited {
+    color: oklch(0.55 0.006 220);
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: oklch(0.14 0.005 220);
+    border-color: oklch(0.7 0.006 200);
+    background: oklch(0.97 0.003 200);
+    text-decoration: none;
+  }
+}
+
+// Sections
+.about-section {
+  margin-bottom: space(48);
+}
+
+.about-section-title {
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: oklch(0.14 0.005 220);
+  margin: 0 0 space(20);
+}
+
+// Skills
+.about-skills-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 14px;
+  align-items: baseline;
+}
+
+.about-skills-label {
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  color: oklch(0.67 0.006 220);
+  width: 80px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.about-skills-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.about-skill-tag {
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 12px;
+  color: oklch(0.55 0.006 220);
+  background: oklch(0.96 0.003 200);
+  border: 1px solid oklch(0.88 0.005 200);
+  border-radius: 6px;
+  padding: 3px 10px;
+
+  &--main {
+    color: oklch(0.5 0.13 198);
+    background: oklch(0.93 0.02 198);
+    border-color: oklch(0.5 0.13 198 / 0.3);
+  }
+}
+
+// Projects
+.about-projects-group {
+  margin-bottom: 28px;
+}
+
+.about-projects-year-label {
+  font-family: "DM Mono", monospace;
+  font-size: 12px;
+  color: oklch(0.67 0.006 220);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid oklch(0.92 0.005 200);
+}
+
+.about-project-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid oklch(0.95 0.003 200);
+}
+
+.about-project-info {
+  flex: 1;
+}
+
+.about-project-name {
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: oklch(0.14 0.005 220);
+  margin-bottom: 2px;
+}
+
+.about-project-desc {
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-size: 12px;
+  color: oklch(0.55 0.006 220);
+}
+
+.about-status {
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &--done {
+    background: oklch(0.93 0.04 145);
+    color: oklch(0.38 0.1 145);
+  }
+
+  &--active {
+    background: oklch(0.93 0.02 198);
+    color: oklch(0.5 0.13 198);
+  }
+
+  &--running {
+    background: oklch(0.93 0.02 198);
+    color: oklch(0.5 0.13 198);
+  }
+
+  &--dropped {
+    background: oklch(0.94 0 0);
+    color: oklch(0.55 0 0);
+  }
+
+  &--default {
+    background: oklch(0.94 0 0);
+    color: oklch(0.55 0 0);
+  }
+}
+
 // ── Post View: Content Header ────────────────────────────────────────────────
 
-.post-view-header {
+.post-view-header,
+.about-view-header {
   text-align: left;
   border-bottom: none;
   padding-bottom: 0;

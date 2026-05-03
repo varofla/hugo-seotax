@@ -286,12 +286,15 @@ nav ul {
 
   // Mobile: fixed positioning
   @media screen and (max-width: breakpoint(menu)) {
+    --mobile-menu-width: min(18rem, 88vw);
+
+    width: var(--mobile-menu-width);
     position: fixed;
     top: 0;
     left: 0;
     z-index: z-index(menu);
     visibility: hidden;
-    margin-inline-start: -$menu-width;
+    margin-inline-start: calc(-1 * var(--mobile-menu-width));
   }
   .menu-content {
     width: $menu-width;
@@ -306,6 +309,7 @@ nav ul {
 
     // Mobile: use fixed mixin
     @media screen and (max-width: breakpoint(menu)) {
+      width: var(--mobile-menu-width);
       @include fixed;
     }
   }
@@ -1103,7 +1107,7 @@ body[dir="rtl"] .site-menu {
     }
 
     .site-menu .menu-content {
-      transform: translateX($menu-width);
+      transform: translateX(var(--mobile-menu-width));
       box-shadow: 0 0 space(8) rgba(0, 0, 0, 0.1);
     }
 
@@ -1126,7 +1130,7 @@ body[dir="rtl"] .site-menu {
   // for RTL support
   body[dir="rtl"] #menu-control:checked ~ main {
     .site-menu .menu-content {
-      transform: translateX(-$menu-width);
+      transform: translateX(calc(-1 * var(--mobile-menu-width)));
     }
   }
 }

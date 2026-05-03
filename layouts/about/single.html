@@ -9,7 +9,8 @@
     <div class="about-hero__left">
       {{- with site.Params.menu.profileImage -}}
       <div class="about-hero__avatar">
-        <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="" class="about-hero__avatar-img" decoding="async" />
+        {{/*  <img src="{{ . | strings.TrimPrefix `/` | relURL }}" alt="" class="about-hero__avatar-img" decoding="async" />  */}}
+        <img src="/images/profile/nanming.jpeg" alt="" class="about-hero__avatar-img" decoding="async" />
       </div>
       {{- end -}}
     </div>

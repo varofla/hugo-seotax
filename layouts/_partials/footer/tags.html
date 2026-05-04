@@ -1,3 +1,4 @@
 {{ range .Params.tags }}
-<a href="{{ `search/?tags=` | relURL }}{{ . }}" class="tag">#{{ . }}</a>
+{{ $displayTag := replace . " " "-" }}
+<a href="{{ `search/?tags=` | relURL }}{{ . }}" class="tag">#{{ $displayTag }}</a>
 {{ end }}

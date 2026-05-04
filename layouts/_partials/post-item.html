@@ -33,9 +33,10 @@
         <span class="post-meta-sep">·</span>
         <div class="post-tags">
           {{ range first 5 .Params.tags }}
+          {{ $displayTag := replace . " " "-" }}
           <a
             href="{{ printf "%s?%s" (`search/` | relURL) (querify `tags` .) }}"
-            class="post-tag">#{{ . }}</a>
+            class="post-tag">#{{ $displayTag }}</a>
           {{ end }}
         </div>
         {{ end }}

@@ -752,9 +752,8 @@ body.site-type-about .menu-link-pill--about {
 
   .post-meta-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
     gap: 12px;
     margin-bottom: space(32);
     padding-bottom: space(24);
@@ -763,6 +762,7 @@ body.site-type-about .menu-link-pill--about {
     .menu-brand {
       display: flex;
       align-items: center;
+      min-width: 0;
       gap: 10px;
       color: oklch(0.14 0.005 220);
       text-decoration: none;
@@ -794,6 +794,7 @@ body.site-type-about .menu-link-pill--about {
       .menu-brand-copy {
         display: flex;
         flex-direction: column;
+        min-width: 0;
         gap: 2px;
         padding-top: 6px;
       }
@@ -825,28 +826,52 @@ body.site-type-about .menu-link-pill--about {
     .post-meta-tags {
       display: flex;
       align-items: center;
+      justify-content: flex-start;
+      width: 100%;
+      min-width: 0;
       flex-wrap: wrap;
       gap: 6px;
+    }
+
+    @media screen and (min-width: breakpoint(menu)) {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+
+      .menu-brand {
+        flex: 0 1 auto;
+      }
+
+      .post-meta-tags {
+        flex: 1 1 0;
+        width: auto;
+        padding-top: space(6);
+        justify-content: flex-end;
+      }
     }
 
     a.post-view-tag,
     a.post-view-tag:visited {
       display: inline-flex;
       align-items: center;
-      border-radius: 999px;
+      border-radius: 0;
       white-space: nowrap;
       text-decoration: none;
-      transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      transition: color 0.18s ease;
       font-family: "DM Mono", monospace;
-      font-size: font-size(12);
-      color: oklch(0.5 0.008 220);
-      background: oklch(0.94 0.006 200);
-      padding: 0.1875rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 400;
+      line-height: 1.2;
+      color: oklch(0.67 0.006 220);
+      background: none;
+      box-shadow: none;
+      padding: 0;
 
       &:hover,
       &:focus-visible {
-        color: oklch(0.5 0.008 220);
-        background: oklch(0.9 0.008 200);
+        color: oklch(0.56 0.008 220);
+        background: none;
         text-decoration: none;
       }
     }

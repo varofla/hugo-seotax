@@ -30,9 +30,10 @@
     {{ if $.Params.tags }}
     <div class="post-meta-tags">
       {{ range $.Params.tags }}
+      {{ $displayTag := replace . " " "-" }}
       <a
         href="{{ printf "%s?%s" (`search/` | relURL) (querify `tags` .) }}"
-        class="post-view-tag post-tag">#{{ . }}</a>
+        class="post-view-tag post-tag">#{{ $displayTag }}</a>
       {{ end }}
     </div>
     {{ end }}

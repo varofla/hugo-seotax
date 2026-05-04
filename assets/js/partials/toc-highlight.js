@@ -2,7 +2,13 @@ document.addEventListener('DOMContentLoaded', function() {
   const config = document.querySelector('#toc-config');
   if (!config) return;
   const TOP_TARGET_ID = 'post-top';
+  const SCROLL_DURATION = 500;
   let activeTocId = null;
+  let activeMainWrapScrollAnimation = null;
+
+  const easeInOut = t => t < 0.5
+    ? 16 * t * t * t * t * t
+    : 1 - Math.pow(-2 * t + 2, 5) / 2;
 
   function getHeadings() {
     const start = parseInt(config.dataset.start) || 2;
@@ -51,6 +57,80 @@ document.addEventListener('DOMContentLoaded', function() {
   const mainWrapScrolls = mainWrap &&
     ['auto', 'scroll'].includes(window.getComputedStyle(mainWrap).overflowY);
   const scrollEl = mainWrapScrolls ? mainWrap : window;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function cancelMainWrapScrollAnimation() {
+    if (!activeMainWrapScrollAnimation) return;
+
+    cancelAnimationFrame(activeMainWrapScrollAnimation.frameId);
+    activeMainWrapScrollAnimation = null;
+  }
+
+  function getMainWrapTargetTop(targetId, targetEl) {
+    if (targetId === TOP_TARGET_ID) {
+      return 0;
+    }
+
+    const mainWrapRect = mainWrap.getBoundingClientRect();
+    const targetRect = targetEl.getBoundingClientRect();
+    const scrollMarginTop = parseFloat(window.getComputedStyle(targetEl).scrollMarginTop) || 0;
+
+    return Math.max(
+      0,
+      mainWrap.scrollTop + (targetRect.top - mainWrapRect.top) - scrollMarginTop
+    );
+  }
+
+  function jumpMainWrapToTargetInstantly(targetId, targetEl) {
+    cancelMainWrapScrollAnimation();
+    mainWrap.scrollTo({
+      top: getMainWrapTargetTop(targetId, targetEl),
+      behavior: 'auto'
+    });
+  }
+
+  function smoothScrollMainWrapToTarget(targetId, targetEl) {
+    cancelMainWrapScrollAnimation();
+
+    const start = mainWrap.scrollTop;
+    const end = getMainWrapTargetTop(targetId, targetEl);
+
+    if (Math.abs(end - start) < 1) {
+      mainWrap.scrollTo({ top: end, behavior: 'auto' });
+      return;
+    }
+
+    const animation = {
+      frameId: null,
+      startTime: null,
+      targetId
+    };
+
+    activeMainWrapScrollAnimation = animation;
+
+    function step(timestamp) {
+      if (activeMainWrapScrollAnimation !== animation) return;
+      if (!animation.startTime) animation.startTime = timestamp;
+
+      const progress = timestamp - animation.startTime;
+      const percent = easeInOut(Math.min(progress / SCROLL_DURATION, 1));
+
+      mainWrap.scrollTo({
+        top: start + (end - start) * percent,
+        behavior: 'auto'
+      });
+
+      if (progress < SCROLL_DURATION) {
+        animation.frameId = requestAnimationFrame(step);
+        return;
+      }
+
+      mainWrap.scrollTo({ top: end, behavior: 'auto' });
+      activeMainWrapScrollAnimation = null;
+    }
+
+    animation.frameId = requestAnimationFrame(step);
+  }
 
   // A heading is considered "active" when it has scrolled to within THRESHOLD px
   // of the top of the scroll container. Using a fixed offset avoids the problem
@@ -116,12 +196,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const targetEl = document.getElementById(targetId);
         if (targetEl) {
           e.preventDefault();
-          if (targetId === TOP_TARGET_ID) {
-            mainWrap.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-          }
+          const shouldJumpInstantly = Boolean(
+            activeMainWrapScrollAnimation &&
+            activeMainWrapScrollAnimation.targetId === targetId
+          ) || prefersReducedMotion.matches;
 
-          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (shouldJumpInstantly) {
+            jumpMainWrapToTargetInstantly(targetId, targetEl);
+          } else {
+            smoothScrollMainWrapToTarget(targetId, targetEl);
+          }
         }
       });
     });

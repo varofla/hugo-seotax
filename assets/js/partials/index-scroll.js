@@ -7,6 +7,7 @@ const HIGHLIGHT_DURATION = 2000;
 const SCROLL_DURATION = 500;
 const INITIAL_SCROLL_DELAY = 80;
 const TOP_TARGET_ID = 'post-top';
+let activeScrollAnimation = null;
 
 function getHashFromLink(link) {
   const href = link.getAttribute('href');
@@ -62,25 +63,43 @@ function highlightHeading(el) {
   }, HIGHLIGHT_DURATION);
 }
 
+function cancelActiveScrollAnimation() {
+  if (!activeScrollAnimation) return;
+
+  cancelAnimationFrame(activeScrollAnimation.frameId);
+  activeScrollAnimation = null;
+}
+
 function smoothScrollToTarget(target, hash) {
+  cancelActiveScrollAnimation();
+
   const start = window.scrollY;
   const end = isTopTarget(target)
     ? 0
     : target.getBoundingClientRect().top + start - HEADER_OFFSET;
-  let startTime = null;
+  const animation = {
+    frameId: null,
+    hash,
+    startTime: null
+  };
+
+  activeScrollAnimation = animation;
 
   function scrollStep(timestamp) {
-    if (!startTime) startTime = timestamp;
+    if (activeScrollAnimation !== animation) return;
+    if (!animation.startTime) animation.startTime = timestamp;
 
-    const progress = timestamp - startTime;
+    const progress = timestamp - animation.startTime;
     const percent = easeInOut(Math.min(progress / SCROLL_DURATION, 1));
 
     window.scrollTo(0, start + (end - start) * percent);
 
     if (progress < SCROLL_DURATION) {
-      requestAnimationFrame(scrollStep);
+      animation.frameId = requestAnimationFrame(scrollStep);
       return;
     }
+
+    activeScrollAnimation = null;
 
     if (hash) {
       history.replaceState(null, '', hash);
@@ -90,10 +109,12 @@ function smoothScrollToTarget(target, hash) {
     flashTocLink(target.id);
   }
 
-  requestAnimationFrame(scrollStep);
+  animation.frameId = requestAnimationFrame(scrollStep);
 }
 
 function jumpToTarget(target, hash) {
+  cancelActiveScrollAnimation();
+
   const end = isTopTarget(target)
     ? 0
     : target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
@@ -123,7 +144,12 @@ function scrollToHash(hash, options = {}) {
 document.querySelectorAll('#TableOfContents a, .markdown a.anchor').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
     const hash = getHashFromLink(this);
-    if (!scrollToHash(hash)) return;
+    const shouldJumpInstantly = Boolean(
+      hash &&
+      activeScrollAnimation &&
+      activeScrollAnimation.hash === hash
+    );
+    if (!scrollToHash(hash, { instant: shouldJumpInstantly })) return;
 
     e.preventDefault();
   });

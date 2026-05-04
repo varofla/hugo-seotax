@@ -86,7 +86,10 @@ body.site-kind-page.site-type-posts {
       position: relative;
       top: auto;
       width: $post-view-toc-width;
-      overflow: hidden;
+      height: 100vh;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
       transition:
         width var(--post-view-panel-duration) $post-view-menu-enter-easing,
         opacity var(--post-view-panel-duration) $post-view-menu-enter-easing;

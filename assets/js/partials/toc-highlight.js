@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const config = document.querySelector('#toc-config');
   if (!config) return;
   const TOP_TARGET_ID = 'post-top';
+  let activeTocId = null;
 
   function getHeadings() {
     const start = parseInt(config.dataset.start) || 2;
@@ -19,6 +20,31 @@ document.addEventListener('DOMContentLoaded', function() {
       return toc.querySelector('#TableOfContents');
     }
     return document.querySelector('#TableOfContents');
+  }
+
+  function scrollActiveTocLinkIntoView(link) {
+    const tocPanel = link.closest('.site-toc');
+    if (!tocPanel) return;
+    if (tocPanel.clientHeight === 0) return;
+
+    const panelRect = tocPanel.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    const edgePadding = 24;
+    const isAbove = linkRect.top < panelRect.top + edgePadding;
+    const isBelow = linkRect.bottom > panelRect.bottom - edgePadding;
+
+    if (!isAbove && !isBelow) return;
+
+    const targetScrollTop = tocPanel.scrollTop +
+      (linkRect.top - panelRect.top) -
+      ((panelRect.height - linkRect.height) / 2);
+
+    tocPanel.scrollTo({
+      top: Math.max(0, targetScrollTop),
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        ? 'auto'
+        : 'smooth'
+    });
   }
 
   const mainWrap = document.querySelector('.main-wrap');
@@ -56,12 +82,29 @@ document.addEventListener('DOMContentLoaded', function() {
     if (active) {
       const id = active.getAttribute('id');
       const link = toc.querySelector(`a[href="#${CSS.escape(id)}"]`);
-      if (link) link.classList.add('active');
+      if (link) {
+        link.classList.add('active');
+
+        if (activeTocId !== id) {
+          activeTocId = id;
+          scrollActiveTocLinkIntoView(link);
+        }
+      }
+    } else {
+      activeTocId = null;
     }
   }
 
   scrollEl.addEventListener('scroll', updateActiveHeading, { passive: true });
   updateActiveHeading();
+
+  document.addEventListener('toc:opened', () => {
+    const toc = getVisibleToc();
+    const activeLink = toc ? toc.querySelector('a.active') : null;
+    if (activeLink) {
+      scrollActiveTocLinkIntoView(activeLink);
+    }
+  });
 
   // When .main-wrap is the scroll container, the browser's default anchor scroll
   // targets the window and does nothing. Intercept TOC link clicks and use

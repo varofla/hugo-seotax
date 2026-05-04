@@ -43,6 +43,7 @@
         tocOverlay.classList.add('active');
       }
       tocPanel.classList.add('overlay-mode');
+      document.dispatchEvent(new CustomEvent('toc:opened'));
     } else {
       if (tocOverlay) {
         tocOverlay.classList.remove('active');

@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-  const CATEGORY_PATH = '{{ "category/" | relURL }}';
-  const CATEGORIES_PATH = '{{ "categories/" | relURL }}';
+  const CATEGORY_PATH = '{{ "categories/" | relURL }}';
+  const CATEGORIES_PATH = CATEGORY_PATH;
   const {capitalize, createElement} = window.siteSearch.utils;
   const currentPath = window.location.pathname;
 
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   /**
    * Read category slugs from URL path segments and page/pageSize from query params.
-   * e.g. /category/dev-boards/arduino/ → { category1: 'dev-boards', category2: 'arduino', ... }
+   * e.g. /categories/dev-boards/arduino/ → { category1: 'dev-boards', category2: 'arduino', ... }
    */
   function getCategoryState() {
     const relative = currentPath.slice(CATEGORY_PATH.length).replace(/\/$/, '');
@@ -51,16 +51,11 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 
-  /**
-   * Look up category data from the slug-keyed JSON.
-   * categories.json uses lower() keys (e.g. "dev boards"), so we find by
-   * comparing urlize(key) against the slug from the URL path.
-   */
   function resolveCategoryData(state) {
     const categories = window.siteSearch.categories || {};
 
     const cat1Key = Object.keys(categories).find(
-      k => urlize(k) === state.category1
+      k => categories[k]?.A?.slug === state.category1
     );
     const category1 = cat1Key ? categories[cat1Key] : null;
     const hasCategory1 = category1 instanceof Object && 'A' in category1;
@@ -79,7 +74,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const cat2Key = hasCategory1
-      ? Object.keys(category1).find(k => k !== 'A' && urlize(k) === state.category2)
+      ? Object.keys(category1).find(
+        k => k !== 'A' && category1[k]?.slug === state.category2
+      )
       : null;
     const category2 = cat2Key ? category1[cat2Key] : null;
     const hasCategory2 = category2 instanceof Object && 'name' in category2;

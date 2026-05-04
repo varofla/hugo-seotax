@@ -11,24 +11,20 @@
 
   const CATEGORY_BASE = (function() {
     const a = document.createElement('a');
-    a.href = '{{ "category/" | relURL }}';
+    a.href = '{{ "categories/" | relURL }}';
     return a.pathname;
   })();
-
-  function urlize(str) {
-    return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  }
 
   /**
    * Get category slugs for the current page.
    * - Category pages: parsed from URL path (already slugified).
-   * - Post pages: read original names from data attr, convert to slug.
+   * - Post pages: read canonical slugs from rendered data attrs.
    * @returns {object} category1 and category2 slugs (nullable)
    */
   function getCurrentCategory() {
     const pathname = window.location.pathname;
 
-    // Path-based category pages: /category/dev-boards/ or /category/dev-boards/arduino/
+    // Path-based category pages: /categories/dev-boards/ or /categories/dev-boards/arduino/
     if (pathname.startsWith(CATEGORY_BASE) && pathname.length > CATEGORY_BASE.length) {
       const relative = pathname.slice(CATEGORY_BASE.length).replace(/\/$/, '');
       const parts = relative.split('/').filter(Boolean);
@@ -43,11 +39,11 @@
     // Post page: use rendered category metadata in the content header
     const categoryMeta = document.querySelector('[data-current-category]');
     if (categoryMeta) {
-      const c1 = categoryMeta.dataset.category1 || null;
-      const c2 = categoryMeta.dataset.category2 || null;
+      const c1 = categoryMeta.dataset.category1Slug || null;
+      const c2 = categoryMeta.dataset.category2Slug || null;
       return {
-        category1: c1 ? urlize(c1) : null,
-        category2: c2 ? urlize(c2) : null,
+        category1: c1,
+        category2: c2,
       };
     }
 

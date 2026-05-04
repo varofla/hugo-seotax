@@ -3,12 +3,9 @@
 {{- $cat2 := partial "categories/level2" .Params.categories -}}
 
 {{- if not $cat1 -}}
-{{- /* Root /category/ page: redirect to /categories/ */ -}}
-<script>window.location.replace('{{ `categories/` | relURL }}');</script>
-<meta http-equiv="refresh" content="0;url={{ `categories/` | relURL }}">
+{{ partial "categories/index" . }}
 {{- else -}}
 
-{{- /* Filter posts matching this category */ -}}
 {{- $allPosts := partialCached "pages/posts" . "posts" -}}
 {{- $filtered := slice -}}
 {{- range $allPosts -}}
@@ -24,19 +21,28 @@
   {{- end -}}
 {{- end -}}
 
+{{- $totalCount := len $filtered -}}
+{{- if not $cat2 -}}
+  {{- $treeL1 := partialCached "categories/tree" . "categories" -}}
+  {{- $treeL2 := index $treeL1 $cat1 -}}
+  {{- if $treeL2 -}}
+    {{- $totalCount = add $totalCount (len (partial "keys" $treeL2)) -}}
+  {{- end -}}
+{{- end -}}
+
 {{- $paginator := .Paginate $filtered 10 -}}
 
 <article class="content-wrap markdown">
   <div class="list-header list-header--stacked">
     <h1 id="category-title">
-      <a href="{{ printf "%s%s/" (`category/` | relURL) (urlize $cat1) }}" class="category-title-link category-title-link--parent">{{ $cat1 }}</a>
+      <a href="{{ printf "%s%s/" (`categories/` | relURL) (urlize $cat1) }}" class="category-title-link category-title-link--parent">{{ $cat1 }}</a>
       {{- if $cat2 }}
       <span class="category-title-sep">›</span>
-      <a href="{{ printf "%s%s/%s/" (`category/` | relURL) (urlize $cat1) (urlize $cat2) }}" class="category-title-link category-title-link--child">{{ $cat2 }}</a>
+      <a href="{{ printf "%s%s/%s/" (`categories/` | relURL) (urlize $cat1) (urlize $cat2) }}" class="category-title-link category-title-link--child">{{ $cat2 }}</a>
       {{- end }}
     </h1>
     <p class="list-header-count">
-      Total <em class="list-count" id="category-count">{{ len $filtered }}</em>
+      Total <em class="list-count" id="category-count">{{ $totalCount }}</em>
     </p>
   </div>
 

@@ -10,7 +10,7 @@
   data-category2="{{ $category2 }}"
   data-category2-slug="{{ urlize $category2 }}">
   <a
-    href="{{ printf "%s%s/%s/" (`category/` | relURL) (urlize $category1) (urlize $category2) }}"
+    href="{{ printf "%s%s/%s/" (`categories/` | relURL) (urlize $category1) (urlize $category2) }}"
     class="category-link">
     <i class="icon-file" aria-hidden="true"></i>
     <span class="category-name">{{- $category2 -}}</span>

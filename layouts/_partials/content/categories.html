@@ -5,7 +5,9 @@
   class="content-category"
   data-current-category
   data-category1="{{ $category1 }}"
-  data-category2="{{ $category2 }}">
+  data-category1-slug="{{ urlize $category1 }}"
+  data-category2="{{ $category2 }}"
+  data-category2-slug="{{ urlize $category2 }}">
   {{ partial "categories/pills" (dict "categories" .Params.categories) }}
 </div>
 {{ end }}

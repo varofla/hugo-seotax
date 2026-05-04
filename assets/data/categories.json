@@ -12,7 +12,7 @@
     {{- end -}}
   {{- end -}}
   {{- /* Add level-1 category to map */ -}}
-  {{- $category1 := dict "A" (dict "name" $key1 "ids" $ids1) -}}
+  {{- $category1 := dict "A" (dict "name" $key1 "slug" (urlize $key1) "ids" $ids1) -}}
   {{- /* Create level-2 categories map with name and post IDs */ -}}
   {{- $treeL2 := index $treeL1 $key1 -}}
   {{- if $treeL2 -}}
@@ -26,7 +26,7 @@
           {{- $ids2 = $ids2 | append $id2 -}}
         {{- end -}}
       {{- end -}}
-      {{- $category2 = $category2 | merge (dict (lower $key2) (dict "name" $key2 "ids" $ids2)) -}}
+      {{- $category2 = $category2 | merge (dict (lower $key2) (dict "name" $key2 "slug" (urlize $key2) "ids" $ids2)) -}}
     {{- end -}}
     {{- /* Merge level-2 categories map into categories map using a lowercase key */ -}}
     {{- $category1 = $category1 | merge $category2 -}}

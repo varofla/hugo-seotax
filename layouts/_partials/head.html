@@ -130,45 +130,6 @@ https://github.com/minyeamer/hugo-miny
 {{- $styles := resources.Get "main.scss" | resources.ExecuteAsTemplate "main.scss" . | css.Sass | resources.Minify | resources.Fingerprint }}
 <link rel="stylesheet" href="{{ partial `links/resource-precache` $styles }}" {{ template `integrity` $styles }}>
 
-<script>
-(function() {
-  var path = window.location.pathname || '';
-  var search = window.location.search || '';
-  var categoriesPath = '{{ "categories/" | relURL }}';
-  var categoryPath = '{{ "category/" | relURL }}';
-  var params = new URLSearchParams(search);
-  var c1 = params.get('category1');
-  var c2 = params.get('category2');
-
-  if (!c1 && !c2) return;
-
-  function urlize(s) {
-    return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/, '');
-  }
-
-  function buildPathUrl() {
-    var newPath = categoryPath + urlize(c1) + '/';
-    if (c2) newPath += urlize(c2) + '/';
-    var rest = new URLSearchParams(search);
-    rest.delete('category1');
-    rest.delete('category2');
-    var qs = rest.toString();
-    return newPath + (qs ? '?' + qs : '');
-  }
-
-  // /categories/?category1=... → /category/slug/
-  if (path.indexOf(categoriesPath) === 0 && c1) {
-    window.location.replace(buildPathUrl());
-    return;
-  }
-
-  // /category/?category1=... → /category/slug/  (backward compat for old links)
-  if (path === categoryPath && c1) {
-    window.location.replace(buildPathUrl());
-  }
-})();
-</script>
-
 <!-- Google Analytics -->
 {{- if and hugo.IsProduction .Site.Params.GoogleAnalytics.tagId }}
 <script async src="https://www.googletagmanager.com/gtag/js?id={{ .Site.Params.GoogleAnalytics.tagId }}"></script>

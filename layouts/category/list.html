@@ -1,19 +1,57 @@
 {{ define "content" }}
+{{- $cat1 := partial "categories/level1" .Params.categories -}}
+{{- $cat2 := partial "categories/level2" .Params.categories -}}
+
+{{- if not $cat1 -}}
+{{- /* Root /category/ page: redirect to /categories/ */ -}}
+<script>window.location.replace('{{ `categories/` | relURL }}');</script>
+<meta http-equiv="refresh" content="0;url={{ `categories/` | relURL }}">
+{{- else -}}
+
+{{- /* Filter posts matching this category */ -}}
+{{- $allPosts := partialCached "pages/posts" . "posts" -}}
+{{- $filtered := slice -}}
+{{- range $allPosts -}}
+  {{- $p1 := partial "categories/level1" .Params.categories -}}
+  {{- if $cat2 -}}
+    {{- if and (eq $p1 $cat1) (eq (partial "categories/level2" .Params.categories) $cat2) -}}
+      {{- $filtered = $filtered | append . -}}
+    {{- end -}}
+  {{- else -}}
+    {{- if eq $p1 $cat1 -}}
+      {{- $filtered = $filtered | append . -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $paginator := .Paginate $filtered 10 -}}
+
 <article class="content-wrap markdown">
   <div class="list-header list-header--stacked">
-    <h1 id="category-title">&nbsp;</h1>
+    <h1 id="category-title">
+      <a href="{{ printf "%s%s/" (`category/` | relURL) (urlize $cat1) }}" class="category-title-link category-title-link--parent">{{ $cat1 }}</a>
+      {{- if $cat2 }}
+      <span class="category-title-sep">›</span>
+      <a href="{{ printf "%s%s/%s/" (`category/` | relURL) (urlize $cat1) (urlize $cat2) }}" class="category-title-link category-title-link--child">{{ $cat2 }}</a>
+      {{- end }}
+    </h1>
     <p class="list-header-count">
-      Total <em class="list-count" id="category-count">&nbsp;</em>
+      Total <em class="list-count" id="category-count">{{ len $filtered }}</em>
     </p>
   </div>
 
-  <div class="category-no-results hidden" id="category-no-results">
+  {{ if $paginator.Pages }}
+  <div class="post-list" id="category-results">
+    {{ range $paginator.Pages }}
+    {{ partial "post-item" . }}
+    {{ end }}
+  </div>
+  {{ partial "pagination.html" $paginator }}
+  {{ else }}
+  <div class="category-no-results" id="category-no-results">
     <p>결과가 없습니다.</p>
   </div>
-
-  <div class="post-list hidden" id="category-results"></div>
-
-  <div id="pagination-anchor"></div>
-  <nav class="pagination hidden" id="pagination"></nav>
+  {{ end }}
 </article>
+{{- end }}
 {{ end }}

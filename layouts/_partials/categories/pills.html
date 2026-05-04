@@ -9,12 +9,12 @@
 {{- if $category1 -}}
 <div class="{{ $wrapperClass }}">
   <a
-    href="{{ printf "%s?%s" (`category/` | relURL) (querify `category1` $category1) }}"
+    href="{{ printf "%s%s/" (`category/` | relURL) (urlize $category1) }}"
     class="{{ $parentClass }}">{{ $category1 }}</a>
   {{- if $category2 -}}
   <span class="{{ $separatorClass }}">›</span>
   <a
-    href="{{ printf "%s?%s" (`category/` | relURL) (querify `category1` $category1 `category2` $category2) }}"
+    href="{{ printf "%s%s/%s/" (`category/` | relURL) (urlize $category1) (urlize $category2) }}"
     class="{{ $childClass }}">{{ $category2 }}</a>
   {{- end -}}
 </div>

@@ -9,27 +9,45 @@
     categoryToggle: '[data-category-toggle]',
   };
 
+  const CATEGORY_BASE = (function() {
+    const a = document.createElement('a');
+    a.href = '{{ "category/" | relURL }}';
+    return a.pathname;
+  })();
+
+  function urlize(str) {
+    return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  }
+
   /**
-   * Get category1/category2 for the current page.
-   * Checks URL search params first, then falls back to the post's category link.
-   * @returns {object} category1 and category2 strings (nullable)
+   * Get category slugs for the current page.
+   * - Category pages: parsed from URL path (already slugified).
+   * - Post pages: read original names from data attr, convert to slug.
+   * @returns {object} category1 and category2 slugs (nullable)
    */
   function getCurrentCategory() {
-    const currentUrl = new URL(window.location.href);
+    const pathname = window.location.pathname;
 
-    // Category/search pages: /category/?category1=... or /search/?category1=...
-    const category1 = currentUrl.searchParams.get('category1');
-    const category2 = currentUrl.searchParams.get('category2');
-    if (category1 || category2) {
-      return { category1, category2 };
+    // Path-based category pages: /category/dev-boards/ or /category/dev-boards/arduino/
+    if (pathname.startsWith(CATEGORY_BASE) && pathname.length > CATEGORY_BASE.length) {
+      const relative = pathname.slice(CATEGORY_BASE.length).replace(/\/$/, '');
+      const parts = relative.split('/').filter(Boolean);
+      if (parts.length > 0) {
+        return {
+          category1: parts[0] || null,
+          category2: parts[1] || null,
+        };
+      }
     }
 
     // Post page: use rendered category metadata in the content header
     const categoryMeta = document.querySelector('[data-current-category]');
     if (categoryMeta) {
+      const c1 = categoryMeta.dataset.category1 || null;
+      const c2 = categoryMeta.dataset.category2 || null;
       return {
-        category1: categoryMeta.dataset.category1 || null,
-        category2: categoryMeta.dataset.category2 || null,
+        category1: c1 ? urlize(c1) : null,
+        category2: c2 ? urlize(c2) : null,
       };
     }
 
@@ -44,7 +62,7 @@
     // Open and activate the current parent category group.
     if (category1) {
       const parentGroup = menuCategories.querySelector(
-        `${SELECTORS.categoryGroup}[data-category1="${CSS.escape(category1)}"]`
+        `${SELECTORS.categoryGroup}[data-category1-slug="${CSS.escape(category1)}"]`
       );
       if (parentGroup) {
         parentGroup.classList.add('is-open');
@@ -57,7 +75,7 @@
     // Activate the current child category item.
     if (category1 && category2) {
       const childItem = menuCategories.querySelector(
-        `${SELECTORS.childItem}[data-category1="${CSS.escape(category1)}"][data-category2="${CSS.escape(category2)}"]`
+        `${SELECTORS.childItem}[data-category1-slug="${CSS.escape(category1)}"][data-category2-slug="${CSS.escape(category2)}"]`
       );
       if (childItem) childItem.classList.add('is-active');
     }

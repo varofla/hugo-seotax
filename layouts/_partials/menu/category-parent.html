@@ -3,8 +3,9 @@
 {{- $hasChildren := .hasChildren -}}
 {{- $isLeaf := .isLeaf -}}
 {{- $childrenId := .childrenId -}}
+{{- $isActive := .isActive -}}
 <div
-  class="category-row category-parent{{ if $isLeaf }} categories-leaf{{ end }}"
+  class="category-row category-parent{{ if $isLeaf }} categories-leaf{{ end }}{{ if $isActive }} is-active{{ end }}"
   data-category-item="parent"
   data-category1="{{ $category1 }}">
   {{- if $hasChildren -}}
@@ -13,8 +14,8 @@
     class="category-toggle"
     data-category-toggle
     aria-controls="{{ $childrenId }}"
-    aria-expanded="false"
-    aria-label="{{ $category1 }} 하위 카테고리 펼치기">
+    aria-expanded="{{ if $isActive }}true{{ else }}false{{ end }}"
+    aria-label="{{ $category1 }} 하위 카테고리 {{ if $isActive }}접기{{ else }}펼치기{{ end }}">
     <span class="category-icon category-icon-closed" aria-hidden="true">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
@@ -33,7 +34,7 @@
   </span>
   {{- end -}}
   <a
-    href="{{ printf "%s?%s" (`category/` | relURL) (querify `category1` $category1) }}"
+    href="{{ printf "%s%s/" (`category/` | relURL) (urlize $category1) }}"
     class="category-link category-row-link">
     <span class="category-name">{{- $category1 -}}</span>
   </a>

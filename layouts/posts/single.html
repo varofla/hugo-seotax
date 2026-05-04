@@ -86,6 +86,12 @@
       return;
     }
 
+    if (referrerUrl.origin !== currentUrl.origin) {
+      backButton.href = fallbackHref;
+      backButton.textContent = fallbackLabel;
+      return;
+    }
+
     if (isWithinPostsSection(referrerUrl.pathname)) {
       backButton.href = fallbackHref;
       backButton.textContent = fallbackLabel;

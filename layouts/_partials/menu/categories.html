@@ -3,8 +3,9 @@
   {{ $categoryOrder := .Site.Params.categoryOrder | default (dict) }}
   {{ $categoryOrderL1 := index $categoryOrder "level1" | default (slice) }}
   {{ $categoryOrderL2 := index $categoryOrder "level2" | default (dict) }}
-  {{- $activeCat1 := partial "categories/level1" .Params.categories -}}
-  {{- $activeCat2 := partial "categories/level2" .Params.categories -}}
+  {{- $currentCategory := partial "categories/current" . -}}
+  {{- $activeCat1Slug := $currentCategory.category1Slug -}}
+  {{- $activeCat2Slug := $currentCategory.category2Slug -}}
   {{/* Categories list for parent category */}}
   <ul class="category-groups">
     {{ $treeL1 := partialCached "categories/tree" . "categories" }}
@@ -36,8 +37,9 @@
     {{/* Categories label for parent category */}}
     {{ $treeL2 := index $treeL1 $category1 }}
     {{ $childrenId := printf "category-children-%s" (anchorize $category1) }}
-    {{- $isActiveGroup := eq $activeCat1 $category1 -}}
-    <li class="category-group{{ if not $treeL2 }} category-group-leaf{{ end }}{{ if $isActiveGroup }} is-open{{ end }}" data-category-group data-category1="{{ $category1 }}" data-category1-slug="{{ urlize $category1 }}">
+    {{- $category1Slug := urlize $category1 -}}
+    {{- $isActiveGroup := eq $activeCat1Slug $category1Slug -}}
+    <li class="category-group{{ if not $treeL2 }} category-group-leaf{{ end }}{{ if $isActiveGroup }} is-open{{ end }}" data-category-group data-category1="{{ $category1 }}" data-category1-slug="{{ $category1Slug }}">
       {{ if $treeL2 }}
       {{ partial "menu/category-parent" (dict
         "category1" $category1
@@ -48,6 +50,10 @@
         "isActive" $isActiveGroup
       ) }}
       {{/* Categories list for child category */}}
+      <div
+        class="category-children-shell"
+        data-category-children-shell
+        aria-hidden="{{ if $isActiveGroup }}false{{ else }}true{{ end }}"{{ if not $isActiveGroup }} inert{{ end }}>
       <ul class="category-children" id="{{ $childrenId }}" data-category-children>
         {{ $category2Keys := partial "keys" $treeL2 }}
         {{ $category2Order := index $categoryOrderL2 $category1 | default (slice) }}
@@ -73,7 +79,7 @@
             {{ end }}
           {{ end }}
         {{ end }}
-        {{- $isActiveChild := and $isActiveGroup (eq $activeCat2 $category2) -}}
+        {{- $isActiveChild := and $isActiveGroup (eq $activeCat2Slug (urlize $category2)) -}}
         {{/* Categories label for child category */}}
         {{ partial "menu/category-child" (dict
           "category1" $category1
@@ -83,6 +89,7 @@
         ) }}
         {{ end }}
       </ul>
+      </div>
       {{ else }}
       {{/* Categories label for parent category if child categories not exist */}}
       {{ partial "menu/category-parent" (dict

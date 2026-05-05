@@ -7,36 +7,14 @@
     parentItem: '[data-category-item="parent"]',
     childItem: '[data-category-item="child"]',
     categoryToggle: '[data-category-toggle]',
+    categoryChildrenShell: '[data-category-children-shell]',
   };
 
-  const CATEGORY_BASE = (function() {
-    const a = document.createElement('a');
-    a.href = '{{ "categories/" | relURL }}';
-    return a.pathname;
-  })();
-
   /**
-   * Get category slugs for the current page.
-   * - Category pages: parsed from URL path (already slugified).
-   * - Post pages: read canonical slugs from rendered data attrs.
+   * Get category slugs for the current page from rendered metadata.
    * @returns {object} category1 and category2 slugs (nullable)
    */
   function getCurrentCategory() {
-    const pathname = window.location.pathname;
-
-    // Path-based category pages: /categories/dev-boards/ or /categories/dev-boards/arduino/
-    if (pathname.startsWith(CATEGORY_BASE) && pathname.length > CATEGORY_BASE.length) {
-      const relative = pathname.slice(CATEGORY_BASE.length).replace(/\/$/, '');
-      const parts = relative.split('/').filter(Boolean);
-      if (parts.length > 0) {
-        return {
-          category1: parts[0] || null,
-          category2: parts[1] || null,
-        };
-      }
-    }
-
-    // Post page: use rendered category metadata in the content header
     const categoryMeta = document.querySelector('[data-current-category]');
     if (categoryMeta) {
       const c1 = categoryMeta.dataset.category1Slug || null;
@@ -82,14 +60,20 @@
 
   function syncGroupToggleState(categoryGroup) {
     const toggle = categoryGroup.querySelector(SELECTORS.categoryToggle);
-    if (!toggle) return;
-
+    const childrenShell = categoryGroup.querySelector(SELECTORS.categoryChildrenShell);
     const isOpen = categoryGroup.classList.contains('is-open');
+
+    if (!toggle) return;
     toggle.setAttribute('aria-expanded', String(isOpen));
     toggle.setAttribute(
       'aria-label',
       `${categoryGroup.dataset.category1} 하위 카테고리 ${isOpen ? '접기' : '펼치기'}`
     );
+
+    if (childrenShell) {
+      childrenShell.setAttribute('aria-hidden', String(!isOpen));
+      childrenShell.toggleAttribute('inert', !isOpen);
+    }
   }
 
   function toggleCategoryGroup(categoryGroup) {
@@ -134,113 +118,82 @@
   }
 
   function setupActiveHoverState(menuCategories) {
-    let suppressedElements = [];
-    let linkedHoverParents = [];
+    let currentTarget = null;
+    let currentLinkedParent = null;
 
-    function clearSuppressed() {
-      suppressedElements.forEach((element) => {
-        element.classList.remove('is-suppressed');
-      });
-      suppressedElements = [];
-    }
+    function clearInteractionState() {
+      menuCategories.classList.remove('is-interacting');
 
-    function clearLinkedHoverParents() {
-      linkedHoverParents.forEach((element) => {
-        element.classList.remove('is-hover-linked');
-      });
-      linkedHoverParents = [];
-    }
-
-    function suppress(element) {
-      if (!element || element.classList.contains('is-suppressed')) return;
-      element.classList.add('is-suppressed');
-      suppressedElements.push(element);
-    }
-
-    function linkHoverParent(element) {
-      if (!element || element.classList.contains('is-hover-linked')) return;
-      element.classList.add('is-hover-linked');
-      linkedHoverParents.push(element);
-    }
-
-    function getActiveParent() {
-      return menuCategories.querySelector(`${SELECTORS.parentItem}.is-active`);
-    }
-
-    function getActiveChild() {
-      return menuCategories.querySelector(`${SELECTORS.childItem}.is-active`);
-    }
-
-    function applySuppression(hoverTarget) {
-      clearSuppressed();
-      clearLinkedHoverParents();
-      if (!hoverTarget) return;
-
-      const activeParent = getActiveParent();
-      const activeChild = getActiveChild();
-
-      if (hoverTarget.matches(SELECTORS.childItem)) {
-        const hoveredGroup = hoverTarget.closest(SELECTORS.categoryGroup);
-        const activeParentGroup = activeParent ? activeParent.closest(SELECTORS.categoryGroup) : null;
-        const hoveredParent = hoveredGroup ? hoveredGroup.querySelector(SELECTORS.parentItem) : null;
-
-        if (activeChild && activeChild !== hoverTarget) {
-          suppress(activeChild);
-        }
-
-        if (hoveredParent) {
-          linkHoverParent(hoveredParent);
-        }
-
-        if (activeParent && activeParentGroup && activeParentGroup !== hoveredGroup) {
-          suppress(activeParent);
-        }
-
-        return;
+      if (currentTarget) {
+        currentTarget.classList.remove('is-interaction-current');
+        currentTarget = null;
       }
 
-      if (hoverTarget.matches(SELECTORS.parentItem)) {
-        if (activeParent && activeParent !== hoverTarget) {
-          suppress(activeParent);
-        }
+      if (currentLinkedParent) {
+        currentLinkedParent.classList.remove('is-interaction-linked');
+        currentLinkedParent = null;
+      }
+    }
 
-        if (activeChild) {
-          suppress(activeChild);
+    function applyInteractionState(target) {
+      clearInteractionState();
+      if (!target) return;
+
+      menuCategories.classList.add('is-interacting');
+      currentTarget = target;
+      currentTarget.classList.add('is-interaction-current');
+
+      if (target.matches(SELECTORS.childItem)) {
+        const hoveredGroup = target.closest(SELECTORS.categoryGroup);
+        const linkedParent = hoveredGroup ? hoveredGroup.querySelector(SELECTORS.parentItem) : null;
+        if (linkedParent) {
+          currentLinkedParent = linkedParent;
+          currentLinkedParent.classList.add('is-interaction-linked');
         }
       }
     }
 
     menuCategories.addEventListener('pointerover', (event) => {
-      const hoverTarget = event.target.closest(`${SELECTORS.parentItem}, ${SELECTORS.childItem}`);
-      if (!hoverTarget || !menuCategories.contains(hoverTarget)) return;
-      applySuppression(hoverTarget);
+      const target = event.target.closest(`${SELECTORS.parentItem}, ${SELECTORS.childItem}`);
+      if (!target || !menuCategories.contains(target)) {
+        clearInteractionState();
+        return;
+      }
+      if (target === currentTarget) return;
+      applyInteractionState(target);
+    });
+
+    menuCategories.addEventListener('pointermove', (event) => {
+      const target = event.target.closest(`${SELECTORS.parentItem}, ${SELECTORS.childItem}`);
+      if (target && menuCategories.contains(target)) return;
+      clearInteractionState();
     });
 
     menuCategories.addEventListener('pointerleave', () => {
-      clearSuppressed();
-      clearLinkedHoverParents();
+      clearInteractionState();
     });
 
     menuCategories.addEventListener('focusin', (event) => {
-      const hoverTarget = event.target.closest(`${SELECTORS.parentItem}, ${SELECTORS.childItem}`);
-      if (!hoverTarget || !menuCategories.contains(hoverTarget)) return;
-      applySuppression(hoverTarget);
+      const target = event.target.closest(`${SELECTORS.parentItem}, ${SELECTORS.childItem}`);
+      if (!target || !menuCategories.contains(target) || target === currentTarget) return;
+      applyInteractionState(target);
     });
 
     menuCategories.addEventListener('focusout', () => {
       window.requestAnimationFrame(() => {
         const activeElement = document.activeElement;
-        const focusTarget = activeElement && activeElement.closest
+        const target = activeElement && activeElement.closest
           ? activeElement.closest(`${SELECTORS.parentItem}, ${SELECTORS.childItem}`)
           : null;
 
-        if (focusTarget && menuCategories.contains(focusTarget)) {
-          applySuppression(focusTarget);
+        if (target && menuCategories.contains(target)) {
+          if (target !== currentTarget) {
+            applyInteractionState(target);
+          }
           return;
         }
 
-        clearSuppressed();
-        clearLinkedHoverParents();
+        clearInteractionState();
       });
     });
   }

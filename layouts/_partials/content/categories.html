@@ -1,13 +1,14 @@
 {{ if .Params.categories }}
-{{ $category1 := partial "categories/level1" .Params.categories }}
-{{ $category2 := partial "categories/level2" .Params.categories }}
+{{ $currentCategory := partial "categories/current" . }}
+{{ $category1 := $currentCategory.category1 }}
+{{ $category2 := $currentCategory.category2 }}
 <div
   class="content-category"
   data-current-category
   data-category1="{{ $category1 }}"
-  data-category1-slug="{{ urlize $category1 }}"
+  data-category1-slug="{{ $currentCategory.category1Slug }}"
   data-category2="{{ $category2 }}"
-  data-category2-slug="{{ urlize $category2 }}">
+  data-category2-slug="{{ $currentCategory.category2Slug }}">
   {{ partial "categories/pills" (dict "categories" .Params.categories) }}
 </div>
 {{ end }}

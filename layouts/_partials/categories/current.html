@@ -1,0 +1,8 @@
+{{- $category1 := partial "categories/level1" .Params.categories -}}
+{{- $category2 := partial "categories/level2" .Params.categories -}}
+{{- return dict
+  "category1" $category1
+  "category2" $category2
+  "category1Slug" (cond $category1 (urlize $category1) "")
+  "category2Slug" (cond $category2 (urlize $category2) "")
+-}}

@@ -373,12 +373,13 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.3rem;
+  line-height: 1.2;
 
   @media screen and (max-width: breakpoint(menu)) {
     display: flex;
     flex-wrap: nowrap;
     width: 100%;
-    overflow: hidden;
+    min-width: 0;
   }
 }
 
@@ -402,6 +403,7 @@
 }
 
 .category-title-link--child {
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;

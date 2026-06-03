@@ -49,7 +49,7 @@ body.site-kind-page.site-type-posts {
     // Center the content and footer within main-wrap
     .content-wrap,
     .site-footer {
-      max-width: $body-max-width;
+      max-width: $body-wide-width;
       margin-left: auto;
       margin-right: auto;
     }
@@ -366,7 +366,7 @@ body.site-kind-page.site-type-about {
     }
 
     .content-wrap {
-      max-width: $body-max-width;
+      max-width: $body-wide-width;
       margin-left: auto;
       margin-right: auto;
     }

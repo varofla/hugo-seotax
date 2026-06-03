@@ -2,10 +2,14 @@
   'use strict';
 
   const STORAGE_KEY = 'siteMenu.scrollTop';
+  const POST_VIEW_SCROLL_STORAGE_KEY = 'postView.mainWrapScrollTop';
+  const POST_VIEW_RELOAD_RESTORING_CLASS = 'post-view-reload-restoring';
+  const POST_VIEW_RELOAD_REVEALING_CLASS = 'post-view-reload-revealing';
   const SELECTORS = {
     menu: '[data-site-menu]',
     menuControl: '#menu-control',
     menuScrollRegion: '[data-menu-scroll-region]',
+    mainWrap: '.main-wrap',
     menuToggle: '[data-menu-toggle]',
     menuDismiss: '[data-menu-dismiss]',
     noticeTrack: '[data-menu-notice-track]',
@@ -25,6 +29,33 @@
 
   function getMenuScrollRegion() {
     return document.querySelector(SELECTORS.menuScrollRegion);
+  }
+
+  function getMainWrap() {
+    return document.querySelector(SELECTORS.mainWrap);
+  }
+
+  function isPostViewPage() {
+    return document.body?.classList.contains('site-kind-page')
+      && document.body?.classList.contains('site-type-posts');
+  }
+
+  function usesMainWrapScroll() {
+    const mainWrap = getMainWrap();
+    if (!mainWrap) {
+      return false;
+    }
+
+    return ['auto', 'scroll'].includes(window.getComputedStyle(mainWrap).overflowY);
+  }
+
+  function getPostViewScrollStorageKey() {
+    return `${POST_VIEW_SCROLL_STORAGE_KEY}:${window.location.pathname}`;
+  }
+
+  function getNavigationType() {
+    const navigationEntry = window.performance?.getEntriesByType?.('navigation')?.[0];
+    return navigationEntry?.type || 'navigate';
   }
 
   function getMenuBreakpointValue() {
@@ -100,6 +131,79 @@
     } catch (error) {
       // Ignore storage failures such as private browsing restrictions.
     }
+  }
+
+  function persistPostViewScroll() {
+    if (!isPostViewPage() || !usesMainWrapScroll()) {
+      return;
+    }
+
+    const mainWrap = getMainWrap();
+    if (!mainWrap) {
+      return;
+    }
+
+    try {
+      window.sessionStorage.setItem(getPostViewScrollStorageKey(), String(mainWrap.scrollTop));
+    } catch (error) {
+      // Ignore storage failures such as private browsing restrictions.
+    }
+  }
+
+  function restorePostViewScrollOnReload() {
+    if (!isPostViewPage() || !usesMainWrapScroll()) {
+      document.documentElement.classList.remove(POST_VIEW_RELOAD_RESTORING_CLASS, POST_VIEW_RELOAD_REVEALING_CLASS);
+      return;
+    }
+
+    if (getNavigationType() !== 'reload') {
+      document.documentElement.classList.remove(POST_VIEW_RELOAD_RESTORING_CLASS, POST_VIEW_RELOAD_REVEALING_CLASS);
+      return;
+    }
+
+    let savedScrollTop;
+
+    try {
+      savedScrollTop = window.sessionStorage.getItem(getPostViewScrollStorageKey());
+    } catch (error) {
+      document.documentElement.classList.remove(POST_VIEW_RELOAD_RESTORING_CLASS, POST_VIEW_RELOAD_REVEALING_CLASS);
+      return;
+    }
+
+    if (savedScrollTop === null) {
+      document.documentElement.classList.remove(POST_VIEW_RELOAD_RESTORING_CLASS, POST_VIEW_RELOAD_REVEALING_CLASS);
+      return;
+    }
+
+    const nextScrollTop = Number(savedScrollTop) || 0;
+    const applyScroll = () => {
+      const mainWrap = getMainWrap();
+      if (!mainWrap) {
+        return;
+      }
+
+      mainWrap.scrollTop = nextScrollTop;
+    };
+    const finishRestore = () => {
+      document.documentElement.classList.remove(POST_VIEW_RELOAD_RESTORING_CLASS);
+      document.documentElement.classList.add(POST_VIEW_RELOAD_REVEALING_CLASS);
+      window.setTimeout(() => {
+        document.documentElement.classList.remove(POST_VIEW_RELOAD_REVEALING_CLASS);
+      }, 220);
+    };
+
+    window.requestAnimationFrame(() => {
+      applyScroll();
+      window.requestAnimationFrame(() => {
+        applyScroll();
+        finishRestore();
+      });
+    });
+
+    window.addEventListener('load', () => {
+      applyScroll();
+      finishRestore();
+    }, { once: true });
   }
 
   function syncNoticeTrack(track) {
@@ -187,6 +291,22 @@
     window.addEventListener('pagehide', persistMenuScroll);
   }
 
+  function bindPostViewScrollPersistence() {
+    if (!isPostViewPage() || !usesMainWrapScroll()) {
+      return;
+    }
+
+    const mainWrap = getMainWrap();
+    if (!mainWrap) {
+      return;
+    }
+
+    restorePostViewScrollOnReload();
+    mainWrap.addEventListener('scroll', persistPostViewScroll, { passive: true });
+    window.addEventListener('pagehide', persistPostViewScroll);
+    window.addEventListener('beforeunload', persistPostViewScroll);
+  }
+
   function bindResizeHandler() {
     let resizeTimer;
 
@@ -210,6 +330,7 @@
 
     bindMenuToggleEvents();
     bindMenuScrollPersistence();
+    bindPostViewScrollPersistence();
     bindResizeHandler();
     syncNoticeTracks();
   }

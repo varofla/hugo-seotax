@@ -47,6 +47,7 @@ https://github.com/minyeamer/hugo-miny
   var isAboutView = {{ if and (eq .Kind "page") (eq .Type "about") }}true{{ else }}false{{ end }};
   var hasSideToc = {{ if partial "toc-show" . }}true{{ else }}false{{ end }};
   var storageKey = 'postView.enterTransition';
+  var reloadScrollStoragePrefix = 'postView.mainWrapScrollTop:';
   // Keep this aligned with the SCSS breakpoint(menu) value.
   var tocDesktopQuery = '(min-width: calc(77.4rem + 0.02px))';
   window.sitePostViewConfig = window.sitePostViewConfig || {};
@@ -70,6 +71,13 @@ https://github.com/minyeamer/hugo-miny
     return source === 'post-card' || source === 'post-return';
   }
 
+  function getNavigationType() {
+    var navigationEntry = window.performance && window.performance.getEntriesByType
+      ? window.performance.getEntriesByType('navigation')[0]
+      : null;
+    return navigationEntry && navigationEntry.type ? navigationEntry.type : 'navigate';
+  }
+
   var isCollapsedMenuView = isPostView || isAboutView;
   if (!isCollapsedMenuView) {
     return;
@@ -77,6 +85,17 @@ https://github.com/minyeamer/hugo-miny
   // 포스트 뷰는 ToC가 있어야 애니메이션 적용, About 뷰는 ToC 불필요
   if (isPostView && !hasSideToc) {
     return;
+  }
+
+  if (isPostView && getNavigationType() === 'reload') {
+    try {
+      var reloadScrollKey = reloadScrollStoragePrefix + window.location.pathname;
+      if (window.sessionStorage.getItem(reloadScrollKey) !== null) {
+        document.documentElement.classList.add('post-view-reload-restoring');
+      }
+    } catch (error) {
+      // Ignore storage failures and continue without the temporary mask.
+    }
   }
 
   try {

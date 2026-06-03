@@ -109,6 +109,23 @@ body.site-kind-page.site-type-posts {
   }
 }
 
+html.post-view-reload-restoring body.site-kind-page.site-type-posts {
+  @media screen and (min-width: breakpoint(menu)) {
+    .main-wrap {
+      opacity: 0;
+    }
+  }
+}
+
+html.post-view-reload-revealing body.site-kind-page.site-type-posts {
+  @media screen and (min-width: breakpoint(menu)) {
+    .main-wrap {
+      opacity: 1;
+      transition: opacity 180ms ease-out;
+    }
+  }
+}
+
 // ── Post-view entry: keyframes ───────────────────────────────────────────────
 // CSS animations are used (not transitions) because they start playing the
 // moment the class is applied by the inline <head> script — independent of

@@ -145,6 +145,77 @@
     });
   }
 
+  function getImageAspectRatio(img) {
+    const width = Number(img.getAttribute("width")) || img.naturalWidth;
+    const height = Number(img.getAttribute("height")) || img.naturalHeight;
+
+    if (!width || !height) return 0;
+
+    return width / height;
+  }
+
+  function getAutoRatioItems(columns) {
+    const directItems = Array.from(columns.querySelectorAll(":scope > div"));
+
+    if (directItems.length) return directItems;
+
+    const list = columns.querySelector(":scope > ul");
+
+    if (list) return Array.from(list.children);
+
+    return [];
+  }
+
+  function getSingleColumnImage(item) {
+    if (item.children.length !== 1) return null;
+
+    const [child] = item.children;
+
+    if (!child.matches(".sc-image, .md-image")) return null;
+
+    const images = child.querySelectorAll("img");
+
+    if (images.length !== 1) return null;
+
+    return images[0];
+  }
+
+  function applyAutoImageColumnRatios(columns) {
+    const items = getAutoRatioItems(columns);
+
+    if (items.length < 2) return;
+
+    const images = [];
+
+    for (const item of items) {
+      const img = getSingleColumnImage(item);
+
+      if (!img) return;
+
+      const ratio = getImageAspectRatio(img);
+
+      if (!ratio) {
+        if (!img.complete) {
+          img.addEventListener("load", () => applyAutoImageColumnRatios(columns), { once: true });
+        }
+
+        return;
+      }
+
+      images.push({ item, ratio });
+    }
+
+    images.forEach(({ item, ratio }) => {
+      item.style.flexGrow = String(ratio);
+    });
+  }
+
+  function initAutoImageColumns() {
+    document.querySelectorAll(".sc-columns--auto-image-ratio").forEach((columns) => {
+      applyAutoImageColumnRatios(columns);
+    });
+  }
+
   function initImageZoom() {
     if (typeof mediumZoom === "undefined") return;
 
@@ -176,6 +247,7 @@
 
   function init() {
     initImage();
+    initAutoImageColumns();
     initImageZoom();
   }
 

@@ -13,9 +13,13 @@
 
 {{- /* --- Parameters: Size --- */ -}}
 {{- $size := slice -}}
+{{- $hasMaxWidth := false -}}
 {{- $width := .Get "width" | default "" -}}
 {{- with .Get "min-width" -}}{{- $size = $size | append (print "min-width: " .) -}}{{- end -}}
-{{- with .Get "max-width" -}}{{- $size = $size | append (print "max-width: min(100%, " . ")") -}}{{- end -}}
+{{- with .Get "max-width" -}}
+  {{- $hasMaxWidth = true -}}
+  {{- $size = $size | append (print "--sc-image-max-width: min(100%, " . ")") -}}
+{{- end -}}
 
 {{- $height := .Get "height" | default "" -}}
 {{- with .Get "min-height" -}}{{- $size = $size | append (print "min-height: " .) -}}{{- end -}}
@@ -96,6 +100,7 @@
 {{- $imgClass := slice -}}
 {{- with $class -}}{{- $imgClass = $imgClass | append . -}}{{- end -}}
 {{- if site.Params.image.roundedCorners -}}{{- $imgClass = $imgClass | append "rounded" -}}{{- end -}}
+{{- if $hasMaxWidth -}}{{- $imgClass = $imgClass | append "has-max-width" -}}{{- end -}}
 
 {{- /* --- Render --- */ -}}
 <div class="sc-image{{ if site.Params.image.roundedCorners }} rounded{{ end }}"{{ with $align }} style="text-align: {{ . }};"{{ end }}>

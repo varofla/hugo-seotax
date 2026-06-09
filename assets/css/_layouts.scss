@@ -235,7 +235,7 @@ nav ul {
     display: block;
   }
 
-  img.landscape {
+  img.landscape:not(.medium-zoom-image--opened) {
     // Mobile: rotate landscape images */
     @media (orientation: portrait) {
       transform: rotate(90deg);

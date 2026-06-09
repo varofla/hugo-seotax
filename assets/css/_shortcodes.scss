@@ -339,8 +339,16 @@
   .sc-columns {
     gap: space(8);
 
+    @media screen and (max-width: breakpoint(menu)) {
+      flex-wrap: nowrap;
+    }
+
     >div {
       min-width: $body-min-width * 0.66;
+
+      @media screen and (max-width: breakpoint(menu)) {
+        min-width: 0;
+      }
     }
 
     >ul {
@@ -350,10 +358,45 @@
       flex-wrap: wrap;
       gap: space(16);
 
+      @media screen and (max-width: breakpoint(menu)) {
+        flex-wrap: nowrap;
+      }
+
       >li {
         flex: 1 1;
         min-width: $body-min-width * 0.66;
+
+        @media screen and (max-width: breakpoint(menu)) {
+          min-width: 0;
+        }
       }
+    }
+
+    >div > .sc-image img.has-max-width,
+    >div > .md-image img.has-max-width,
+    >ul > li > .sc-image img.has-max-width,
+    >ul > li > .md-image img.has-max-width {
+      max-width: 100%;
+    }
+  }
+
+  .sc-columns--auto-image-ratio {
+    >div > .sc-image,
+    >div > .md-image,
+    >ul > li > .sc-image,
+    >ul > li > .md-image {
+      width: 100%;
+    }
+
+    >div > .sc-image img,
+    >div > .md-image img,
+    >ul > li > .sc-image img,
+    >ul > li > .md-image img {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin-left: auto;
+      margin-right: auto;
     }
   }
 
@@ -475,6 +518,10 @@
     img {
       max-width: 100%;
       height: auto;
+    }
+
+    img.has-max-width {
+      max-width: var(--sc-image-max-width);
     }
 
     &.is-loading::after {

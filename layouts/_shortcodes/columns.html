@@ -1,9 +1,11 @@
 {{- /* --- Parameters --- */ -}}
-{{- $ratio := split (.Get "ratio") ":" -}}
+{{- $ratioParam := .Get "ratio" | default "" -}}
+{{- $hasRatio := ne $ratioParam "" -}}
+{{- $ratio := cond $hasRatio (split $ratioParam ":") (slice) -}}
 {{- $class := .Get "class" -}}
 {{- /* --- Render HTML --- */ -}}
 {{- if strings.Contains .InnerDeindent "<--->" -}}
-<div class="sc-columns flex flex-wrap {{ with $class }} {{ . }}{{ end }}">
+<div class="sc-columns flex flex-wrap{{ if not $hasRatio }} sc-columns--auto-image-ratio{{ end }}{{ with $class }} {{ . }}{{ end }}">
 {{- range $index, $content := split .InnerDeindent "<--->" -}}
   {{- $grow := default 1 (index $ratio $index) -}}
   <div class="flex-even markdown-inner" style="flex-grow: {{ $grow }};">
@@ -22,7 +24,7 @@
 {{- end -}}
 </style>
 {{- end -}}
-<div class="sc-columns sc-columns-{{ .Ordinal }} {{ with $class }}{{ . }}{{ end }}">
+<div class="sc-columns sc-columns-{{ .Ordinal }}{{ if not $hasRatio }} sc-columns--auto-image-ratio{{ end }} {{ with $class }}{{ . }}{{ end }}">
 {{ .InnerDeindent | safeHTML }}
 </div>
 {{- end -}}

@@ -1,0 +1,33 @@
+{{- $imageUrl := .Url -}}
+{{- if not $imageUrl -}}
+  {{- $imageUrl = partial "content/cover-url" (dict
+    "Cover" .Cover
+    "Thumbnail" .Thumbnail
+  ) -}}
+{{- end -}}
+
+{{- $html := "" -}}
+{{- with $imageUrl -}}
+  {{- $rawSrc := . | absURL -}}
+  {{- $img := partial "content/post-card-cover-img.html" (dict
+    "Page" $.Page
+    "Url" .
+    "Alt" ($.Alt | default "Cover Image")
+    "Class" $.Class
+    "Width" $.Width
+    "Height" $.Height
+    "Sizes" $.Sizes
+    "Loading" $.Loading
+    "Decoding" $.Decoding
+  ) -}}
+  {{- with $.MobileSourceMedia -}}
+    {{- $img = printf `<picture><source media="%s" srcset="%s">%s</picture>` . $rawSrc $img -}}
+  {{- end -}}
+  {{- if $.WrapperClass -}}
+    {{- $html = printf `<div class="%s">%s</div>` $.WrapperClass $img -}}
+  {{- else -}}
+    {{- $html = $img -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return ($html | safeHTML) -}}

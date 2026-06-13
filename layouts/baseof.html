@@ -58,7 +58,6 @@
 {{ define "content" }}
 <article class="content-wrap markdown" id="content-wrap">
   {{ template "content-header" . }}
-  {{ partial "content/cover" . }}
   {{- .Content -}}
 </article>
 {{ end }}
@@ -129,8 +128,21 @@
 {{ define "toc" }}
   {{- $toc := .TableOfContents -}}
   {{- if and (eq .Type "posts") (eq .Kind "page") -}}
-    {{- $topItem := printf `<li class="toc-top-item"><a href="#post-top">%s</a></li>` (.Title | plainify | htmlEscape) -}}
-    {{- $toc = replaceRE `(?s)(<nav id="TableOfContents">\s*<ul>)` (printf `${1}%s` $topItem) $toc -}}
+    {{- $topItem := `<li class="toc-top-item">` -}}
+    {{- $coverMarkup := partial "content/toc-cover" (dict
+      "Page" .
+      "Cover" .Params.cover
+      "Thumbnail" .Params.thumbnail
+    ) -}}
+    {{- with $coverMarkup -}}
+      {{- $topItem = printf `%s%s` $topItem $coverMarkup -}}
+    {{- end -}}
+    {{- $topItem = printf `%s<a href="#post-top">%s</a></li>` $topItem (.Title | plainify | htmlEscape) -}}
+    {{- if eq $toc `<nav id="TableOfContents"></nav>` -}}
+      {{- $toc = printf `<nav id="TableOfContents"><ul>%s</ul></nav>` $topItem -}}
+    {{- else -}}
+      {{- $toc = replaceRE `(?s)(<nav id="TableOfContents">\s*<ul>)` (printf `${1}%s` $topItem) $toc -}}
+    {{- end -}}
   {{- end -}}
   {{- $toc | safeHTML -}}
 {{ end }}

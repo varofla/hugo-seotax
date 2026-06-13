@@ -309,6 +309,23 @@ body.site-kind-page.site-type-posts {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    > ul > li.toc-top-item > .toc-cover-wrap {
+      margin: 8px 16px;
+    }
+
+    .toc-cover-wrap {
+      display: block;
+    }
+
+    .toc-cover {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: radius(cover);
     }
 
     // H3 links (> ul > li > ul > li > a)

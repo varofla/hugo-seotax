@@ -1,6 +1,0 @@
-{{ if .Params.cover }}
-<div class="content-cover-wrap">
-  {{- $attrs := partial "content/img-attr" (dict "Page" . "Url" .Params.cover) -}}
-  <img src="{{ .Params.cover | absURL }}" class="content-cover" alt="Cover Image" {{ $attrs | safeHTMLAttr }} decoding="async">
-</div>
-{{ end }}

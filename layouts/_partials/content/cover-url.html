@@ -1,0 +1,3 @@
+{{- $cover := .Cover -}}
+{{- $thumbnail := .Thumbnail -}}
+{{- return cond $cover $cover $thumbnail -}}

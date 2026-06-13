@@ -1,4 +1,7 @@
-{{ return default
-  (not (eq .TableOfContents "<nav id=\"TableOfContents\"></nav>"))
+{{- $hasHeadings := not (eq .TableOfContents "<nav id=\"TableOfContents\"></nav>") -}}
+{{- $coverImage := partial "content/cover-url" (dict "Cover" .Params.cover "Thumbnail" .Params.thumbnail) -}}
+{{- $hasCoverToc := and (eq .Type "posts") (eq .Kind "page") (ne $coverImage "") -}}
+{{- return default
+  (or $hasHeadings $hasCoverToc)
   (default .Site.Params.toc.enabled .Params.toc.enabled)
-}}
+-}}

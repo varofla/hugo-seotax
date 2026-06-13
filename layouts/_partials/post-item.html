@@ -1,9 +1,9 @@
 <article class="post-item" data-post-item data-post-item-url="{{ .RelPermalink }}">
 
-  {{ $coverImage := cond .Params.thumbnail .Params.thumbnail .Params.cover }}
+  {{ $coverImage := partial "content/cover-url" (dict "Cover" .Params.cover "Thumbnail" .Params.thumbnail) }}
 
   <div class="post-content-area{{ if $coverImage }} has-cover{{ end }}">
-    {{ with cond .Params.cover .Params.cover .Params.thumbnail }}
+    {{ with $coverImage }}
     <div class="post-cover-mobile{{ if site.Params.image.roundedCorners }} rounded{{ end }}">
       {{- $thumbAttrs := partial "content/img-attr" (dict "Page" $ "Url" .) -}}
       <img src="{{ . | absURL }}" alt="Cover Image" class="post-cover-mobile-img" {{ $thumbAttrs | safeHTMLAttr }} loading="lazy" decoding="async">
@@ -45,9 +45,10 @@
 
     {{ with $coverImage }}
     <div class="post-cover{{ if site.Params.image.roundedCorners }} rounded{{ end }}">
-      {{ partial "content/post-card-cover-img.html" (dict
+      {{ partial "content/cover-image" (dict
         "Page" $
-        "Url" .
+        "Cover" $.Params.cover
+        "Thumbnail" $.Params.thumbnail
         "Alt" "Cover Image"
         "Class" "post-cover-img"
         "Width" 200

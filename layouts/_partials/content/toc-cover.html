@@ -1,10 +1,15 @@
+{{- $imgClass := "toc-cover" -}}
+{{- if site.Params.image.roundedCorners -}}
+  {{- $imgClass = printf "%s rounded" $imgClass -}}
+{{- end -}}
 {{- return (partial "content/cover-image" (dict
   "Page" .Page
   "Cover" .Cover
   "Thumbnail" .Thumbnail
   "Alt" "Cover Image"
-  "Class" "toc-cover"
+  "Class" $imgClass
   "WrapperClass" "toc-cover-wrap"
+  "ZoomSrc" (partial "content/cover-url" (dict "Cover" .Cover "Thumbnail" .Thumbnail))
   "MobileSourceMedia" "(max-width: 1254px)"
   "Width" 208
   "Height" 156

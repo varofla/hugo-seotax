@@ -220,7 +220,7 @@
     if (typeof mediumZoom === "undefined") return;
 
     const images = document.querySelectorAll(
-      ".md-image img:not([data-no-zoom]):not(.no-zoom), .sc-image img:not([data-no-zoom]):not(.no-zoom)"
+      ".md-image img:not([data-no-zoom]):not(.no-zoom), .sc-image img:not([data-no-zoom]):not(.no-zoom), .toc-cover-wrap img:not([data-no-zoom]):not(.no-zoom)"
     );
 
     if (!images.length) return;

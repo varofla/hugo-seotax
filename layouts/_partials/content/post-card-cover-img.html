@@ -7,6 +7,7 @@
 {{- $width := int (.Width | default 0) -}}
 {{- $height := int (.Height | default 0) -}}
 {{- $sizes := .Sizes -}}
+{{- $zoomSrc := .ZoomSrc -}}
 
 {{- $src := $imageUrl | absURL -}}
 {{- $attrs := partial "content/img-attr" (dict "Page" $page "Url" $imageUrl) -}}
@@ -63,4 +64,4 @@
   {{- end -}}
 {{- end -}}
 
-<img src="{{ $src }}" alt="{{ $alt }}" class="{{ $class }}"{{ with $attrs }} {{ . | safeHTMLAttr }}{{ end }} loading="{{ $loading }}" decoding="{{ $decoding }}"{{ with $srcset }} srcset="{{ . }}"{{ end }}{{ with $sizes }} sizes="{{ . }}"{{ end }}>
+<img src="{{ $src }}" alt="{{ $alt }}" class="{{ $class }}"{{ with $attrs }} {{ . | safeHTMLAttr }}{{ end }} loading="{{ $loading }}" decoding="{{ $decoding }}"{{ with $srcset }} srcset="{{ . }}"{{ end }}{{ with $sizes }} sizes="{{ . }}"{{ end }}{{ with $zoomSrc }} data-zoom-src="{{ . | absURL }}"{{ end }}>

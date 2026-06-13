@@ -19,6 +19,7 @@
     "Sizes" $.Sizes
     "Loading" $.Loading
     "Decoding" $.Decoding
+    "ZoomSrc" $.ZoomSrc
   ) -}}
   {{- with $.MobileSourceMedia -}}
     {{- $img = printf `<picture><source media="%s" srcset="%s">%s</picture>` . $rawSrc $img -}}

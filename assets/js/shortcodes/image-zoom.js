@@ -8,6 +8,13 @@
   let zoomWheelSettleTimer = null;
   let zoomDragState = null;
   let suppressZoomClick = false;
+  let isZoomNavigating = false;
+
+  const CONTENT_ZOOM_SELECTOR =
+    "#content-wrap .md-image img:not([data-no-zoom]):not(.no-zoom), #content-wrap .sc-image img:not([data-no-zoom]):not(.no-zoom)";
+  const TOC_ZOOM_SELECTOR =
+    ".toc-cover-wrap img:not([data-no-zoom]):not(.no-zoom)";
+  const ALL_ZOOM_SELECTOR = `${CONTENT_ZOOM_SELECTOR}, ${TOC_ZOOM_SELECTOR}`;
 
   function normalizeUrl(url) {
     if (!url) return "";
@@ -102,6 +109,13 @@
 
   function getOpenedZoomImages() {
     return Array.from(document.querySelectorAll(".medium-zoom-image--opened"));
+  }
+
+  function getZoomSequenceImages() {
+    const coverImages = Array.from(document.querySelectorAll(TOC_ZOOM_SELECTOR));
+    const contentImages = Array.from(document.querySelectorAll(CONTENT_ZOOM_SELECTOR));
+
+    return [...new Set([...coverImages, ...contentImages])];
   }
 
   function setOpenedZoomCursor(cursor) {
@@ -383,6 +397,63 @@
     suppressZoomClick = false;
   }
 
+  function shouldIgnoreZoomKeyEvent(event) {
+    if (event.defaultPrevented) return true;
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return true;
+
+    const target = event.target;
+
+    if (!(target instanceof Element)) return false;
+
+    return !!target.closest("input, textarea, select, [contenteditable=\"true\"]");
+  }
+
+  function navigateZoom(zoom, direction) {
+    if (isZoomNavigating) return;
+
+    const currentImage = zoom.getZoomedImage();
+
+    if (!(currentImage instanceof HTMLImageElement)) return;
+
+    const sequence = getZoomSequenceImages();
+    const currentIndex = sequence.indexOf(currentImage);
+
+    if (currentIndex === -1 || sequence.length < 2) return;
+
+    const nextIndex = (currentIndex + direction + sequence.length) % sequence.length;
+    const nextImage = sequence[nextIndex];
+
+    if (!(nextImage instanceof HTMLImageElement) || nextImage === currentImage) return;
+
+    isZoomNavigating = true;
+    suppressZoomClick = false;
+    resetDragState();
+    resetWheelZoomState();
+
+    Promise.resolve(typeof zoom.swap === "function"
+      ? zoom.swap({ target: nextImage })
+      : zoom.close().then(() => zoom.open({ target: nextImage })))
+      .finally(() => {
+        isZoomNavigating = false;
+      });
+  }
+
+  function handleZoomKeyDown(event, zoom) {
+    if (shouldIgnoreZoomKeyEvent(event)) return;
+    if (!(zoom.getZoomedImage() instanceof HTMLImageElement)) return;
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      navigateZoom(zoom, -1);
+      return;
+    }
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      navigateZoom(zoom, 1);
+    }
+  }
+
   function setImageOrientation(img) {
     if (img.naturalWidth >= img.naturalHeight) {
       img.classList.add("landscape");
@@ -519,9 +590,7 @@
   function initImageZoom() {
     if (typeof mediumZoom === "undefined") return;
 
-    const images = document.querySelectorAll(
-      ".md-image img:not([data-no-zoom]):not(.no-zoom), .sc-image img:not([data-no-zoom]):not(.no-zoom), .toc-cover-wrap img:not([data-no-zoom]):not(.no-zoom)"
-    );
+    const images = document.querySelectorAll(ALL_ZOOM_SELECTOR);
 
     if (!images.length) return;
 
@@ -537,6 +606,7 @@
     document.addEventListener("pointerup", handleZoomPointerEnd, { passive: false });
     document.addEventListener("pointercancel", handleZoomPointerEnd, { passive: false });
     document.addEventListener("click", handleZoomClickCapture, true);
+    document.addEventListener("keydown", (event) => handleZoomKeyDown(event, zoom));
 
     zoom.on("open", ({ target }) => {
       if (!target?.getAttribute("data-zoom-src")) {

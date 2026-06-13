@@ -226,8 +226,162 @@
       });
       return zoom;
     };
-    var open = function open() {
+    var applyTargetSource = function applyTargetSource(clone, target) {
+      if (target.parentElement && target.parentElement.tagName === "PICTURE" && target.currentSrc) {
+        clone.src = target.currentSrc;
+      }
+    };
+    var getTargetTransform = function getTargetTransform(geometryTarget, sizeTarget) {
+      var container = {
+        width: document.documentElement.clientWidth,
+        height: document.documentElement.clientHeight,
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0
+      };
+      var viewportWidth = void 0;
+      var viewportHeight = void 0;
+      if (zoomOptions.container) {
+        if (zoomOptions.container instanceof Object) {
+          container = _extends({}, container, zoomOptions.container);
+          viewportWidth = container.width - container.left - container.right - zoomOptions.margin * 2;
+          viewportHeight = container.height - container.top - container.bottom - zoomOptions.margin * 2;
+        } else {
+          var zoomContainer = isNode(zoomOptions.container) ? zoomOptions.container : document.querySelector(zoomOptions.container);
+          var _zoomContainer$getBou = zoomContainer.getBoundingClientRect(), _width = _zoomContainer$getBou.width, _height = _zoomContainer$getBou.height, _left = _zoomContainer$getBou.left, _top = _zoomContainer$getBou.top;
+          container = _extends({}, container, {
+            width: _width,
+            height: _height,
+            left: _left,
+            top: _top
+          });
+        }
+      }
+      viewportWidth = viewportWidth || container.width - zoomOptions.margin * 2;
+      viewportHeight = viewportHeight || container.height - zoomOptions.margin * 2;
+      geometryTarget = geometryTarget || active.original;
+      sizeTarget = sizeTarget || active.zoomedHd || active.original;
+      var naturalWidth = isSvg(sizeTarget) ? viewportWidth : sizeTarget.naturalWidth || viewportWidth;
+      var naturalHeight = isSvg(sizeTarget) ? viewportHeight : sizeTarget.naturalHeight || viewportHeight;
+      var _geometryTarget$getBo = geometryTarget.getBoundingClientRect(), top = _geometryTarget$getBo.top, left = _geometryTarget$getBo.left, width = _geometryTarget$getBo.width, height = _geometryTarget$getBo.height;
+      var scaleX = Math.min(Math.max(width, naturalWidth), viewportWidth) / width;
+      var scaleY = Math.min(Math.max(height, naturalHeight), viewportHeight) / height;
+      var scale = Math.min(scaleX, scaleY);
+      var translateX = (-left + (viewportWidth - width) / 2 + zoomOptions.margin + container.left) / scale;
+      var translateY = (-top + (viewportHeight - height) / 2 + zoomOptions.margin + container.top) / scale;
+      return "scale(" + scale + ") translate3d(" + translateX + "px, " + translateY + "px, 0)";
+    };
+    var animateTarget = function animateTarget() {
+      var transform = getTargetTransform();
+      active.zoomed.style.transform = transform;
+      if (active.zoomedHd) {
+        active.zoomedHd.style.transform = transform;
+      }
+    };
+    var setSwapTransform = function setSwapTransform(transform) {
+      active.zoomed.style.setProperty("transition", "none", "important");
+      active.zoomed.style.transform = transform;
+      if (active.zoomedHd) {
+        active.zoomedHd.style.setProperty("transition", "none", "important");
+        active.zoomedHd.style.transform = transform;
+      }
+      window.requestAnimationFrame(function () {
+        active.zoomed.style.removeProperty("transition");
+        if (active.zoomedHd) {
+          active.zoomedHd.style.removeProperty("transition");
+        }
+      });
+    };
+    var swap = function swap() {
       var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {}, target = _ref2.target;
+      return new Promise(function (resolve) {
+        if (!active.zoomed) {
+          open({
+            target: target
+          }).then(resolve);
+          return;
+        }
+        if (!target || images.indexOf(target) === -1 || target === active.original) {
+          resolve(zoom);
+          return;
+        }
+        var previousOriginal = active.original;
+        var previousZoomed = active.zoomed;
+        var previousZoomedHd = active.zoomedHd;
+        previousOriginal.classList.remove("medium-zoom-image--hidden");
+        active.original = target;
+        active.original.dispatchEvent(createCustomEvent("medium-zoom:open", {
+          detail: {
+            zoom: zoom
+          }
+        }));
+        isAnimating = true;
+        active.zoomed = cloneTarget(active.original);
+        active.original.classList.add("medium-zoom-image--hidden");
+        active.zoomed.classList.remove("medium-zoom-image--hidden");
+        applyTargetSource(active.zoomed, active.original);
+        active.zoomed.classList.add("medium-zoom-image--opened");
+        active.zoomed.addEventListener("click", close);
+        if (previousZoomedHd && previousZoomedHd.parentNode) {
+          previousZoomedHd.parentNode.removeChild(previousZoomedHd);
+        }
+        if (previousZoomed && previousZoomed.parentNode) {
+          previousZoomed.parentNode.removeChild(previousZoomed);
+        }
+        document.body.appendChild(active.zoomed);
+        active.zoomedHd = null;
+        setSwapTransform(getTargetTransform(active.original, active.original));
+        var finalizeSwap = function finalizeSwap() {
+          var swapTransform = getTargetTransform(active.original, active.zoomedHd || active.original);
+          setSwapTransform(swapTransform);
+          isAnimating = false;
+          active.original.dispatchEvent(createCustomEvent("medium-zoom:opened", {
+            detail: {
+              zoom: zoom
+            }
+          }));
+          resolve(zoom);
+        };
+        if (active.original.getAttribute("data-zoom-src")) {
+          active.zoomedHd = active.zoomed.cloneNode();
+          active.zoomedHd.classList.remove("medium-zoom-image--hidden");
+          active.zoomedHd.removeAttribute("srcset");
+          active.zoomedHd.removeAttribute("sizes");
+          active.zoomedHd.removeAttribute("loading");
+          active.zoomedHd.src = active.zoomed.getAttribute("data-zoom-src");
+          active.zoomedHd.onerror = function () {
+            active.zoomedHd = null;
+            finalizeSwap();
+          };
+          var getSwapZoomTargetSize = setInterval(function () {
+            if (active.zoomedHd.complete) {
+              clearInterval(getSwapZoomTargetSize);
+              active.zoomedHd.classList.add("medium-zoom-image--opened");
+              active.zoomedHd.addEventListener("click", close);
+              document.body.appendChild(active.zoomedHd);
+              finalizeSwap();
+            }
+          }, 10);
+        } else if (active.original.hasAttribute("srcset")) {
+          active.zoomedHd = active.zoomed.cloneNode();
+          active.zoomedHd.classList.remove("medium-zoom-image--hidden");
+          active.zoomedHd.removeAttribute("sizes");
+          active.zoomedHd.removeAttribute("loading");
+          var loadEventListener = active.zoomedHd.addEventListener("load", function () {
+            active.zoomedHd.removeEventListener("load", loadEventListener);
+            active.zoomedHd.classList.add("medium-zoom-image--opened");
+            active.zoomedHd.addEventListener("click", close);
+            document.body.appendChild(active.zoomedHd);
+            finalizeSwap();
+          });
+        } else {
+          finalizeSwap();
+        }
+      });
+    };
+    var open = function open() {
+      var _ref3 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {}, target = _ref3.target;
       var _animate = function _animate() {
         var container = {
           width: document.documentElement.clientWidth,
@@ -315,9 +469,7 @@
           active.template.appendChild(template.content.cloneNode(true));
           document.body.appendChild(active.template);
         }
-        if (active.original.parentElement && active.original.parentElement.tagName === "PICTURE" && active.original.currentSrc) {
-          active.zoomed.src = active.original.currentSrc;
-        }
+        applyTargetSource(active.zoomed, active.original);
         document.body.appendChild(active.zoomed);
         window.requestAnimationFrame(function () {
           document.body.classList.add("medium-zoom--opened");
@@ -469,6 +621,7 @@
     window.addEventListener("resize", _handleResize);
     var zoom = {
       open: open,
+      swap: swap,
       close: close,
       toggle: toggle,
       update: update,

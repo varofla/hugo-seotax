@@ -853,7 +853,7 @@
 
 .medium-zoom-image--opened {
   &.rounded {
-    border-radius: radius(image);
+    border-radius: var(--medium-zoom-border-radius, #{radius(image)});
   }
 }
 

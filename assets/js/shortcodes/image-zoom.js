@@ -15,6 +15,11 @@
   const TOC_ZOOM_SELECTOR =
     ".toc-cover-wrap img:not([data-no-zoom]):not(.no-zoom)";
   const ALL_ZOOM_SELECTOR = `${CONTENT_ZOOM_SELECTOR}, ${TOC_ZOOM_SELECTOR}`;
+  const WHEEL_ZOOM_EPSILON = 0.001;
+  const WHEEL_ZOOM_STEP_INTENSITY = 0.06;
+  const WHEEL_ZOOM_MAX_SCALE_MULTIPLIER = 4;
+  const WHEEL_ZOOM_TRANSITION_RESET_DELAY_MS = 120;
+  const WHEEL_ZOOM_TRANSITION_OVERRIDE = "none";
 
   function normalizeUrl(url) {
     if (!url) return "";
@@ -57,8 +62,14 @@
     document.body.classList.remove("medium-zoom-loading");
   }
 
+  function isWheelZoomAtBaseScale(scale = zoomWheelState?.scale ?? 0) {
+    if (!zoomWheelState) return true;
+
+    return Math.abs(scale - zoomWheelState.baseScale) < WHEEL_ZOOM_EPSILON;
+  }
+
   function isWheelZoomActive() {
-    return !!(zoomWheelState && zoomWheelState.scale - zoomWheelState.baseScale > 0.001);
+    return !!zoomWheelState && !isWheelZoomAtBaseScale();
   }
 
   function clearZoomWheelSettle() {
@@ -91,7 +102,7 @@
     let attempts = 0;
 
     zoomLoaderCheckTimer = window.setInterval(() => {
-      syncWheelZoomTransforms();
+      syncWheelZoomFrame();
 
       const hdImageLoaded = Array.from(document.querySelectorAll(".medium-zoom-image--opened")).some((img) => {
         const currentSrc = normalizeUrl(img.currentSrc || img.getAttribute("src"));
@@ -111,6 +122,14 @@
     return Array.from(document.querySelectorAll(".medium-zoom-image--opened"));
   }
 
+  function forEachOpenedZoomImage(callback) {
+    getOpenedZoomImages().forEach((img) => {
+      if (!(img instanceof HTMLElement)) return;
+
+      callback(img);
+    });
+  }
+
   function getZoomSequenceImages() {
     const coverImages = Array.from(document.querySelectorAll(TOC_ZOOM_SELECTOR));
     const contentImages = Array.from(document.querySelectorAll(CONTENT_ZOOM_SELECTOR));
@@ -119,9 +138,7 @@
   }
 
   function setOpenedZoomCursor(cursor) {
-    getOpenedZoomImages().forEach((img) => {
-      if (!(img instanceof HTMLElement)) return;
-
+    forEachOpenedZoomImage((img) => {
       img.style.cursor = cursor;
     });
   }
@@ -148,12 +165,52 @@
     }
   }
 
+  function syncWheelZoomStateFromRect(img) {
+    if (!zoomWheelState) return null;
+    if (!(img instanceof HTMLElement)) return null;
+
+    const rect = img.getBoundingClientRect();
+
+    if (!rect.width || !rect.height) return null;
+    Object.assign(zoomWheelState, {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    });
+
+    return rect;
+  }
+
+  function isRoundedImage(img) {
+    return img instanceof HTMLElement && img.classList.contains("rounded");
+  }
+
+  function getImageBorderRadius(img) {
+    if (!isRoundedImage(img)) return 0;
+
+    const radius = Number.parseFloat(window.getComputedStyle(img).borderTopLeftRadius);
+
+    return Number.isFinite(radius) ? radius : 0;
+  }
+
+  function setOpenedZoomBorderRadius(radius) {
+    forEachOpenedZoomImage((img) => {
+      if (!isRoundedImage(img)) return;
+      if (Number.isFinite(radius) && radius > 0) {
+        img.style.setProperty("--medium-zoom-border-radius", `${radius}px`);
+      } else {
+        img.style.removeProperty("--medium-zoom-border-radius");
+      }
+    });
+  }
+
   function getMaxWheelZoomScale() {
     if (!zoomWheelState) return 4;
 
-    let maxScale = zoomWheelState.baseScale * 4;
+    let maxScale = zoomWheelState.baseScale * WHEEL_ZOOM_MAX_SCALE_MULTIPLIER;
 
-    getOpenedZoomImages().forEach((img) => {
+    forEachOpenedZoomImage((img) => {
       const naturalWidth = img.naturalWidth || 0;
       const naturalHeight = img.naturalHeight || 0;
 
@@ -170,9 +227,7 @@
   }
 
   function setOpenedZoomTransition(value) {
-    getOpenedZoomImages().forEach((img) => {
-      if (!(img instanceof HTMLElement)) return;
-
+    forEachOpenedZoomImage((img) => {
       if (value) {
         img.style.setProperty("transition", value, "important");
       } else {
@@ -181,54 +236,92 @@
     });
   }
 
-  function applyWheelZoomTransition(enabled) {
-    if (enabled) {
-      setOpenedZoomTransition("transform 90ms cubic-bezier(0.22, 1, 0.36, 1)");
-    } else {
-      setOpenedZoomTransition(null);
-    }
+  function setWheelZoomTransitionOverride(enabled) {
+    setOpenedZoomTransition(enabled ? WHEEL_ZOOM_TRANSITION_OVERRIDE : null);
   }
 
-  function scheduleWheelZoomTransitionReset() {
+  function scheduleWheelZoomTransitionCleanup() {
     clearZoomWheelSettle();
 
     zoomWheelSettleTimer = window.setTimeout(() => {
-      applyWheelZoomTransition(false);
+      setWheelZoomTransitionOverride(false);
       zoomWheelSettleTimer = null;
-    }, 120);
+    }, WHEEL_ZOOM_TRANSITION_RESET_DELAY_MS);
   }
 
-  function syncWheelZoomTransforms() {
-    if (!zoomWheelState) return;
+  function getWheelZoomFrame() {
+    if (!zoomWheelState) return null;
 
-    getOpenedZoomImages().forEach((img) => {
-      if (!(img instanceof HTMLElement)) return;
+    if (isWheelZoomAtBaseScale()) {
+      return {
+        left: zoomWheelState.baseDocLeft,
+        top: zoomWheelState.baseDocTop,
+        width: zoomWheelState.baseWidth,
+        height: zoomWheelState.baseHeight,
+      };
+    }
 
-      if (Math.abs(zoomWheelState.scale - zoomWheelState.baseScale) < 0.001) {
-        img.style.transform = zoomWheelState.baseTransform;
-        return;
-      }
+    return {
+      left: zoomWheelState.left + window.pageXOffset,
+      top: zoomWheelState.top + window.pageYOffset,
+      width: zoomWheelState.width,
+      height: zoomWheelState.height,
+    };
+  }
 
-      const translateX = (
-        zoomWheelState.left
-        - zoomWheelState.baseLeft
-        - zoomWheelState.baseWidth * 0.5 * (1 - zoomWheelState.scale)
-      ) / zoomWheelState.scale;
-      const translateY = (
-        zoomWheelState.top
-        - zoomWheelState.baseTop
-        - zoomWheelState.baseHeight * 0.5 * (1 - zoomWheelState.scale)
-      ) / zoomWheelState.scale;
+  function syncOpenedZoomBorderRadius() {
+    if (!zoomWheelState || zoomWheelState.baseBorderRadius <= 0 || zoomWheelState.baseWidth <= 0) {
+      setOpenedZoomBorderRadius(0);
+      return;
+    }
 
-      img.style.transform = `scale(${zoomWheelState.scale}) translate3d(${translateX}px, ${translateY}px, 0)`;
+    setOpenedZoomBorderRadius(
+      zoomWheelState.baseBorderRadius * (zoomWheelState.width / zoomWheelState.baseWidth)
+    );
+  }
+
+  function syncWheelZoomFrame() {
+    const frame = getWheelZoomFrame();
+
+    if (!frame || !zoomWheelState) return;
+
+    forEachOpenedZoomImage((img) => {
+      img.style.left = `${frame.left}px`;
+      img.style.top = `${frame.top}px`;
+      img.style.width = `${frame.width}px`;
+      img.style.height = `${frame.height}px`;
+      img.style.transform = zoomWheelState.baseTransform;
     });
+
+    syncOpenedZoomBorderRadius();
   }
 
   function resetWheelZoomState() {
     clearZoomWheelSettle();
-    applyWheelZoomTransition(false);
+    setWheelZoomTransitionOverride(false);
     setOpenedZoomCursor("");
     zoomWheelState = null;
+  }
+
+  function createWheelZoomState(openedImage, rect, matrix, styleLeft, styleTop, styleWidth, styleHeight) {
+    return {
+      baseTransform: openedImage.style.transform,
+      baseScale: matrix.a,
+      scale: matrix.a,
+      baseDocLeft: styleLeft,
+      baseDocTop: styleTop,
+      baseBorderRadius: getImageBorderRadius(openedImage),
+      baseWidth: styleWidth,
+      baseHeight: styleHeight,
+      openedLeft: rect.left,
+      openedTop: rect.top,
+      openedWidth: rect.width,
+      openedHeight: rect.height,
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    };
   }
 
   function initWheelZoomState() {
@@ -251,23 +344,53 @@
       return;
     }
 
-    zoomWheelState = {
-      baseTransform: openedImage.style.transform,
-      baseScale: matrix.a,
-      scale: matrix.a,
-      baseLeft: styleLeft - window.pageXOffset,
-      baseTop: styleTop - window.pageYOffset,
-      baseWidth: styleWidth,
-      baseHeight: styleHeight,
-      openedLeft: rect.left,
-      openedTop: rect.top,
-      openedWidth: rect.width,
-      openedHeight: rect.height,
-      left: rect.left,
-      top: rect.top,
-      width: rect.width,
-      height: rect.height,
-    };
+    zoomWheelState = createWheelZoomState(
+      openedImage,
+      rect,
+      matrix,
+      styleLeft,
+      styleTop,
+      styleWidth,
+      styleHeight
+    );
+  }
+
+  function getNextWheelZoomScale(deltaY) {
+    if (!zoomWheelState) return 0;
+
+    const intensity = Math.exp((-deltaY / 100) * WHEEL_ZOOM_STEP_INTENSITY);
+
+    return Math.min(
+      getMaxWheelZoomScale(),
+      Math.max(zoomWheelState.baseScale, zoomWheelState.scale * intensity)
+    );
+  }
+
+  function updateWheelZoomTarget(nextScale, clientX, clientY, currentRect) {
+    if (!zoomWheelState) return;
+
+    const currentWidth = currentRect.width;
+    const currentHeight = currentRect.height;
+
+    if (!currentWidth || !currentHeight) return;
+
+    const ratioX = (clientX - currentRect.left) / currentWidth;
+    const ratioY = (clientY - currentRect.top) / currentHeight;
+    const clampedRatioX = Math.min(1, Math.max(0, ratioX));
+    const clampedRatioY = Math.min(1, Math.max(0, ratioY));
+    const nextWidth = zoomWheelState.baseWidth * nextScale;
+    const nextHeight = zoomWheelState.baseHeight * nextScale;
+    const resetToBaseScale = isWheelZoomAtBaseScale(nextScale);
+
+    zoomWheelState.scale = nextScale;
+    zoomWheelState.left = resetToBaseScale
+      ? zoomWheelState.openedLeft
+      : clientX - clampedRatioX * nextWidth;
+    zoomWheelState.top = resetToBaseScale
+      ? zoomWheelState.openedTop
+      : clientY - clampedRatioY * nextHeight;
+    zoomWheelState.width = resetToBaseScale ? zoomWheelState.openedWidth : nextWidth;
+    zoomWheelState.height = resetToBaseScale ? zoomWheelState.openedHeight : nextHeight;
   }
 
   function handleWheelZoom(event) {
@@ -278,49 +401,21 @@
     if (!anchorImage) return;
 
     event.preventDefault();
+    clearZoomWheelSettle();
 
-    const intensity = Math.exp((-event.deltaY / 100) * 0.12);
-    const nextScale = Math.min(
-      getMaxWheelZoomScale(),
-      Math.max(zoomWheelState.baseScale, zoomWheelState.scale * intensity)
-    );
+    const currentRect = syncWheelZoomStateFromRect(anchorImage);
+
+    if (!currentRect) return;
+
+    const nextScale = getNextWheelZoomScale(event.deltaY);
 
     if (!Number.isFinite(nextScale) || nextScale === zoomWheelState.scale) return;
 
     const { clientX, clientY } = event;
-    const currentWidth = zoomWheelState.width;
-    const currentHeight = zoomWheelState.height;
-
-    if (!currentWidth || !currentHeight) return;
-
-    const ratioX = (clientX - zoomWheelState.left) / currentWidth;
-    const ratioY = (clientY - zoomWheelState.top) / currentHeight;
-    const clampedRatioX = Math.min(1, Math.max(0, ratioX));
-    const clampedRatioY = Math.min(1, Math.max(0, ratioY));
-    const nextWidth = zoomWheelState.baseWidth * nextScale;
-    const nextHeight = zoomWheelState.baseHeight * nextScale;
-
-    let nextLeft = clientX - clampedRatioX * nextWidth;
-    let nextTop = clientY - clampedRatioY * nextHeight;
-
-    if (Math.abs(nextScale - zoomWheelState.baseScale) < 0.001) {
-      nextLeft = zoomWheelState.openedLeft;
-      nextTop = zoomWheelState.openedTop;
-    }
-
-    zoomWheelState.scale = nextScale;
-    zoomWheelState.left = nextLeft;
-    zoomWheelState.top = nextTop;
-    zoomWheelState.width = Math.abs(nextScale - zoomWheelState.baseScale) < 0.001
-      ? zoomWheelState.openedWidth
-      : nextWidth;
-    zoomWheelState.height = Math.abs(nextScale - zoomWheelState.baseScale) < 0.001
-      ? zoomWheelState.openedHeight
-      : nextHeight;
-
-    applyWheelZoomTransition(true);
-    syncWheelZoomTransforms();
-    scheduleWheelZoomTransitionReset();
+    setWheelZoomTransitionOverride(true);
+    updateWheelZoomTarget(nextScale, clientX, clientY, currentRect);
+    syncWheelZoomFrame();
+    scheduleWheelZoomTransitionCleanup();
   }
 
   function resetDragState() {
@@ -338,8 +433,10 @@
 
     event.preventDefault();
 
+    syncWheelZoomStateFromRect(target);
+
     clearZoomWheelSettle();
-    setOpenedZoomTransition("none");
+    setWheelZoomTransitionOverride(true);
 
     zoomDragState = {
       pointerId: event.pointerId,
@@ -371,7 +468,7 @@
     zoomWheelState.left = zoomDragState.startLeft + deltaX;
     zoomWheelState.top = zoomDragState.startTop + deltaY;
 
-    syncWheelZoomTransforms();
+    syncWheelZoomFrame();
   }
 
   function handleZoomPointerEnd(event) {
@@ -620,7 +717,7 @@
 
     zoom.on("opened", () => {
       initWheelZoomState();
-      syncWheelZoomTransforms();
+      syncWheelZoomFrame();
       setOpenedZoomCursor(isWheelZoomActive() ? "grab" : "");
     });
 

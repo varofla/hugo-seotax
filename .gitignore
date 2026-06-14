@@ -6,3 +6,4 @@ assets/_images/
 .hugo_build.lock
 design
 .codex
+AGENTS.override.md

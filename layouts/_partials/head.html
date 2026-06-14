@@ -134,6 +134,9 @@ https://github.com/minyeamer/hugo-miny
 })();
 </script>
 
+{{- $inAppEscapeJS := resources.Get "js/partials/inapp-browser-escape.js" | resources.Minify | resources.Fingerprint }}
+<script src="{{ partial `links/resource-precache` $inAppEscapeJS }}" {{ template `integrity` $inAppEscapeJS }}></script>
+
 <!-- Preload icon font for better CLS performance (placed early for faster loading) -->
 <link rel="preload" href="{{ `fonts/icomoon.woff?jrhayr` | relURL }}" as="font" type="font/woff">
 

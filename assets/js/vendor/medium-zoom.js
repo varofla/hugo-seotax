@@ -67,6 +67,56 @@
     clone.style.transform = "";
     return clone;
   };
+  var getAbsoluteRect = function getAbsoluteRect(node) {
+    var rect = node.getBoundingClientRect();
+    var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    var scrollLeft = window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+    return {
+      top: rect.top + scrollTop,
+      left: rect.left + scrollLeft,
+      width: rect.width,
+      height: rect.height
+    };
+  };
+  var getTransformForRects = function getTransformForRects(baseRect, targetRect) {
+    if (!baseRect.width || !baseRect.height || !targetRect.width || !targetRect.height) {
+      return "";
+    }
+    var scaleX = targetRect.width / baseRect.width;
+    var scaleY = targetRect.height / baseRect.height;
+    var scale = Math.min(scaleX, scaleY);
+    var translateX = (targetRect.left - baseRect.left - baseRect.width * 0.5 * (1 - scale)) / scale;
+    var translateY = (targetRect.top - baseRect.top - baseRect.height * 0.5 * (1 - scale)) / scale;
+    return "scale(" + scale + ") translate3d(" + translateX + "px, " + translateY + "px, 0)";
+  };
+  var rebaseZoomedImage = function rebaseZoomedImage(image) {
+    if (!image) {
+      return;
+    }
+    var rect = getAbsoluteRect(image);
+    image.style.setProperty("transition", "none", "important");
+    image.style.top = rect.top + "px";
+    image.style.left = rect.left + "px";
+    image.style.width = rect.width + "px";
+    image.style.height = rect.height + "px";
+    image.style.transform = "scale(1) translate3d(0px, 0px, 0)";
+    image.getBoundingClientRect();
+    image.style.removeProperty("transition");
+  };
+  var prepareZoomedImageForClose = function prepareZoomedImageForClose(image, originalRect) {
+    if (!image) {
+      return;
+    }
+    var currentRect = getAbsoluteRect(image);
+    image.style.setProperty("transition", "none", "important");
+    image.style.top = originalRect.top + "px";
+    image.style.left = originalRect.left + "px";
+    image.style.width = originalRect.width + "px";
+    image.style.height = originalRect.height + "px";
+    image.style.transform = getTransformForRects(originalRect, currentRect);
+    image.getBoundingClientRect();
+    image.style.removeProperty("transition");
+  };
   var createCustomEvent = function createCustomEvent(type, params) {
     var eventParams = _extends({
       bubbles: false,
@@ -293,6 +343,13 @@
         }
       });
     };
+    var rebaseActiveZoomedImages = function rebaseActiveZoomedImages() {
+      rebaseZoomedImage(active.zoomed);
+      if (active.zoomedHd) {
+        rebaseZoomedImage(active.zoomedHd);
+      }
+      active.rebased = true;
+    };
     var swap = function swap() {
       var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {}, target = _ref2.target;
       return new Promise(function (resolve) {
@@ -318,6 +375,7 @@
         }));
         isAnimating = true;
         active.zoomed = cloneTarget(active.original);
+        active.rebased = false;
         active.original.classList.add("medium-zoom-image--hidden");
         active.zoomed.classList.remove("medium-zoom-image--hidden");
         applyTargetSource(active.zoomed, active.original);
@@ -335,6 +393,7 @@
         var finalizeSwap = function finalizeSwap() {
           var swapTransform = getTargetTransform(active.original, active.zoomedHd || active.original);
           setSwapTransform(swapTransform);
+          rebaseActiveZoomedImages();
           isAnimating = false;
           active.original.dispatchEvent(createCustomEvent("medium-zoom:opened", {
             detail: {
@@ -462,6 +521,7 @@
         scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
         isAnimating = true;
         active.zoomed = cloneTarget(active.original);
+        active.rebased = false;
         document.body.appendChild(overlay);
         if (zoomOptions.template) {
           var template = isNode(zoomOptions.template) ? zoomOptions.template : document.querySelector(zoomOptions.template);
@@ -543,9 +603,18 @@
           active.zoomed = null;
           active.zoomedHd = null;
           active.template = null;
+          active.rebased = false;
           resolve(zoom);
         };
         isAnimating = true;
+        if (active.rebased) {
+          var originalRect = getAbsoluteRect(active.original);
+          prepareZoomedImageForClose(active.zoomed, originalRect);
+          if (active.zoomedHd) {
+            prepareZoomedImageForClose(active.zoomedHd, originalRect);
+          }
+          active.rebased = false;
+        }
         document.body.classList.remove("medium-zoom--opened");
         active.zoomed.style.transform = "";
         if (active.zoomedHd) {
@@ -591,7 +660,8 @@
       original: null,
       zoomed: null,
       zoomedHd: null,
-      template: null
+      template: null,
+      rebased: false
     };
     if (Object.prototype.toString.call(selector) === "[object Object]") {
       zoomOptions = selector;

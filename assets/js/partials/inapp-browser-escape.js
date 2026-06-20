@@ -16,10 +16,10 @@
 
   var isKakaoTalk = /kakaotalk/i.test(userAgent);
   var isLine = /line\//i.test(userAgent);
-  var isNaverInApp = /naver\(inapp;|naver\(higgs;/i.test(userAgent);
+  var isNaverBlogInApp = /naver\((?:inapp|higgs);\s*blog;/i.test(userAgent);
   var isOtherInApp = /fb_iab\/fb4a|fban\/fbios|instagram|daumdevice\/mobile|daumapps|everytimeapp|snapchat|trill|kakaostory|band|twitter|aliapp|wadiz|zumapp|whale/i.test(userAgent);
 
-  if (!isKakaoTalk && !isLine && !isNaverInApp && !isOtherInApp) {
+  if (!isKakaoTalk && !isLine && !isNaverBlogInApp && !isOtherInApp) {
     return;
   }
 

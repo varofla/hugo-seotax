@@ -1,12 +1,12 @@
 <article class="post-item" data-post-item data-post-item-url="{{ .RelPermalink }}">
 
-  {{ $coverImage := partial "content/cover-url" (dict "Cover" .Params.cover "Thumbnail" .Params.thumbnail) }}
+  {{ $thumbnailImage := .Params.thumbnail }}
 
-  <div class="post-content-area{{ if $coverImage }} has-cover{{ end }}">
-    {{ with $coverImage }}
+  <div class="post-content-area{{ if $thumbnailImage }} has-cover{{ end }}">
+    {{ with $thumbnailImage }}
     <div class="post-cover-mobile{{ if site.Params.image.roundedCorners }} rounded{{ end }}">
       {{- $thumbAttrs := partial "content/img-attr" (dict "Page" $ "Url" .) -}}
-      <img src="{{ . | absURL }}" alt="Cover Image" class="post-cover-mobile-img" {{ $thumbAttrs | safeHTMLAttr }} loading="lazy" decoding="async">
+      <img src="{{ . | absURL }}" alt="Thumbnail Image" class="post-cover-mobile-img" {{ $thumbAttrs | safeHTMLAttr }} loading="lazy" decoding="async">
     </div>
     {{ end }}
 
@@ -43,13 +43,12 @@
       </div>
     </div>
 
-    {{ with $coverImage }}
+    {{ with $thumbnailImage }}
     <div class="post-cover{{ if site.Params.image.roundedCorners }} rounded{{ end }}">
-      {{ partial "content/cover-image" (dict
+      {{ partial "content/post-card-cover-img.html" (dict
         "Page" $
-        "Cover" $.Params.cover
-        "Thumbnail" $.Params.thumbnail
-        "Alt" "Cover Image"
+        "Url" .
+        "Alt" "Thumbnail Image"
         "Class" "post-cover-img"
         "Width" 200
         "Height" 170

@@ -551,16 +551,6 @@
     }
   }
 
-  function setImageOrientation(img) {
-    if (img.naturalWidth >= img.naturalHeight) {
-      img.classList.add("landscape");
-      img.classList.remove("portrait");
-    } else {
-      img.classList.add("portrait");
-      img.classList.remove("landscape");
-    }
-  }
-
   function getImageLoadingContainer(img) {
     return img.closest(".md-image, .sc-image");
   }
@@ -604,12 +594,6 @@
   function initImage() {
     document.querySelectorAll(".md-image img, .sc-image img").forEach((img) => {
       initImageLoader(img);
-
-      if (img.complete && img.naturalWidth && img.naturalHeight) {
-        setImageOrientation(img);
-      } else {
-        img.addEventListener("load", () => setImageOrientation(img), { once: true });
-      }
     });
   }
 

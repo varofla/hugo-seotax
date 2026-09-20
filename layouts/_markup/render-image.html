@@ -12,8 +12,7 @@
 
 {{- if in $imageExts $ext -}}
   {{- $attrs := partial "content/img-attr" (dict "Page" .Page "Url" $destination) -}}
-  <label class="md-image{{ if site.Params.image.roundedCorners }} rounded{{ end }}" for="md-image-toggle-{{ .Ordinal }}">
-    <input class="hidden toggle" type="checkbox" id="md-image-toggle-{{ .Ordinal }}" />
+  <span class="md-image{{ if site.Params.image.roundedCorners }} rounded{{ end }}">
     <img
       src="{{ $destination | safeURL }}"
       alt="{{ .Text }}"
@@ -24,7 +23,7 @@
       loading="lazy"
       decoding="async"
     />
-  </label>
+  </span>
 
 {{- else if in $videoExts $ext -}}
   <div style="display:block; width:100%; max-width:100%; margin:1rem 0;">

@@ -41,17 +41,6 @@ window.siteSearch.utils.composeUrl = function(basePath, urlParams) {
   return queryString ? `${basePath}?${queryString}` : basePath;
 };
 
-window.siteSearch.utils.capitalize = function(value) {
-  if (!value) {
-    return '';
-  }
-
-  return value
-    .split(' ')
-    .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1) : ''))
-    .join(' ');
-};
-
 window.siteSearch.utils.getUrlState = function(search = window.location.search) {
   const params = new URLSearchParams(search);
 
@@ -160,28 +149,5 @@ window.siteSearch.initTags = async function() {
     .then(tags => {
       window.siteSearch.tags = tags;
       return window.siteSearch.tags;
-    });
-};
-
-/**
- * Initialize rendered post items for category list pages
- * @returns {Promise<Map<number, {id:number, html:string}>>}
- */
-window.siteSearch.initPostItems = async function() {
-  if (window.siteSearch.postItemsMap) {
-    return Promise.resolve(window.siteSearch.postItemsMap);
-  }
-
-  return fetch(window.siteSearch.postItemsUrl)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(items => {
-      window.siteSearch.postItems = items;
-      window.siteSearch.postItemsMap = new Map(items.map(item => [item.id, item]));
-      return window.siteSearch.postItemsMap;
     });
 };

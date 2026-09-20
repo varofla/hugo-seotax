@@ -1,8 +1,3 @@
-{{ "<!--" | safeHTML }}
-Made with Miny Theme
-https://github.com/minyeamer/hugo-miny
-{{ "-->" | safeHTML }}
-
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -143,10 +138,6 @@ https://github.com/minyeamer/hugo-miny
 {{- $manifest := resources.Get "data/manifest.json" | resources.ExecuteAsTemplate "data/manifest.json" . }}
 <link rel="manifest" href="{{ $manifest.RelPermalink }}">
 <link rel="canonical" href="{{ if .Params.canonicalURL -}} {{ trim .Params.canonicalURL ` ` }} {{- else -}} {{ .Permalink }} {{- end }}">
-
-{{- range .Translations }}
-  <link rel="alternate" hreflang="{{ default .Site.LanguageCode .Language.Lang }}" href="{{ .Permalink }}" title="{{ partial `title` . }}">
-{{- end -}}
 
 <!-- Theme stylesheet, you can customize scss by creating `assets/css/custom.scss` in your website -->
 {{- $styles := resources.Get "main.scss" | resources.ExecuteAsTemplate "main.scss" . | css.Sass | resources.Minify | resources.Fingerprint }}

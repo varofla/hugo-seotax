@@ -1,9 +1,0 @@
-{{- $json := slice -}}
-{{- range $index, $page := partialCached "pages/search" . "search" -}}
-  {{- $item := dict
-    "id" $index
-    "html" (partial "post-item.html" $page)
-  -}}
-  {{- $json = $json | append $item -}}
-{{- end -}}
-{{- $json | jsonify -}}

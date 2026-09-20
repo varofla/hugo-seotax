@@ -1,0 +1,71 @@
+{{- /* Strings accept a bundle filename or an existing image URL; maps add alt text. */ -}}
+{{- $src := .Image -}}
+{{- $alt := printf "%s — 사진 %d" .Project (add .Index 1) -}}
+{{- $isThumbnail := or (gt .Index 0) (.Thumbnail | default false) -}}
+{{- $isHero := not $isThumbnail -}}
+{{- if reflect.IsMap .Image -}}
+  {{- $src = .Image.src -}}
+  {{- with .Image.alt -}}{{- $alt = . -}}{{- end -}}
+{{- end -}}
+{{- $url := urls.Parse $src -}}
+{{- $resource := false -}}
+{{- $localHost := or (not $url.Host) (in (slice "varofla.com" (urls.Parse site.BaseURL).Host) $url.Host) -}}
+{{- if and $localHost (not $url.RawQuery) (not $url.Fragment) -}}
+  {{- if strings.HasPrefix $url.Path "/" -}}
+    {{- /* Resolve through the owning page so its original publication URL is retained. */ -}}
+    {{- $ownerPath := printf "%s/" (path.Dir $url.Path) -}}
+    {{- range where site.RegularPages "RelPermalink" $ownerPath -}}
+      {{- $resource = .Resources.Get (path.Base $url.Path) -}}
+    {{- end -}}
+  {{- else -}}
+    {{- $resource = .Page.Resources.Get (strings.TrimPrefix "./" $url.Path) -}}
+    {{- if not $resource -}}
+      {{- errorf "About project %q: image %q is missing from %s" $.Project $src $.Page.File.Path -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $original := $src -}}
+{{- $srcset := slice -}}
+{{- $previewSrc := $original -}}
+{{- $width := 0 -}}
+{{- $height := 0 -}}
+{{- with $resource -}}
+  {{- $original = .RelPermalink -}}
+  {{- if reflect.IsImageResourceWithMeta . -}}
+    {{- $width = .Width -}}
+    {{- $height = .Height -}}
+    {{- if in (slice ".jpg" ".jpeg" ".png" ".webp") (lower (path.Ext .Name)) -}}
+      {{- if and (gt $width 800) $isThumbnail -}}
+        {{- $previewSrc = (.Resize "800x q85").RelPermalink -}}
+      {{- else -}}
+        {{- $previewSrc = $original -}}
+      {{- end -}}
+      {{- $widths := slice 180 360 540 -}}
+      {{- if $isHero -}}{{- $widths = slice 480 800 1200 -}}{{- end -}}
+      {{- range $widths -}}
+        {{- if lt . $width -}}
+          {{- $preview := $resource.Resize (printf "%dx q85" .) -}}
+          {{- $srcset = $srcset | append (printf "%s %dw" $preview.RelPermalink $preview.Width) -}}
+        {{- end -}}
+      {{- end -}}
+      {{- $srcset = $srcset | append (printf "%s %dw" $original $width) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- if $isThumbnail }}
+<button type="button" class="about-project-photo about-project-photo--thumbnail"
+  data-project-preview-src="{{ $previewSrc }}" aria-pressed="false"
+  aria-label="{{ .Project }} 사진 {{ add .Index 1 }} 보기">
+  <img src="{{ $original }}" alt="{{ $alt }}"
+    {{ with $srcset }}srcset="{{ delimit . ", " }}" sizes="(max-width: 640px) 22vw, (max-width: 960px) 15vw, 141px"{{ end }}
+    {{ if $width }}width="{{ $width }}" height="{{ $height }}"{{ end }}
+    loading="lazy" decoding="async">
+</button>
+{{- else }}
+<div class="about-project-photo about-project-photo--hero">
+  <img src="{{ $original }}" alt="{{ $alt }}"
+    {{ with $srcset }}srcset="{{ delimit . ", " }}" sizes="(max-width: 640px) calc(100vw - 28px), (max-width: 960px) 55vw, 521px"{{ end }}
+    {{ if $width }}width="{{ $width }}" height="{{ $height }}"{{ end }}
+    loading="lazy" decoding="async">
+</div>
+{{- end }}

@@ -316,10 +316,18 @@ document.addEventListener('DOMContentLoaded', function() {
 <script defer src="{{ partial `links/resource-precache` $readingTimeJS }}" {{ template `integrity` $readingTimeJS }}></script>
 
 <!-- Image Zoom -->
-{{- $mediumZoomJS := resources.Get "js/vendor/medium-zoom.js" | resources.Minify | resources.Fingerprint }}
-{{- $imageZoomJS := resources.Get "js/shortcodes/image-zoom.js" | resources.ExecuteAsTemplate "js/shortcodes/image-zoom.js" . | resources.Minify | resources.Fingerprint }}
-<script defer src="{{ partial `links/resource-precache` $mediumZoomJS }}" {{ template `integrity` $mediumZoomJS }}></script>
-<script defer src="{{ partial `links/resource-precache` $imageZoomJS }}" {{ template `integrity` $imageZoomJS }}></script>
+{{- if ne .Type "about" }}
+  {{- $mediumZoomJS := resources.Get "js/vendor/medium-zoom.js" | resources.Minify | resources.Fingerprint }}
+  {{- $imageZoomJS := resources.Get "js/shortcodes/image-zoom.js" | resources.ExecuteAsTemplate "js/shortcodes/image-zoom.js" . | resources.Minify | resources.Fingerprint }}
+  <script defer src="{{ partial `links/resource-precache` $mediumZoomJS }}" {{ template `integrity` $mediumZoomJS }}></script>
+  <script defer src="{{ partial `links/resource-precache` $imageZoomJS }}" {{ template `integrity` $imageZoomJS }}></script>
+{{- end }}
+
+{{- if eq .Type "about" }}
+<!-- About project previews -->
+{{- $aboutProjectsJS := resources.Get "js/about/projects.js" | resources.Minify | resources.Fingerprint }}
+<script defer src="{{ partial `links/resource-precache` $aboutProjectsJS }}" {{ template `integrity` $aboutProjectsJS }}></script>
+{{- end }}
 
 <!-- Data Table -->
 {{- $dataTableJS := resources.Get "js/shortcodes/data-table.js" | resources.ExecuteAsTemplate "js/shortcodes/data-table.js" . | resources.Minify | resources.Fingerprint }}

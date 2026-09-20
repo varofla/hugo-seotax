@@ -115,19 +115,35 @@
       <div class="about-projects-year-label">{{ $year }}</div>
       {{- range $projects -}}
       {{- if eq .year $year -}}
-      {{- $status := .status -}}
-      {{- $mod := "default" -}}
-      {{- if eq $status "완료" -}}{{- $mod = "done" -}}{{- end -}}
-      {{- if eq $status "개발중" -}}{{- $mod = "active" -}}{{- end -}}
-      {{- if eq $status "운영중" -}}{{- $mod = "running" -}}{{- end -}}
-      {{- if eq $status "드랍" -}}{{- $mod = "dropped" -}}{{- end -}}
-      <div class="about-project-item">
-        <div class="about-project-info">
-          <div class="about-project-name">{{ .name }}</div>
-          <div class="about-project-desc">{{ .desc }}</div>
+      {{- $project := . -}}
+      <article class="about-project-item{{ with .images }} about-project-item--gallery{{ end }}" data-about-project>
+        {{- with .images -}}
+          {{- partial "about/project-image" (dict "Page" $ "Project" $project.name "Image" (index . 0) "Index" 0) -}}
+        {{- end -}}
+        <div class="about-project-details">
+          <div class="about-project-info">
+            <h3 class="about-project-name">
+              {{- with .link -}}
+              <a class="about-project-name-link" href="{{ . }}">{{ $project.name }}</a>
+              {{- else -}}
+              {{ .name }}
+              {{- end -}}
+            </h3>
+            <p class="about-project-desc">{{ .desc }}</p>
+          </div>
+          {{- if gt (len (.images | default slice)) 1 -}}
+          <div class="about-project-gallery">
+            <div class="about-project-gallery__images">
+              {{- range $index, $image := .images -}}
+                {{- if gt $index 0 -}}
+                  {{- partial "about/project-image" (dict "Page" $ "Project" $project.name "Image" $image "Index" $index) -}}
+                {{- end -}}
+              {{- end -}}
+            </div>
+          </div>
+          {{- end -}}
         </div>
-        <span class="about-status about-status--{{ $mod }}">{{ $status }}</span>
-      </div>
+      </article>
       {{- end -}}
       {{- end -}}
     </div>

@@ -45,7 +45,7 @@
 | 일반 페이지 | `layouts/single.html`, `layouts/list.html` | dummy define으로 base 템플릿 동작 사용 |
 | 카테고리 | `layouts/categories/list.html`, `_partials/categories/*` | 생성된 section 페이지 + front matter 기반 2단계 분류 |
 | 검색 | `layouts/search/list.html`, `assets/js/search/{init,input,list}.js` | Fuse, 검색 모달, 필터·결과·페이지네이션 |
-| About | `layouts/about/single.html` | `../../content/about/index.md`의 front matter |
+| About | `layouts/about/single.html`, `assets/js/about/projects.js` | `../../content/about/index.md`의 front matter와 프로젝트 미리보기 |
 | 기본 레이아웃·반응형 | `assets/css/_layouts.scss`, `variables/_defaults.scss` | 메뉴·목차·overlay·breakpoint |
 | 메뉴 외관 | `assets/css/_menu.scss`, `layouts/_partials/menu/*` | 프로필, 링크, 공지, 카테고리, 최근 글 |
 | 카드·검색 외관 | `assets/css/_search.scss` | 검색 이외에 공용 post-card 스타일도 포함 |
@@ -155,14 +155,42 @@ CSS는 `--menu-breakpoint`를 노출하고 일부 JS가 이를 읽지만, `head.
 | --- | --- |
 | `tagline`, `bio` | 소개 문구; bio는 safeHTML 출력 |
 | `skills.main/occasional/experienced` | 세 그룹의 기술 태그 |
-| `projects[]`의 `name`, `desc`, `status`, `year` | 연도별 프로젝트 목록 |
+| `projects[]`의 `name`, `desc`, `link`, `year`, `images` | 연도별 프로젝트 갤러리; link와 images는 선택 |
 | 사이트 `params.author/menu.profileImage/social.github` | 이름·프로필·GitHub 링크 |
 
-프로젝트 상태는 `완료`, `개발중`, `운영중`, `드랍`에 따라 배지를 붙인다. 연도 순서는 입력에서 처음 등장하는 순서를 따른다. 현재 SmartGulbi와 임시 프로젝트·스킬 값이 섞여 있다. 대표 프로젝트의 이미지·링크·성과·선정 여부를 표현하는 별도 데이터 구조는 아직 없다.
+정상적으로 종료한 프로젝트만 올리므로 상태 필드와 배지는 사용하지 않는다. 연도 순서는 입력에서 처음 등장하는 순서를 따른다. 현재 콘텐츠에는 스마트 굴비, Rack Out Of Dust, LEXON MOD가 등록되어 있고 Skills는 주석 처리되어 있다.
+
+### 2026-09-20 프로젝트 갤러리
+
+- 사용자 결정: Yufeng Wu 스타일을 따르지 않는다. 대표 사진은 왼쪽, 오른쪽에는 이름·설명과 과정 사진을 위에서 아래로 둔다. 과정 사진이 오른쪽 열을 넘으면 그 영역만 세로 스크롤한다. 연도 라벨은 유지한다.
+- `images` 첫 항목이 대표 사진이며 이후 순서는 입력 순서를 그대로 따른다. 모든 사진 칸은 4:3이고 다른 비율의 원본은 `object-fit: cover`로 가운데를 잘라 표시한다. 데스크톱 과정 사진은 오른쪽 3열 세로 스크롤 영역에 놓는다. 640px 이하에서는 이름·설명 → 폭 전체 대표 사진 → 대표 사진을 제외한 가로 썸네일 한 줄 순으로 쌓는다. 세 영역과 썸네일 사이 간격은 6px로 통일하고, 마지막 사진 일부가 잘려 보이게 해 가로 이동을 암시한다.
+- 과정 사진에 마우스를 올리거나 키보드 focus를 두면 800px 이하의 미리보기 이미지가 대표 사진 자리에 240ms 크로스페이드로 나타난다. 사진 사이 전환에서는 이전 미리보기를 불투명하게 유지한 채 새 레이어를 그 위로 페이드 인하고, 완료 후 이전 레이어를 숨겨 맨 아래 대표 사진이 비치지 않게 한다. 미리보기 레이어는 흰 배경을 포함해 투명 WebP의 여백으로 아래 대표 사진이 비치지 않는다. 과정 사진 사이의 여백에서는 마지막 미리보기를 유지하고, 과정 사진 영역 전체를 벗어나면 원래 대표 사진으로 부드럽게 돌아온다. 포인터 종류가 mouse일 때만 hover를 처리하므로 터치 입력은 미리보기를 열지 않는다.
+- 미리보기 상태·선로딩·크로스페이드 이벤트는 `assets/js/about/projects.js`가 담당하고 `head.html`에서 About 페이지에만 조건부 로드한다. About에서는 공용 `medium-zoom`과 `image-zoom.js`를 로드하지 않는다.
+- 데스크톱의 이미지 프로젝트는 대표 사진과 같은 높이의 오른쪽 열 안에 정보를 상단 고정하고 과정 사진을 그 아래 3열로 둔다. 정보 높이가 늘면 과정 사진 영역만 줄며, 과정 사진이 대표 사진 하단을 넘을 분량이면 해당 영역만 세로 스크롤한다. 사진과 세로 스크롤바 사이에는 6px 여백을 둔다. 사진이 적어 스크롤이 없으면 마지막 과정 사진 줄을 대표 사진 하단에 맞춘다. 스크롤 경계에서 일부만 보이는 사진에는 JS가 현재 잘린 면을 계산한 `clip-path`를 적용해 컨테이너 양쪽과 위아래 모서리를 8px로 유지한다. 과정 사진 버튼은 클릭을 암시하는 pointer 커서를 쓰지 않는다. 모바일 썸네일은 한 줄 가로 스크롤이고 탭한 사진을 대표 영역에 유지한다. 페이지 안에서 과정 썸네일 이외의 영역을 탭하면 원래 대표 사진으로 돌아간다.
+- 프로젝트 바깥 세로 간격은 데스크톱에서 연도 구분선→프로젝트 12px, 프로젝트→다음 연도 또는 같은 연도의 다음 프로젝트 24px이다. 640px 이하에서는 연도 구분선→프로젝트 16px, 프로젝트→다음 연도 또는 같은 연도의 다음 프로젝트 32px를 사용한다. 마지막 연도 그룹에는 불필요한 하단 여백을 남기지 않는다.
+- 프로젝트 이름에 링크가 있으면 이름에만 글 제목과 같은 hover/focus 반응을 적용하고 해당 프로젝트 글로 이동한다. About의 이미지는 클릭해도 확대되지 않는다. 과정 사진은 키보드 focus로도 대표 사진 미리보기를 바꿀 수 있다.
+- `_partials/about/project-image.html`은 기존 포스팅 URL 또는 About bundle 파일명을 받는다. 선택적으로 `{src, alt}` 객체도 지원한다. front matter의 값에는 Markdown render hook이 자동 적용되지 않으므로 `![](...)` 문법을 쓰지 않는다.
+- `https://varofla.com/blog/.../image.webp` 또는 `/blog/.../image.webp`는 해당 URL의 소유 페이지에서 resource를 찾아 원래 경로로 게시한다. `/about/`에 원본을 복사하지 않는다. 축소 빌드에 소유 글이 없거나 외부 URL이면 입력 URL을 그대로 사용한다. About 전용 파일은 `content/about/`에 둔다. 누락된 상대 파일명은 빌드 오류로 알린다.
+- 원본 경로를 `src`에 유지하고 Hugo Resize로 만든 작은 버전을 `srcset`에 넣는다. 기존 글도 사용하는 동일 원본 URL이 유지된다. 제목/번호 기본 alt보다 사진의 내용을 설명하는 명시적 alt가 권장된다.
+
+```yaml
+projects:
+  - name: 스마트 굴비
+    desc: nRF54L15 기반 Matter 스마트 조명 디바이스
+    year: 2026
+    images:
+      - https://varofla.com/blog/smart-gulbi-3/260625_203845.webp
+      - 260920_152604.webp
+      - src: 260920_153135.webp
+        alt: 스마트폰으로 제어하는 스마트 굴비 조명
+```
+
+- 개발 About 콘텐츠에는 스마트 굴비 16장, Rack Out Of Dust 10장, LEXON MOD 7장이 등록되어 있다. 테마 밖의 콘텐츠와 About 전용 이미지도 사이트 저장소에서 함께 관리한다.
+- 검증: 전체 개발 사이트 Hugo 빌드와 Chrome 151에서 데스크톱 3열·세로 스크롤, 사진이 적을 때 하단 정렬, 240ms 크로스페이드, 갤러리 경계의 둥근 클리핑, 투명 WebP 미리보기의 흰 배경을 확인했다. 390px에서는 정보 → 4:3 대표 사진 → 가로 썸네일 순서, 일부만 보이는 마지막 사진, 탭 선택 유지와 썸네일 밖 탭 복귀, 문서 폭 넘침 없음을 확인했다. About에는 확대 스크립트가 없고 일반 포스팅의 이미지 확대·화살표 이동·Escape는 그대로 동작한다. 실기기 터치 검증은 별도다.
 
 **확인된 결함:** About의 복귀 링크 초기화 inline script가 `content-header`보다 먼저 출력된다. 스크립트 실행 시 `[data-about-back-btn]`가 아직 없어 곧바로 return한다. 축소 빌드 HTML에서도 script → 버튼 순서를 확인했다. 실제 복귀 링크는 기본 홈 링크로 남는 경로다.
 
-참고 사이트는 [Yufeng Wu의 포트폴리오](https://www.yufengwu.com/)이며 사용자가 대표 작업 소개 섹션의 참고로 지정했다. 이번 분석에서 URL을 열었지만 모바일 화면·애니메이션을 시각적으로 비교하지는 않았다. 레이아웃 복제나 세부 콘텐츠를 결정한 상태가 아니다.
+초기 참고 사이트는 [Yufeng Wu의 포트폴리오](https://www.yufengwu.com/)였지만, 이후 사용자가 해당 스타일을 따르지 않고 별도 디자인으로 진행하기로 결정했다.
 
 ## 8. 정리 현황과 판단 근거
 
@@ -274,6 +302,6 @@ docker run --rm \
 
 - 청소: 미사용 shortcode, 현재 공사 공지, SW/offline 유지 여부 등 실제 기능·운영 범위를 바꾸는 항목.
 - 모바일: 실제 iOS/Android에서 주소창·키보드·safe area와 pinch 감각을 확인하고 필요한 보정만 한다. 별도 swipe 이미지 이동은 현재 사양에 포함하지 않았다.
-- About: 대표 프로젝트 목록·순서·이미지·링크·설명, 기존 연도별 Projects/Skills와의 관계, 소개 문구. 사용자가 별도 상세 요청을 주기로 했다.
+- About: 프로젝트 갤러리의 배치·이미지 순서·연도 구분은 위와 같이 결정되었다. Skills·소개 문구·프로젝트 외 영역은 이후 별도 요청을 따른다.
 
 구조 정리와 기능 변경을 한 번에 섞지 않고, 현재 동작을 기준으로 작은 단위의 변경과 위 시나리오 검증을 반복하는 것을 제안한다.

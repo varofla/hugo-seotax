@@ -32,7 +32,9 @@
 
 {{ define "menu-container" }}
 <aside class="site-menu"
+      id="site-menu"
       data-site-menu
+      tabindex="-1"
       aria-label="메뉴">
   <div class="menu-content" data-menu-scroll-region>
     {{ template "menu" . }}
@@ -107,9 +109,10 @@
 {{ define "toc-container" }}
 {{ if partial "toc-show" . }}
 <aside class="site-toc"
+      id="site-toc"
+      data-site-toc
       aria-label="목차">
   <div class="toc-content">
-    <div class="toc-section-title">목차</div>
     {{ template "toc" . }}
   </div>
   <div class="hidden" id="toc-config"

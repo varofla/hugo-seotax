@@ -18,6 +18,7 @@
   };
 
   let pageScrollTop = 0;
+  let activeMenuTrigger = null;
 
   function getMenuControl() {
     return document.querySelector(SELECTORS.menuControl);
@@ -82,15 +83,51 @@
     });
   }
 
-  function setMenuOpen(nextState) {
+  function syncMenuA11y(isOpen) {
+    const menuElement = getMenuElement();
+    const isMobile = isMobileViewport();
+
+    document.querySelectorAll(SELECTORS.menuToggle).forEach((toggle) => {
+      toggle.setAttribute('aria-expanded', String(isMobile && isOpen));
+      toggle.setAttribute('aria-label', isMobile && isOpen ? '메뉴 닫기' : '메뉴 열기');
+      toggle.setAttribute('title', isMobile && isOpen ? '메뉴 닫기' : '메뉴 열기');
+    });
+
+    if (menuElement) {
+      menuElement.setAttribute('aria-hidden', String(isMobile && !isOpen));
+      menuElement.inert = isMobile && !isOpen;
+    }
+
+    document.body.classList.toggle('mobile-menu-open', isMobile && isOpen);
+  }
+
+  function setMenuOpen(nextState, options = {}) {
     const menuControl = getMenuControl();
     if (!menuControl || !isMobileViewport()) {
       return;
     }
 
+    const wasOpen = menuControl.checked;
     rememberPageScroll();
     menuControl.checked = Boolean(nextState);
+    syncMenuA11y(menuControl.checked);
     restorePageScroll();
+
+    if (menuControl.checked) {
+      activeMenuTrigger = options.trigger || document.activeElement;
+      document.dispatchEvent(new CustomEvent('mobile:panel-open', {
+        detail: { panel: 'menu' }
+      }));
+
+      window.requestAnimationFrame(() => {
+        getMenuElement()?.focus({ preventScroll: true });
+      });
+    } else if (wasOpen) {
+      if (options.restoreFocus !== false) {
+        activeMenuTrigger?.focus?.({ preventScroll: true });
+      }
+      activeMenuTrigger = null;
+    }
   }
 
   function toggleMenu() {
@@ -99,7 +136,7 @@
       return;
     }
 
-    setMenuOpen(!menuControl.checked);
+    setMenuOpen(!menuControl.checked, { trigger: document.activeElement });
   }
 
   function persistMenuScroll() {
@@ -278,6 +315,12 @@
         setMenuOpen(false);
       }
     });
+
+    document.addEventListener('mobile:panel-open', (event) => {
+      if (event.detail?.panel !== 'menu') {
+        setMenuOpen(false, { restoreFocus: false });
+      }
+    });
   }
 
   function bindMenuScrollPersistence() {
@@ -318,6 +361,8 @@
           menuControl.checked = false;
         }
 
+        syncMenuA11y(Boolean(menuControl?.checked));
+
         syncNoticeTracks();
       }, 150);
     });
@@ -332,6 +377,7 @@
     bindMenuScrollPersistence();
     bindPostViewScrollPersistence();
     bindResizeHandler();
+    syncMenuA11y(Boolean(getMenuControl()?.checked));
     syncNoticeTracks();
   }
 

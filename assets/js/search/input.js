@@ -28,6 +28,7 @@
   let modalSearchReady = false;
   let activeDropdown = null;
   let activeDropdownIndex = -1;
+  let activeSearchTrigger = null;
 
   if (!searchInput && !menuSearch && !mobileSearch) {
     return;
@@ -80,33 +81,58 @@
       createSearchModal();
     }
 
+    activeSearchTrigger = document.activeElement;
+    document.dispatchEvent(new CustomEvent('mobile:panel-open', {
+      detail: { panel: 'search' }
+    }));
+
     modalSearchState = createInitialModalState();
     modalDraftFilters = createEmptyDraftFilters();
     syncModalControlsFromState();
 
     searchOverlay.classList.add('active');
     searchModal.classList.add('active');
+    searchModal.setAttribute('aria-hidden', 'false');
+    mobileSearch?.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('mobile-search-open');
     modalSearchInput.focus();
 
     loadSearchResources();
   }
 
-  function closeSearchModal() {
+  function closeSearchModal(options = {}) {
     if (!searchModal) return;
 
     searchOverlay.classList.remove('active');
     searchModal.classList.remove('active');
+    searchModal.setAttribute('aria-hidden', 'true');
+    mobileSearch?.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('mobile-search-open');
     activeDropdown = null;
     activeDropdownIndex = -1;
     hideAllDropdowns();
     clearModalResults();
+
+    if (options.restoreFocus !== false) {
+      activeSearchTrigger?.focus?.({preventScroll: true});
+    }
+    activeSearchTrigger = null;
   }
 
   function createSearchModal() {
     searchOverlay = createElement('div', {className: 'search-overlay'});
     searchOverlay.addEventListener('click', closeSearchModal);
 
-    searchModal = createElement('div', {className: 'search-modal'});
+    searchModal = createElement('div', {
+      className: 'search-modal',
+      attrs: {
+        id: 'search-modal',
+        role: 'dialog',
+        'aria-modal': 'true',
+        'aria-label': TEXT.searchAction,
+        'aria-hidden': 'true'
+      }
+    });
 
     const modalHeader = createElement('div', {className: 'search-modal-header'});
     const modalTitle = createElement('h3', {
@@ -200,6 +226,12 @@
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.search-filter-modal')) {
         hideAllDropdowns();
+      }
+    });
+
+    document.addEventListener('mobile:panel-open', (event) => {
+      if (event.detail?.panel !== 'search' && searchModal.classList.contains('active')) {
+        closeSearchModal({restoreFocus: false});
       }
     });
   }

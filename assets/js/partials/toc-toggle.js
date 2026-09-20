@@ -1,7 +1,15 @@
 (function() {
   'use strict';
 
+  const SELECTORS = {
+    control: '#toc-control',
+    panel: '[data-site-toc]',
+    toggle: '[data-toc-toggle]',
+    overlay: '#toc-overlay'
+  };
+
   let scrollPosition = 0;
+  let activeTrigger = null;
 
   function getMenuBreakpointValue() {
     return getComputedStyle(document.documentElement)
@@ -9,126 +17,126 @@
       .trim() || '77.4rem';
   }
 
-  function isDesktopViewport() {
-    return window.matchMedia(`(min-width: calc(${getMenuBreakpointValue()} + 0.02px))`).matches;
+  function isMobileViewport() {
+    return window.matchMedia(`(max-width: ${getMenuBreakpointValue()})`).matches;
   }
 
-  // Toggle ToC with overlay
-  function toggleToC(forceState) {
-    const tocControl = document.getElementById('toc-control');
-    const tocOverlay = document.getElementById('toc-overlay');
-    const tocPanel = document.querySelector('.site-toc');
+  function getElements() {
+    return {
+      control: document.querySelector(SELECTORS.control),
+      panel: document.querySelector(SELECTORS.panel),
+      overlay: document.querySelector(SELECTORS.overlay)
+    };
+  }
 
-    if (!tocControl || !tocPanel) {
-      return;
-    }
+  function syncA11y(isOpen) {
+    const { panel } = getElements();
+    const isMobile = isMobileViewport();
 
-    // Save current scroll position
-    scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-
-    if (forceState !== undefined) {
-      tocControl.checked = forceState;
-    } else {
-      tocControl.checked = !tocControl.checked;
-    }
-
-    // Restore scroll position
-    requestAnimationFrame(() => {
-      window.scrollTo(0, scrollPosition);
+    document.querySelectorAll(SELECTORS.toggle).forEach((toggle) => {
+      const currentLabel = toggle.querySelector('[data-mobile-location]')?.textContent?.trim();
+      toggle.setAttribute('aria-expanded', String(isMobile && isOpen));
+      toggle.setAttribute('aria-label', `${isMobile && isOpen ? '목차 닫기' : '목차 열기'}: ${currentLabel || toggle.dataset.defaultLabel || '현재 글'}`);
     });
 
-    // Toggle overlay and panel
-    if (tocControl.checked) {
-      if (tocOverlay) {
-        tocOverlay.classList.add('active');
-      }
-      tocPanel.classList.add('overlay-mode');
+    if (panel) {
+      panel.setAttribute('aria-hidden', String(isMobile && !isOpen));
+      panel.inert = isMobile && !isOpen;
+    }
+
+    document.body.classList.toggle('mobile-toc-open', isMobile && isOpen);
+  }
+
+  function setTocOpen(nextState, options = {}) {
+    const { control, panel, overlay } = getElements();
+    if (!control || !panel || !isMobileViewport()) return;
+
+    const wasOpen = control.checked;
+    scrollPosition = window.pageYOffset || document.documentElement.scrollTop || 0;
+    control.checked = Boolean(nextState);
+    panel.classList.toggle('overlay-mode', control.checked);
+    overlay?.classList.toggle('active', control.checked);
+    syncA11y(control.checked);
+
+    window.requestAnimationFrame(() => window.scrollTo(0, scrollPosition));
+
+    if (control.checked) {
+      activeTrigger = options.trigger || document.activeElement;
+      document.dispatchEvent(new CustomEvent('mobile:panel-open', {
+        detail: { panel: 'toc' }
+      }));
       document.dispatchEvent(new CustomEvent('toc:opened'));
-    } else {
-      if (tocOverlay) {
-        tocOverlay.classList.remove('active');
+      window.requestAnimationFrame(() => {
+        panel.querySelector('a.active, #TableOfContents a')?.focus({ preventScroll: true });
+      });
+    } else if (wasOpen) {
+      if (options.restoreFocus !== false) {
+        activeTrigger?.focus?.({ preventScroll: true });
       }
-      tocPanel.classList.remove('overlay-mode');
+      activeTrigger = null;
     }
   }
 
-  // Initialize on DOM ready
+  function createOverlay() {
+    const { panel } = getElements();
+    if (!panel || document.querySelector(SELECTORS.overlay)) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'toc-overlay';
+    overlay.className = 'toc-overlay';
+    overlay.addEventListener('click', () => setTocOpen(false));
+    document.body.appendChild(overlay);
+  }
+
   function init() {
-    // Create desktop ToC toggle button
-    const tocContent = document.querySelector('.site-toc .toc-content');
-    if (tocContent) {
-      const tocToggleButton = document.createElement('button');
-      const tocToggleLabel = '목차 접기/펼치기';
-      tocToggleButton.className = 'toc-toggle-button';
-      tocToggleButton.innerHTML = '<i class="icon-xmark"></i>';
-      tocToggleButton.setAttribute('aria-label', tocToggleLabel);
-      tocToggleButton.setAttribute('title', tocToggleLabel);
-      tocToggleButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        toggleToC();
-      });
-      tocContent.insertBefore(tocToggleButton, tocContent.firstChild);
-    }
+    const { control, panel } = getElements();
+    if (!control || !panel) return;
 
-    // Create ToC overlay
-    const tocPanel = document.querySelector('.site-toc');
-    if (tocPanel) {
-      const overlay = document.createElement('div');
-      overlay.id = 'toc-overlay';
-      overlay.className = 'toc-overlay';
-      overlay.addEventListener('click', () => {
-        toggleToC(false);
-      });
-      document.body.appendChild(overlay);
-    }
+    createOverlay();
 
-    // Handle mobile ToC icon clicks
-    const tocLabel = document.querySelector('label[for="toc-control"]');
-    if (tocLabel) {
-      tocLabel.addEventListener('click', (e) => {
-        e.preventDefault();
-        toggleToC();
+    document.querySelectorAll(SELECTORS.toggle).forEach((toggle) => {
+      toggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        setTocOpen(!control.checked, { trigger: event.currentTarget });
       });
-    }
+    });
 
-    // Close ToC on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        const tocControl = document.getElementById('toc-control');
-        if (tocControl && tocControl.checked) {
-          toggleToC(false);
-        }
+    panel.addEventListener('click', (event) => {
+      if (event.target.closest('#TableOfContents a[href^="#"]')) {
+        setTocOpen(false);
       }
     });
 
-    // Handle window resize
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && control.checked) {
+        setTocOpen(false);
+      }
+    });
+
+    document.addEventListener('mobile:panel-open', (event) => {
+      if (event.detail?.panel !== 'toc') {
+        setTocOpen(false, { restoreFocus: false });
+      }
+    });
+
     let resizeTimer;
     window.addEventListener('resize', () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        const tocControl = document.getElementById('toc-control');
-        const tocOverlay = document.getElementById('toc-overlay');
-        const tocPanel = document.querySelector('.site-toc');
-
-        if (isDesktopViewport()) {
-          // Desktop: reset states
-          if (tocControl) {
-            tocControl.checked = false;
-          }
-          if (tocOverlay) {
-            tocOverlay.classList.remove('active');
-          }
-          if (tocPanel) {
-            tocPanel.classList.remove('overlay-mode');
-          }
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        if (!isMobileViewport()) {
+          control.checked = false;
+          panel.classList.remove('overlay-mode');
+          document.querySelector(SELECTORS.overlay)?.classList.remove('active');
         }
-      }, 250);
+        syncA11y(control.checked);
+      }, 150);
     });
+
+    syncA11y(control.checked);
   }
 
-  // Wait for DOM to be ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', init, { once: true });
   } else {
     init();
   }

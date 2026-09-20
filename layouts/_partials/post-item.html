@@ -3,13 +3,6 @@
   {{ $thumbnailImage := .Params.thumbnail }}
 
   <div class="post-content-area{{ if $thumbnailImage }} has-cover{{ end }}">
-    {{ with $thumbnailImage }}
-    <div class="post-cover-mobile{{ if site.Params.image.roundedCorners }} rounded{{ end }}">
-      {{- $thumbAttrs := partial "content/img-attr" (dict "Page" $ "Url" .) -}}
-      <img src="{{ . | absURL }}" alt="Thumbnail Image" class="post-cover-mobile-img" {{ $thumbAttrs | safeHTMLAttr }} loading="lazy" decoding="async">
-    </div>
-    {{ end }}
-
     <div class="post-text-area">
       {{ if .Params.categories }}
       {{ partial "categories/pills" (dict "categories" .Params.categories) }}
@@ -18,6 +11,13 @@
       <h2 class="post-title">
         <a href="{{ .RelPermalink }}" class="post-title-link">{{ .Title }}</a>
       </h2>
+
+      {{ with $thumbnailImage }}
+      <div class="post-cover-mobile{{ if site.Params.image.roundedCorners }} rounded{{ end }}">
+        {{- $thumbAttrs := partial "content/img-attr" (dict "Page" $ "Url" .) -}}
+        <img src="{{ . | absURL }}" alt="" class="post-cover-mobile-img" {{ $thumbAttrs | safeHTMLAttr }} loading="lazy" decoding="async">
+      </div>
+      {{ end }}
 
       {{ with cond .Description .Description (cond .Summary .Summary "") }}
       <div class="post-summary">

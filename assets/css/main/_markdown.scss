@@ -132,6 +132,9 @@
     border-collapse: collapse;
     margin-top: space(16);
     margin-bottom: space(16);
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
 
     tr th,
     tr td {
@@ -142,6 +145,35 @@
 
     tr:nth-child(2n) {
       background: var(--gray-100);
+    }
+  }
+
+  @media screen and (max-width: breakpoint(narrow)) {
+    line-height: 1.72;
+
+    h2 {
+      font-size: 1.375rem;
+      line-height: 1.35;
+    }
+
+    h3 {
+      font-size: 1.125rem;
+      line-height: 1.4;
+    }
+
+    pre,
+    table,
+    .highlight,
+    .sc-codeblock {
+      max-width: 100%;
+    }
+
+    pre,
+    .highlight pre,
+    .sc-codeblock pre {
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
     }
   }
 

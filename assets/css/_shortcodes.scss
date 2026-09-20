@@ -343,11 +343,26 @@
       flex-wrap: nowrap;
     }
 
+    @media screen and (max-width: breakpoint(narrow)) {
+      max-width: 100%;
+      padding-bottom: space(8);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x proximity;
+      scrollbar-width: thin;
+    }
+
     >div {
       min-width: $body-min-width * 0.66;
 
       @media screen and (max-width: breakpoint(menu)) {
         min-width: 0;
+      }
+
+      @media screen and (max-width: breakpoint(narrow)) {
+        flex: 0 0 82vw;
+        max-width: 24rem;
+        scroll-snap-align: center;
       }
     }
 
@@ -368,6 +383,12 @@
 
         @media screen and (max-width: breakpoint(menu)) {
           min-width: 0;
+        }
+
+        @media screen and (max-width: breakpoint(narrow)) {
+          flex: 0 0 82vw;
+          max-width: 24rem;
+          scroll-snap-align: center;
         }
       }
     }
@@ -846,12 +867,14 @@
   text-align: center;
 }
 
-.medium-zoom-overlay,
-.medium-zoom-image--opened {
-    z-index: 999;
+.medium-zoom-overlay {
+  z-index: z-index(zoom-overlay);
 }
 
 .medium-zoom-image--opened {
+  z-index: z-index(zoom-image);
+  touch-action: none;
+
   &.rounded {
     border-radius: var(--medium-zoom-border-radius, #{radius(image)});
   }
@@ -885,7 +908,7 @@
   pointer-events: none;
   transform: scale(0.9);
   transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 1000;
+  z-index: z-index(zoom-loader);
 }
 
 body.medium-zoom-loading .medium-zoom-loader {

@@ -118,6 +118,9 @@ $preview-mobile-height: 200px !default;
 
 $z-index: (
   scroll-progress: 9999,
+  zoom-loader: 1102,
+  zoom-image: 1101,
+  zoom-overlay: 1100,
   modal: 1001,
   modal-overlay: 1000,
   dropdown: 900,

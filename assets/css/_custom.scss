@@ -117,6 +117,77 @@ html.post-view-reload-restoring body.site-kind-page.site-type-posts {
   }
 }
 
+@media screen and (max-width: breakpoint(menu)) {
+  .content-wrap {
+    margin-top: space(24);
+  }
+
+  body.site-kind-page.site-type-posts .post-view-header,
+  body.site-kind-page.site-type-about .about-view-header {
+    .post-back-btn {
+      margin-bottom: space(20);
+    }
+
+    .content-title {
+      font-size: 1.75rem;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .post-meta-row {
+      margin-bottom: 1.75rem;
+    }
+  }
+}
+
+@media screen and (max-width: breakpoint(narrow)) {
+  .main-wrap {
+    padding-right: 0.875rem;
+    padding-left: 0.875rem;
+  }
+
+  .site-header {
+    margin-right: -0.875rem;
+    margin-left: -0.875rem;
+  }
+
+  .list-header {
+    padding-top: space(16);
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  body.site-kind-page.site-type-posts .post-view-header,
+  body.site-kind-page.site-type-about .about-view-header {
+    .content-title {
+      font-size: 1.5rem;
+      margin-bottom: space(12);
+    }
+
+    .post-meta-row {
+      gap: 0.625rem;
+      margin-bottom: space(24);
+      padding-bottom: space(20);
+
+      .menu-brand .menu-brand-avatar {
+        width: 38px;
+        height: 38px;
+      }
+
+      .post-meta-tags {
+        flex-wrap: nowrap;
+        padding-bottom: space(4);
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
 html.post-view-reload-revealing body.site-kind-page.site-type-posts {
   @media screen and (min-width: breakpoint(menu)) {
     .main-wrap {
@@ -256,11 +327,6 @@ body.site-kind-page.site-type-posts {
       .toc-content {
         padding: space(16) 0;
       }
-
-      // Hide the JS-inserted toggle button (not part of the post-view design)
-      .toc-toggle-button {
-        display: none;
-      }
     }
   }
 
@@ -315,6 +381,10 @@ body.site-kind-page.site-type-posts {
 
     > ul > li.toc-top-item > .toc-cover-wrap {
       margin: 8px 16px;
+
+      @media screen and (max-width: breakpoint(menu)) {
+        margin: 0 0 space(16);
+      }
     }
 
     .toc-cover-wrap {

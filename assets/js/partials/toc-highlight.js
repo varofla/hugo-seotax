@@ -4,6 +4,22 @@ document.addEventListener('DOMContentLoaded', function() {
   const TOP_TARGET_ID = 'post-top';
   const SCROLL_DURATION = 500;
   let activeTocId = null;
+  const mobileLocation = document.querySelector('[data-mobile-location]');
+  const mobileLocationButton = mobileLocation?.closest('[data-toc-toggle]');
+
+  function syncMobileLocation(link) {
+    if (!mobileLocation) return;
+
+    const fallback = mobileLocationButton?.dataset.defaultLabel || mobileLocation.textContent.trim();
+    const label = link?.textContent?.trim() || fallback;
+    mobileLocation.textContent = label;
+
+    if (mobileLocationButton) {
+      const isOpen = mobileLocationButton.getAttribute('aria-expanded') === 'true';
+      mobileLocationButton.setAttribute('aria-label', `${isOpen ? '목차 닫기' : '목차 열기'}: ${label}`);
+      mobileLocationButton.setAttribute('title', label);
+    }
+  }
   let activeMainWrapScrollAnimation = null;
 
   const easeInOut = t => t < 0.5
@@ -164,6 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const link = toc.querySelector(`a[href="#${CSS.escape(id)}"]`);
       if (link) {
         link.classList.add('active');
+        syncMobileLocation(link);
 
         if (activeTocId !== id) {
           activeTocId = id;
@@ -172,6 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     } else {
       activeTocId = null;
+      syncMobileLocation(null);
     }
   }
 

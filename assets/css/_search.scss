@@ -49,48 +49,9 @@
   }
 }
 
-.mobile-search {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  max-width: 30rem;
-  margin: 0 space(32);
-  padding: space(8) space(12);
-  border-radius: radius(search-aside);
-  background: var(--gray-100);
-  flex: 1;
-  gap: space(8);
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: var(--gray-200);
-  }
-
-  .search-icon {
-    color: var(--gray-500);
-    font-size: font-size(16);
-    justify-self: start;
-  }
-
-  .mobile-title {
-    display: block;
-    width: 100%;
-    font-size: font-size(16);
-    font-weight: 600;
-    color: var(--body-font-color);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    justify-self: center;
-  }
-
-  .mobile-title-pad {
-    width: font-size(16);
-    visibility: hidden;
-    justify-self: end;
-  }
+.mobile-search .search-icon {
+  color: var(--gray-700);
+  font-size: font-size(16);
 }
 
 /* Search Overlay */
@@ -342,12 +303,24 @@
   }
 
   @media screen and (max-width: breakpoint(narrow)) {
-    width: 95%;
-    max-height: 85vh;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    transform: none;
+    border: 0;
+    border-radius: 0;
 
     .search-modal-header,
     .search-modal-input-container {
-      padding: space(12) space(16);
+      padding-left: calc(#{space(16)} + env(safe-area-inset-left));
+      padding-right: calc(#{space(16)} + env(safe-area-inset-right));
+    }
+
+    .search-modal-header {
+      padding-top: calc(#{space(12)} + env(safe-area-inset-top));
     }
 
     .search-modal-input-container input,
@@ -364,6 +337,10 @@
     .search-modal-results .search-result-item a,
     .search-modal-footer .search-more a {
       padding: space(12) space(16);
+    }
+
+    .search-modal-footer {
+      padding-bottom: env(safe-area-inset-bottom);
     }
   }
 }
@@ -1118,8 +1095,6 @@ a.post-tag:visited {
   }
 
   .post-content-area.has-cover {
-    flex-direction: column;
-
     .post-cover {
       display: none;
     }
@@ -1127,8 +1102,9 @@ a.post-tag:visited {
     .post-cover-mobile {
       display: block;
       width: 100%;
-      height: $preview-mobile-height;
-      margin-top: space(8);
+      height: auto;
+      aspect-ratio: 16 / 9;
+      margin: space(8) 0 space(12);
 
       .post-cover-mobile-img {
         width: 100%;
@@ -1145,7 +1121,36 @@ a.post-tag:visited {
 
     .post-text-area {
       min-height: auto;
+      width: 100%;
     }
+  }
+}
+
+@media (max-width: breakpoint(narrow)) {
+  .post-list {
+    gap: space(12);
+  }
+
+  .post-item {
+    padding: 0.875rem;
+    border-width: 1px;
+    border-radius: 0.75rem;
+  }
+
+  .post-text-area h2.post-title {
+    margin-top: space(4);
+    font-size: 1.0625rem;
+    line-height: 1.45;
+  }
+
+  .post-summary {
+    font-size: 0.8125rem;
+    line-height: 1.65;
+    -webkit-line-clamp: 3;
+  }
+
+  .post-meta {
+    margin-top: space(8);
   }
 }
 

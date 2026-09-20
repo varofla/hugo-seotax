@@ -1,33 +1,47 @@
-<div class="flex align-center justify-between">
-  <label for="menu-control"
-        class="menu-toggle-button"
-        data-menu-toggle
-        aria-label="메뉴 접기/펼치기"
-        title="메뉴 접기/펼치기">
-    <i class="icon-bars menu-icon" id="menu-icon"></i>
-  </label>
+{{- $hasToc := partial "toc-show" . -}}
+{{- $locationLabel := .Site.Title -}}
+{{- if and (eq .Kind "page") .Title -}}
+  {{- $locationLabel = .Title -}}
+{{- end -}}
+<div class="mobile-header-bar">
+  <button type="button"
+          class="mobile-header-action menu-toggle-button"
+          data-menu-toggle
+          aria-controls="site-menu"
+          aria-expanded="false"
+          aria-label="메뉴 열기"
+          title="메뉴 열기">
+    <i class="icon-bars menu-icon" id="menu-icon" aria-hidden="true"></i>
+  </button>
 
-  {{ if default true .Site.Params.search.enabled }}
-  <div class="mobile-search"
-        id="mobile-search-input"
-        role="button"
-        tabindex="0"
-        aria-label="검색">
-    <i class="icon-search search-icon"></i>
-    <span class="mobile-title">{{ .Site.Title }}</span>
-    <i class="mobile-title-pad"></i>
-  </div>
+  {{ if $hasToc }}
+  <button type="button"
+          class="mobile-location"
+          data-toc-toggle
+          data-default-label="{{ $locationLabel }}"
+          aria-controls="site-toc"
+          aria-expanded="false"
+          aria-label="목차 열기: {{ $locationLabel }}">
+    <span class="mobile-location-label" data-mobile-location>{{ $locationLabel }}</span>
+    <i class="icon-chevron-down mobile-location-chevron" aria-hidden="true"></i>
+  </button>
   {{ else }}
-  <h3>
-    <a href="{{ .Site.BaseURL }}" class="mobile-title">{{ .Site.Title }}</a>
-  </h3>
+  <a href="{{ .Site.Home.RelPermalink }}" class="mobile-location mobile-location--link">
+    <span class="mobile-location-label">{{ .Site.Title }}</span>
+  </a>
   {{ end }}
 
-  <label for="toc-control"
-        aria-label="목차 접기/펼치기"
-        title="목차 접기/펼치기">
-    {{ if partial "toc-show" . }}
-    <i class="icon-list menu-icon" id="toc-icon"></i>
-    {{ end }}
-  </label>
+  {{ if default true .Site.Params.search.enabled }}
+  <button type="button"
+          class="mobile-header-action mobile-search"
+          id="mobile-search-input"
+          aria-controls="search-modal"
+          aria-expanded="false"
+          aria-label="검색 열기"
+          title="검색 열기">
+    <i class="icon-search search-icon" aria-hidden="true"></i>
+  </button>
+  {{ else }}
+  <span class="mobile-header-action mobile-header-action--placeholder" aria-hidden="true"></span>
+  {{ end }}
 </div>

@@ -106,6 +106,7 @@ nav ul {
   @media screen and (max-width: breakpoint(menu)) {
     display: block;
     padding: 0 space(16);
+    margin-top: 0;
   }
 
   i {
@@ -234,6 +235,11 @@ nav ul {
     display: none; /* Chrome, Safari, Opera */
   }
 
+  &:focus,
+  &:focus-visible {
+    outline: none;
+  }
+
   // Desktop: sticky positioning
   @media screen and (min-width: breakpoint(menu)) {
     position: sticky;
@@ -270,6 +276,12 @@ nav ul {
     @media screen and (max-width: breakpoint(menu)) {
       width: var(--mobile-menu-width);
       @include fixed;
+      height: 100vh;
+      height: 100dvh;
+      padding-bottom: env(safe-area-inset-bottom);
+      transform: translateX(0);
+      transition: transform 0.28s ease, box-shadow 0.28s ease;
+      overscroll-behavior: contain;
     }
   }
   a, label {
@@ -493,35 +505,116 @@ body[dir="rtl"] .site-menu {
     display: block;
     position: sticky;
     z-index: z-index(header);
-    opacity: 0.9;
     top: 0;
-    background-color: var(--body-background);
-    padding: 1rem;
-  }
-
-  label {
-    line-height: 0;
-  }
-
-  h3 {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 0 space(16);
+    height: calc(3.5rem + env(safe-area-inset-top));
+    margin: 0 calc(-1 * space(16));
+    padding:
+      calc(#{space(4)} + env(safe-area-inset-top))
+      calc(#{space(12)} + env(safe-area-inset-right))
+      space(4)
+      calc(#{space(12)} + env(safe-area-inset-left));
+    background: color-mix(in srgb, var(--body-background) 88%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--gray-500) 22%, transparent);
+    backdrop-filter: blur(14px) saturate(1.25);
+    -webkit-backdrop-filter: blur(14px) saturate(1.25);
   }
 }
 
-.markdown .mobile-title,
-.site-header .mobile-title {
-  &[href] {
-    color: var(--body-font-color);
+.mobile-header-bar {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
+  align-items: center;
+  width: 100%;
+  max-width: $body-max-width;
+  height: 100%;
+  margin: 0 auto;
+  gap: space(8);
+}
+
+.mobile-header-action,
+.mobile-location {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--body-font-color);
+}
+
+.site-header a.mobile-location--link[href],
+.site-header a.mobile-location--link[href]:visited {
+  color: var(--body-font-color);
+}
+
+.mobile-header-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--gray-200);
   }
 
-  &[href]:visited {
-    color: var(--body-font-color);
+  &--placeholder {
+    pointer-events: none;
   }
+}
 
-  &[href]:hover {
+.mobile-location {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: space(6);
+  width: 100%;
+  height: 2.5rem;
+  padding: 0 space(8);
+  border-radius: 999px;
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-size: font-size(14);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--gray-100);
     text-decoration: none;
+  }
+
+  &--link,
+  &--link:visited {
+    color: var(--body-font-color);
+  }
+}
+
+.mobile-location-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-location-chevron {
+  flex: 0 0 auto;
+  font-size: 0.6875rem !important;
+  color: var(--gray-500);
+  transition: transform 0.2s ease;
+}
+
+.mobile-toc-open .mobile-location-chevron {
+  transform: rotate(180deg);
+}
+
+@media screen and (max-width: breakpoint(menu)) {
+  body.mobile-toc-open .site-header {
+    z-index: 1002;
+    background: var(--body-background);
+    border-bottom-color: rgba(148, 163, 184, 0.24);
+    box-shadow: 0 1px 0 rgba(148, 163, 184, 0.08);
   }
 }
 
@@ -706,46 +799,57 @@ body[dir="rtl"] .site-menu {
 
   // Mobile: hidden by default, overlay when active
   @media screen and (max-width: breakpoint(menu)) {
-    display: none;
+    display: block;
     position: fixed;
-    top: 0;
+    top: calc(3.5rem + env(safe-area-inset-top));
+    left: 0;
     right: 0;
+    bottom: auto;
     z-index: z-index(toc);
+    width: 100%;
+    max-width: none;
+    height: auto;
+    max-height: calc(90vh - 3.5rem - env(safe-area-inset-top));
+    max-height: calc(90dvh - 3.5rem - env(safe-area-inset-top));
     overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-100%);
+    background:
+      radial-gradient(circle at top right, rgba(0, 119, 181, 0.08), transparent 28%),
+      linear-gradient(180deg, #f8fbff 0%, #f4f7fb 100%);
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-top: 0;
+    border-radius: 0 0 1.75rem 1.75rem;
+    box-shadow:
+      0 18px 42px rgba(15, 23, 42, 0.16),
+      0 4px 12px rgba(15, 23, 42, 0.08);
+    transition:
+      transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.2s ease,
+      visibility 0s linear 0.34s;
 
-    // Overlay: show ToC as modal
     &.overlay-mode {
-      display: block !important;
-      position: fixed !important;
-      visibility: visible !important;
-      top: 10vh;
-      left: 50%;
-      right: auto;
-      width: 40%;
-      min-width: $toc-overlay-width;
-      height: auto;
-      max-height: $toc-overlay-height;
-      margin: 0;
-      transform: translateX(-50%);
-      background:
-        radial-gradient(circle at top right, rgba(0, 119, 181, 0.08), transparent 28%),
-        linear-gradient(180deg, #f8fbff 0%, #f4f7fb 100%);
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      box-shadow:
-        0 8px 40px rgba(15, 23, 42, 0.16),
-        0 2px 8px rgba(15, 23, 42, 0.08);
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
       z-index: z-index(modal);
-      overflow-y: auto;
-      border-radius: radius(overlay);
+      transition-delay: 0s;
 
       .toc-content {
         width: 100%;
+        max-width: $body-max-width;
         height: auto;
-        padding: space(24);
-      }
-
-      .toc-toggle-button {
-        display: block;
+        min-height: 0;
+        margin: 0 auto;
+        padding:
+          space(16)
+          calc(#{space(16)} + env(safe-area-inset-right))
+          space(24)
+          calc(#{space(16)} + env(safe-area-inset-left));
+        overflow: visible;
       }
 
       // padding handled per-link; no extra margin needed
@@ -761,13 +865,6 @@ body[dir="rtl"] .site-menu {
     }
   }
 
-  @media screen and (max-width: ($toc-overlay-width * 1.1)) {
-    &.overlay-mode {
-      width: 90%;
-      min-width: 0;
-    }
-  }
-
   .toc-content {
     width: 100%;
     min-height: 100%;
@@ -776,33 +873,6 @@ body[dir="rtl"] .site-menu {
     // Desktop: no fixed height needed
     @media screen and (min-width: breakpoint(menu)) {
       height: auto;
-    }
-  }
-
-  .toc-section-title {
-    padding: 0.25rem 1rem 0.5rem;
-    margin: 0;
-    font-family: "Pretendard Variable", Pretendard, sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: oklch(0.5 0.008 220);
-  }
-
-  .toc-toggle-button {
-    position: absolute;
-    top: space(16);
-    right: space(16);
-    background: transparent;
-    border: none;
-    padding: space(8);
-    cursor: pointer;
-    z-index: z-index(content);
-    display: none;
-
-    i {
-      font-size: font-size(16);
     }
   }
 
@@ -878,7 +948,7 @@ body[dir="rtl"] .site-menu {
   z-index: z-index(modal-overlay);
   display: none;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0.22s ease-in-out;
   pointer-events: none;
 
   &.active {
@@ -1024,9 +1094,6 @@ body[dir="rtl"] .site-menu {
     visibility: hidden;
   }
 
-  #toc-icon {
-    cursor: pointer;
-  }
 }
 
 // Enable menu control in mobile header when side menu disappears
@@ -1053,7 +1120,7 @@ body[dir="rtl"] .site-menu {
 
     .site-menu .menu-content {
       transform: translateX(var(--mobile-menu-width));
-      box-shadow: 0 0 space(8) rgba(0, 0, 0, 0.1);
+      box-shadow: 8px 0 32px rgba(15, 23, 42, 0.14);
     }
 
     .menu-overlay {
@@ -1077,5 +1144,24 @@ body[dir="rtl"] .site-menu {
     .site-menu .menu-content {
       transform: translateX(calc(-1 * var(--mobile-menu-width)));
     }
+  }
+}
+
+@media screen and (max-width: breakpoint(menu)) {
+  body.mobile-menu-open,
+  body.mobile-toc-open,
+  body.mobile-search-open {
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-menu,
+  .site-menu .menu-content,
+  .site-toc,
+  .menu-overlay,
+  .toc-overlay,
+  .mobile-location-chevron {
+    transition-duration: 0.01ms !important;
   }
 }

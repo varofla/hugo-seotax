@@ -7,6 +7,8 @@
   let zoomWheelState = null;
   let zoomWheelSettleTimer = null;
   let zoomDragState = null;
+  let zoomPinchState = null;
+  const zoomTouchPointers = new Map();
   let suppressZoomClick = false;
   let isZoomNavigating = false;
 
@@ -423,13 +425,84 @@
     setOpenedZoomCursor(isWheelZoomActive() ? "grab" : "");
   }
 
-  function handleZoomPointerDown(event) {
-    if (!isWheelZoomActive()) return;
+  function getTouchDistance() {
+    const points = Array.from(zoomTouchPointers.values());
+    if (points.length < 2) return 0;
 
+    return Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+  }
+
+  function getTouchCenter() {
+    const points = Array.from(zoomTouchPointers.values());
+    if (points.length < 2) return null;
+
+    return {
+      x: (points[0].x + points[1].x) / 2,
+      y: (points[0].y + points[1].y) / 2,
+    };
+  }
+
+  function beginPinchZoom() {
+    if (!zoomWheelState || zoomTouchPointers.size < 2) return;
+
+    const distance = getTouchDistance();
+    if (!distance) return;
+
+    zoomPinchState = {
+      startDistance: distance,
+      startScale: zoomWheelState.scale,
+    };
+    zoomDragState = null;
+    suppressZoomClick = true;
+    clearZoomWheelSettle();
+    setWheelZoomTransitionOverride(true);
+  }
+
+  function updatePinchZoom(event) {
+    if (!zoomPinchState || !zoomWheelState || zoomTouchPointers.size < 2) return false;
+
+    const anchorImage = getOpenedZoomImages()[0];
+    const currentRect = syncWheelZoomStateFromRect(anchorImage);
+    const center = getTouchCenter();
+    const distance = getTouchDistance();
+    if (!currentRect || !center || !distance) return false;
+
+    event.preventDefault();
+    const nextScale = Math.min(
+      getMaxWheelZoomScale(),
+      Math.max(
+        zoomWheelState.baseScale,
+        zoomPinchState.startScale * (distance / zoomPinchState.startDistance)
+      )
+    );
+
+    updateWheelZoomTarget(nextScale, center.x, center.y, currentRect);
+    syncWheelZoomFrame();
+    return true;
+  }
+
+  function resetPinchState() {
+    zoomPinchState = null;
+    zoomTouchPointers.clear();
+  }
+
+  function handleZoomPointerDown(event) {
     const target = event.target;
 
     if (!(target instanceof Element)) return;
     if (!target.closest(".medium-zoom-image--opened")) return;
+
+    if (event.pointerType === "touch") {
+      zoomTouchPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+      if (zoomTouchPointers.size >= 2) {
+        event.preventDefault();
+        beginPinchZoom();
+        return;
+      }
+    }
+
+    if (!isWheelZoomActive()) return;
 
     event.preventDefault();
 
@@ -452,6 +525,11 @@
   }
 
   function handleZoomPointerMove(event) {
+    if (event.pointerType === "touch" && zoomTouchPointers.has(event.pointerId)) {
+      zoomTouchPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (updatePinchZoom(event)) return;
+    }
+
     if (!zoomDragState || !zoomWheelState) return;
     if (event.pointerId !== zoomDragState.pointerId) return;
 
@@ -472,6 +550,18 @@
   }
 
   function handleZoomPointerEnd(event) {
+    if (event.pointerType === "touch" && zoomTouchPointers.has(event.pointerId)) {
+      zoomTouchPointers.delete(event.pointerId);
+
+      if (zoomPinchState) {
+        event.preventDefault();
+        zoomPinchState = null;
+        setWheelZoomTransitionOverride(false);
+        setOpenedZoomCursor(isWheelZoomActive() ? "grab" : "");
+        return;
+      }
+    }
+
     if (!zoomDragState) return;
     if (event.pointerId !== zoomDragState.pointerId) return;
 
@@ -707,11 +797,13 @@
 
     zoom.on("close", () => {
       resetDragState();
+      resetPinchState();
       resetWheelZoomState();
     });
     zoom.on("close", hideZoomLoader);
     zoom.on("closed", () => {
       resetDragState();
+      resetPinchState();
       resetWheelZoomState();
       hideZoomLoader();
     });

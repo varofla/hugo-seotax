@@ -6,6 +6,7 @@
 {{- $decoding := .Decoding | default "async" -}}
 {{- $width := int (.Width | default 0) -}}
 {{- $height := int (.Height | default 0) -}}
+{{- $preserveRatio := .PreserveRatio | default false -}}
 {{- $sizes := .Sizes -}}
 {{- $zoomSrc := .ZoomSrc -}}
 
@@ -44,8 +45,20 @@
 {{- end -}}
 
 {{- with $res -}}
-  {{- if and (reflect.IsImageResourceWithMeta .) (gt $width 0) (gt $height 0) -}}
-    {{- if and (ge .Width $width) (ge .Height $height) -}}
+  {{- if and (reflect.IsImageResourceWithMeta .) (gt $width 0) -}}
+    {{- if and $preserveRatio (ge .Width $desktop1xWidth) -}}
+      {{- $desktop1x := .Resize (printf "%dx q95" $desktop1xWidth) -}}
+      {{- $src = $desktop1x.RelPermalink -}}
+      {{- $attrs = printf `width="%d" height="%d"` $desktop1x.Width $desktop1x.Height -}}
+      {{- $srcsetParts := slice (printf "%s %dw" $desktop1x.RelPermalink $desktop1x.Width) -}}
+
+      {{- if ge .Width $desktop2xWidth -}}
+        {{- $desktop2x := .Resize (printf "%dx q95" $desktop2xWidth) -}}
+        {{- $srcsetParts = $srcsetParts | append (printf "%s %dw" $desktop2x.RelPermalink $desktop2x.Width) -}}
+      {{- end -}}
+
+      {{- $srcset = delimit $srcsetParts ", " -}}
+    {{- else if and (not $preserveRatio) (gt $height 0) (ge .Width $width) (ge .Height $height) -}}
       {{- $desktop1x := .Fill (printf "%dx%d Center q95" $desktop1xWidth $desktop1xHeight) -}}
       {{- $src = $desktop1x.RelPermalink -}}
       {{- $attrs = printf `width="%d" height="%d"` $width $height -}}

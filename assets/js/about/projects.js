@@ -3,6 +3,39 @@
 
   const previewStates = new WeakMap();
   const mobileProjectMedia = window.matchMedia("(max-width: 40rem)");
+  const previewLoaderDelay = 200;
+
+  function normalizeUrl(url) {
+    if (!url) return "";
+
+    try {
+      return new URL(url, window.location.href).href;
+    } catch (error) {
+      return url;
+    }
+  }
+
+  function hidePreviewLoader(state) {
+    if (state.loaderTimer) {
+      window.clearTimeout(state.loaderTimer);
+      state.loaderTimer = null;
+    }
+
+    state.heroPhoto.classList.remove("is-loading");
+    state.heroPhoto.removeAttribute("aria-busy");
+  }
+
+  function schedulePreviewLoader(state, requestId) {
+    hidePreviewLoader(state);
+
+    state.loaderTimer = window.setTimeout(() => {
+      state.loaderTimer = null;
+      if (state.requestId !== requestId) return;
+
+      state.heroPhoto.classList.add("is-loading");
+      state.heroPhoto.setAttribute("aria-busy", "true");
+    }, previewLoaderDelay);
+  }
 
   function restorePreview(project) {
     const state = previewStates.get(project);
@@ -10,7 +43,9 @@
 
     state.requestId += 1;
     state.activePhoto = null;
+    state.targetSrc = "";
     state.shownSrc = "";
+    hidePreviewLoader(state);
     state.previewLayers.forEach((layer) => layer.classList.remove("is-visible"));
     state.activeLayer = null;
     state.heroPhoto.classList.remove("is-previewing");
@@ -29,57 +64,83 @@
     });
   }
 
+  function showPreviewSource(state, source) {
+    if (!source || (state.shownSrc === source && state.activeLayer)) return;
+
+    settleActiveLayer(state);
+
+    const previousLayer = state.activeLayer;
+    const nextLayer = previousLayer === state.previewLayers[0]
+      ? state.previewLayers[1]
+      : state.previewLayers[0];
+
+    nextLayer.classList.remove("is-visible");
+    nextLayer.src = source;
+    nextLayer.style.zIndex = "2";
+    if (previousLayer) previousLayer.style.zIndex = "1";
+
+    // Flush the hidden state so cached images still transition.
+    nextLayer.getBoundingClientRect();
+    nextLayer.classList.add("is-visible");
+
+    state.activeLayer = nextLayer;
+    state.shownSrc = source;
+    state.heroPhoto.classList.add("is-previewing");
+
+    if (previousLayer) {
+      let finished = false;
+      const finishTransition = () => {
+        if (finished) return;
+        finished = true;
+        if (state.activeLayer === nextLayer) {
+          previousLayer.classList.remove("is-visible");
+        }
+      };
+
+      nextLayer.addEventListener("transitionend", finishTransition, { once: true });
+      window.setTimeout(finishTransition, 320);
+    }
+  }
+
   function showPreview(project, photo) {
     const state = previewStates.get(project);
-    const previewSrc = photo.dataset.projectPreviewSrc;
+    const previewSrc = normalizeUrl(photo.dataset.projectPreviewSrc);
+    const thumbnailImage = photo.querySelector(":scope > img");
+    const thumbnailSrc = thumbnailImage instanceof HTMLImageElement
+      ? normalizeUrl(thumbnailImage.currentSrc || photo.dataset.projectThumbnailSrc)
+      : normalizeUrl(photo.dataset.projectThumbnailSrc);
 
     if (!state || !previewSrc) return;
+    if (state.activePhoto === photo && state.targetSrc === previewSrc) return;
 
     state.activePhoto = photo;
-    if (state.shownSrc === previewSrc && state.activeLayer) return;
+    state.targetSrc = previewSrc;
 
     const requestId = ++state.requestId;
     const preload = new Image();
+    preload.decoding = "async";
 
     preload.onload = () => {
       if (state.requestId !== requestId || state.activePhoto !== photo) return;
 
-      settleActiveLayer(state);
-
-      const previousLayer = state.activeLayer;
-      const nextLayer = previousLayer === state.previewLayers[0]
-        ? state.previewLayers[1]
-        : state.previewLayers[0];
-
-      nextLayer.classList.remove("is-visible");
-      nextLayer.src = previewSrc;
-      nextLayer.style.zIndex = "2";
-      if (previousLayer) previousLayer.style.zIndex = "1";
-
-      // Flush the hidden state so cached images still transition.
-      nextLayer.getBoundingClientRect();
-      nextLayer.classList.add("is-visible");
-
-      state.activeLayer = nextLayer;
-      state.shownSrc = previewSrc;
-      state.heroPhoto.classList.add("is-previewing");
-
-      if (previousLayer) {
-        let finished = false;
-        const finishTransition = () => {
-          if (finished) return;
-          finished = true;
-          if (state.activeLayer === nextLayer) {
-            previousLayer.classList.remove("is-visible");
-          }
-        };
-
-        nextLayer.addEventListener("transitionend", finishTransition, { once: true });
-        window.setTimeout(finishTransition, 320);
-      }
+      hidePreviewLoader(state);
+      showPreviewSource(state, previewSrc);
     };
+    preload.onerror = () => {
+      if (state.requestId !== requestId || state.activePhoto !== photo) return;
 
+      hidePreviewLoader(state);
+    };
     preload.src = previewSrc;
+
+    if (preload.complete && preload.naturalWidth > 0) {
+      hidePreviewLoader(state);
+      showPreviewSource(state, previewSrc);
+      return;
+    }
+
+    showPreviewSource(state, thumbnailSrc);
+    schedulePreviewLoader(state, requestId);
   }
 
   function markSelectedPhoto(project, photo) {
@@ -186,6 +247,11 @@
       heroPhoto.appendChild(layer);
     });
 
+    const previewLoader = document.createElement("div");
+    previewLoader.className = "medium-zoom-loader about-project-photo__loader";
+    previewLoader.setAttribute("aria-hidden", "true");
+    heroPhoto.appendChild(previewLoader);
+
     const photos = [...gallery.querySelectorAll("[data-project-preview-src]")];
 
     initGalleryClipping(gallery, photos);
@@ -196,8 +262,10 @@
       photos,
       activeLayer: null,
       activePhoto: null,
+      targetSrc: "",
       shownSrc: "",
       requestId: 0,
+      loaderTimer: null,
     });
 
     photos.forEach((photo) => {

@@ -821,6 +821,17 @@ a.about-project-name-link:visited {
     }
   }
 
+  .about-project-photo__loader.medium-zoom-loader {
+    position: absolute;
+    z-index: 3;
+  }
+
+  &.is-loading .about-project-photo__loader {
+    opacity: 1;
+    transform: scale(1);
+    animation: medium-zoom-loader-spin 0.8s linear infinite;
+  }
+
   &:focus-visible {
     outline: 2px solid oklch(0.5 0.13 198);
     outline-offset: 3px;

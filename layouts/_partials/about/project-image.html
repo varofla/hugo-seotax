@@ -27,6 +27,7 @@
 {{- $original := $src -}}
 {{- $srcset := slice -}}
 {{- $previewSrc := $original -}}
+{{- $thumbnailSrc := $original -}}
 {{- $width := 0 -}}
 {{- $height := 0 -}}
 {{- with $resource -}}
@@ -39,6 +40,11 @@
         {{- $previewSrc = (.Resize "800x q85").RelPermalink -}}
       {{- else -}}
         {{- $previewSrc = $original -}}
+      {{- end -}}
+      {{- if and (gt $width 180) $isThumbnail -}}
+        {{- $thumbnailSrc = (.Resize "180x q85").RelPermalink -}}
+      {{- else -}}
+        {{- $thumbnailSrc = $original -}}
       {{- end -}}
       {{- $widths := slice 180 360 540 -}}
       {{- if $isHero -}}{{- $widths = slice 480 800 1200 -}}{{- end -}}
@@ -54,7 +60,8 @@
 {{- end -}}
 {{- if $isThumbnail }}
 <button type="button" class="about-project-photo about-project-photo--thumbnail"
-  data-project-preview-src="{{ $previewSrc }}" aria-pressed="false"
+  data-project-preview-src="{{ $previewSrc }}" data-project-thumbnail-src="{{ $thumbnailSrc }}"
+  aria-pressed="false"
   aria-label="{{ .Project }} 사진 {{ add .Index 1 }} 보기">
   <img src="{{ $original }}" alt="{{ $alt }}"
     {{ with $srcset }}srcset="{{ delimit . ", " }}" sizes="(max-width: 640px) 22vw, (max-width: 960px) 15vw, 141px"{{ end }}

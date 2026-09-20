@@ -5,6 +5,8 @@
   const POST_VIEW_SCROLL_STORAGE_KEY = 'postView.mainWrapScrollTop';
   const POST_VIEW_RELOAD_RESTORING_CLASS = 'post-view-reload-restoring';
   const POST_VIEW_RELOAD_REVEALING_CLASS = 'post-view-reload-revealing';
+  const NOTICE_SECONDS_PER_CHARACTER = 0.22;
+  const NOTICE_MOTION_PORTION = 0.9;
   const SELECTORS = {
     menu: '[data-site-menu]',
     menuControl: '#menu-control',
@@ -75,6 +77,19 @@
 
   function prefersReducedMotion() {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  function countNoticeCharacters(text) {
+    const normalizedText = text.trim().replace(/\s+/g, ' ');
+    if (!normalizedText) {
+      return 0;
+    }
+
+    if (typeof Intl?.Segmenter === 'function') {
+      return Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(normalizedText)).length;
+    }
+
+    return Array.from(normalizedText).length;
   }
 
   function restorePageScroll() {
@@ -250,6 +265,7 @@
 
     track.querySelectorAll(SELECTORS.noticeClone).forEach((clone) => clone.remove());
     track.classList.remove('is-animated');
+    track.style.removeProperty('--notice-scroll-duration');
 
     const sourceGroup = track.querySelector(SELECTORS.noticeGroup);
     const viewport = track.parentElement;
@@ -260,6 +276,14 @@
     if (prefersReducedMotion() || sourceGroup.scrollWidth <= viewport.clientWidth) {
       return;
     }
+
+    const characterCount = countNoticeCharacters(sourceGroup.textContent || '');
+    if (!characterCount) {
+      return;
+    }
+
+    const duration = characterCount * NOTICE_SECONDS_PER_CHARACTER / NOTICE_MOTION_PORTION;
+    track.style.setProperty('--notice-scroll-duration', `${duration.toFixed(2)}s`);
 
     const clone = sourceGroup.cloneNode(true);
     clone.dataset.menuNoticeClone = 'true';

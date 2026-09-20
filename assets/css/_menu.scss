@@ -96,7 +96,7 @@
 
   &.is-animated {
     width: max-content;
-    animation: site-menu-notice-marquee 40s linear infinite;
+    animation: site-menu-notice-marquee var(--notice-scroll-duration, 40s) linear infinite;
   }
 }
 

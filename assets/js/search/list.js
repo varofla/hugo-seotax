@@ -1,6 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
   const SEARCH_PATH = '{{ "search/" | relURL }}';
-  const {composeUrl, createElement, getUrlState} = window.siteSearch.utils;
+  const {
+    composeUrl,
+    createElement,
+    getEffectiveSort,
+    getUrlState,
+    sortResultIds
+  } = window.siteSearch.utils;
   const currentPath = window.location.pathname;
   const isSearchPage = currentPath.startsWith(SEARCH_PATH);
 
@@ -13,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
   let liveSearchFrame = null;
   let taxonomyOutsideClickBound = false;
   let isQueryComposing = false;
+  let resultScores = new Map();
 
   const TEXT = {
     searchAction: '검색',
@@ -35,8 +42,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const noResults = document.querySelector('#search-no-results');
   const listHeader = document.querySelector('#list-header');
   const searchFilterHost = document.querySelector('#search-filter-host');
+  const sortControl = document.querySelector('#search-sort-control');
   const searchActionPath = SEARCH_PATH;
   const browseActionPath = SEARCH_PATH;
+
+  setupSortControl();
 
   initializeSearchData().then(() => {
     renderSearchPage(state, {replaceUrl: false});
@@ -83,6 +93,9 @@ document.addEventListener('DOMContentLoaded', function() {
       nextParams.set('tags', searchState.tags.join(','));
       nextParams.set('tagsOp', searchState.tagsOp);
     }
+    if (searchState.sort !== window.siteSearch.defaultSort) {
+      nextParams.set('sort', searchState.sort);
+    }
     if (searchState.page > 1) nextParams.set('page', searchState.page);
     if (searchState.pageSize !== 10) nextParams.set('pageSize', searchState.pageSize);
 
@@ -106,12 +119,15 @@ document.addEventListener('DOMContentLoaded', function() {
       category2: category1Chip ? (category2Chip?.dataset.name || '') : '',
       tags: Array.from(tagChips).map((chip) => chip.dataset.name),
       tagsOp: tagsOpCheckbox?.checked ? 'and' : 'or',
+      sort: state.sort,
       page: preservePage ? state.page : 1,
       pageSize: state.pageSize
     };
   }
 
   function runSearch(searchState, appendHeader = false) {
+    resultScores = new Map();
+
     switch (getSearchType(searchState)) {
       case 'category1':
         return searchCategory1(searchState, appendHeader);
@@ -151,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     displayResults(ids, state);
+    syncSortControl(state, ids.size);
 
     if (replaceUrl) {
       window.history.replaceState(null, '', buildSearchUrlFromState(state));
@@ -165,6 +182,45 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     }
+  }
+
+  function setupSortControl() {
+    if (!sortControl) {
+      return;
+    }
+
+    sortControl.querySelectorAll('[data-sort]').forEach((button) => {
+      button.addEventListener('click', function() {
+        const sort = this.dataset.sort;
+        if (!window.siteSearch.sortOptions.includes(sort) || sort === state.sort) {
+          return;
+        }
+
+        renderSearchPage({...state, sort, page: 1}, {
+          replaceUrl: true,
+          refreshControls: false
+        });
+      });
+    });
+  }
+
+  function syncSortControl(searchState, resultCount) {
+    if (!sortControl) {
+      return;
+    }
+
+    sortControl.classList.toggle('hidden', resultCount === 0);
+    const effectiveSort = getEffectiveSort(searchState);
+
+    sortControl.querySelectorAll('[data-sort]').forEach((button) => {
+      const isRelevance = button.dataset.sort === 'relevance';
+      const isHidden = isRelevance && !searchState.query;
+      const isActive = !isHidden && button.dataset.sort === effectiveSort;
+
+      button.classList.toggle('hidden', isHidden);
+      button.classList.toggle('active', isActive);
+      button.setAttribute('aria-pressed', String(isActive));
+    });
   }
 
   /**
@@ -1032,6 +1088,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (state.query) {
       const searchHits = window.siteSearch.index.search(state.query);
       searchPosts = new Set(searchHits.map(result => result.item.id));
+      resultScores = new Map(searchHits.map(result => [result.item.id, result.score]));
     } else {
       const total = window.siteSearch.total;
       searchPosts = new Set(Array.from({length: total}, (_, i) => i));
@@ -1141,6 +1198,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (state.query) {
       const searchHits = window.siteSearch.index.search(state.query);
       searchPosts = new Set(searchHits.map(result => result.item.id));
+      resultScores = new Map(searchHits.map(result => [result.item.id, result.score]));
     } else {
       searchPosts = new Set(Array.from({length: window.siteSearch.total}, (_, i) => i));
     }
@@ -1196,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const fragment = document.createDocumentFragment();
-    const sortedIds = Array.from(ids).toSorted((a, b) => a - b);
+    const sortedIds = sortResultIds(ids, state, resultScores);
     const searchItems = searchData.querySelectorAll('.search-item');
 
     const totalPages = Math.ceil(totalPosts / state.pageSize);

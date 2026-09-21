@@ -2,7 +2,7 @@
   'use strict';
 
   const SEARCH_PATH = '{{ "search/" | relURL }}';
-  const {createElement, composeUrl, getUrlState} = window.siteSearch.utils;
+  const {createElement, composeUrl, getUrlState, sortResultIds} = window.siteSearch.utils;
   const TEXT = {
     searchAction: '검색',
     searchClose: '닫기',
@@ -64,7 +64,8 @@
       category1: state.category1,
       category2: state.category2,
       tags: state.tags,
-      tagsOp: state.tagsOp
+      tagsOp: state.tagsOp,
+      sort: state.sort
     };
   }
 
@@ -519,6 +520,9 @@
       params.set('tags', modalSearchState.tags.join(','));
       params.set('tagsOp', modalSearchState.tagsOp);
     }
+    if (modalSearchState.sort !== window.siteSearch.defaultSort) {
+      params.set('sort', modalSearchState.sort);
+    }
 
     return composeUrl(SEARCH_PATH, params);
   }
@@ -736,10 +740,12 @@
 
     let ids;
     let orderedIds = [];
+    let resultScores = new Map();
 
     if (modalSearchState.query) {
       const searchHits = window.siteSearch.index.search(modalSearchState.query);
       orderedIds = searchHits.map((result) => result.item.id);
+      resultScores = new Map(searchHits.map((result) => [result.item.id, result.score]));
       ids = new Set(orderedIds);
     } else {
       orderedIds = getAllIds();
@@ -775,7 +781,8 @@
       ids = applyDraftTagFilter(ids, modalDraftFilters.tags);
     }
 
-    return orderedIds.filter((id) => ids.has(id));
+    const filteredIds = orderedIds.filter((id) => ids.has(id));
+    return sortResultIds(filteredIds, modalSearchState, resultScores);
   }
 
   function applyDraftCategory1Filter(sourceIds, query) {

@@ -13,6 +13,7 @@
 - Pretendard 1.3.9 variable font를 `static/fonts`에 라이선스와 함께 포함했다. Google Fonts 요청은 제거했다. 색상과 글꼴의 공통 토큰은 `variables/_colors.scss`, 로드는 `variables/_fonts.scss`에 있다.
 - `_lists.scss`: 페이지 헤더, 글 목록, 분류 디렉터리, 페이지 번호, 빈 상태. `_search.scss`: 검색 모달과 필터. `_reading.scss`: 읽기 레이아웃·전환·목차·공유 헤더. `_about.scss`: About. `_custom.scss`는 선택적 추가 스타일만 담는다.
 - About 복귀 스크립트는 버튼 뒤로 옮겼다. About 갤러리, 이미지 확대, 읽기 전환과 모바일 패널 구조는 유지했다. `/posts/`도 홈과 공통 목록 partial을 사용하며, 404는 공통 레이아웃을 사용한다.
+- upstream `d5d0ebd`에서는 검색 정렬만 현재 구조에 맞춰 이식했다. 키워드 검색의 기본값은 관련도순이고, 최신순·오래된순 선택과 URL 상태를 지원한다. 홈 목록 정렬·정적 archive·다국어 UI는 제외했다.
 - 운영 디렉터리와 배포 스크립트는 변경하지 않았다. 전체 개발 사이트 빌드 산출물은 `/tmp/varofla-redesign/public`, 검증 자료는 `/tmp/varofla-redesign`에 있다.
 
 ## 1. 사용자와 합의된 방향
@@ -89,7 +90,8 @@
 - `head.html`이 `assets/data/{content,categories,tags}.json`을 Hugo resource template으로 렌더링·minify·fingerprint하고 URL을 `window.siteSearch`에 전달한다.
 - content의 숫자 ID와 category/tag의 ID 집합은 같은 `pages/search` 순서에 의존한다. 필터나 정렬을 한쪽만 바꾸면 연결이 깨질 수 있다.
 - 검색 결과 카드 원본은 `layouts/search/list.html`의 숨겨진 `.search-data` 안에 HTML로 전부 들어간다. `post-items.json`이 현재 검색의 실제 데이터 공급원이라고 가정하지 않는다.
-- URL 상태는 `query`, `category1`, `category2`, `tags`, `tagsOp`, `page`, `pageSize`. 태그 링크는 `/search/?tags=...`로 간다.
+- URL 상태는 `query`, `category1`, `category2`, `tags`, `tagsOp`, `sort`, `page`, `pageSize`. `sort`는 `relevance`, `newest`, `oldest`를 지원하며 기본값은 `relevance`다. 키워드가 없는 관련도순은 최신순으로 처리한다. 태그 링크는 `/search/?tags=...`로 간다.
+- Fuse 점수는 검색 모달과 전체 결과 페이지가 함께 사용한다. 관련도순은 점수 → 최신 날짜 → 숫자 ID 순으로, 날짜순은 날짜 → 숫자 ID 순으로 결과를 고정한다. 정렬은 필터 적용 후 페이지네이션 전에 수행한다.
 - Fuse 본문·제목 검색과 카테고리·태그 필터는 사이트의 주요 탐색 기능이다. 모바일 디자인 범위에도 검색 모달과 결과 카드가 포함된다.
 
 ### 기존 글 호환성

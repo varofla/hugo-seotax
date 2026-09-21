@@ -64,8 +64,7 @@
       category1: state.category1,
       category2: state.category2,
       tags: state.tags,
-      tagsOp: state.tagsOp,
-      sort: state.sort
+      tagsOp: state.tagsOp
     };
   }
 
@@ -519,9 +518,6 @@
     if (modalSearchState.tags.length > 0) {
       params.set('tags', modalSearchState.tags.join(','));
       params.set('tagsOp', modalSearchState.tagsOp);
-    }
-    if (modalSearchState.sort !== window.siteSearch.defaultSort) {
-      params.set('sort', modalSearchState.sort);
     }
 
     return composeUrl(SEARCH_PATH, params);

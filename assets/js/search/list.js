@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const {
     composeUrl,
     createElement,
-    getEffectiveSort,
     getUrlState,
     sortResultIds
   } = window.siteSearch.utils;
@@ -42,11 +41,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const noResults = document.querySelector('#search-no-results');
   const listHeader = document.querySelector('#list-header');
   const searchFilterHost = document.querySelector('#search-filter-host');
-  const sortControl = document.querySelector('#search-sort-control');
   const searchActionPath = SEARCH_PATH;
   const browseActionPath = SEARCH_PATH;
-
-  setupSortControl();
 
   initializeSearchData().then(() => {
     renderSearchPage(state, {replaceUrl: false});
@@ -93,9 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
       nextParams.set('tags', searchState.tags.join(','));
       nextParams.set('tagsOp', searchState.tagsOp);
     }
-    if (searchState.sort !== window.siteSearch.defaultSort) {
-      nextParams.set('sort', searchState.sort);
-    }
     if (searchState.page > 1) nextParams.set('page', searchState.page);
     if (searchState.pageSize !== 10) nextParams.set('pageSize', searchState.pageSize);
 
@@ -119,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
       category2: category1Chip ? (category2Chip?.dataset.name || '') : '',
       tags: Array.from(tagChips).map((chip) => chip.dataset.name),
       tagsOp: tagsOpCheckbox?.checked ? 'and' : 'or',
-      sort: state.sort,
       page: preservePage ? state.page : 1,
       pageSize: state.pageSize
     };
@@ -167,7 +159,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     displayResults(ids, state);
-    syncSortControl(state, ids.size);
 
     if (replaceUrl) {
       window.history.replaceState(null, '', buildSearchUrlFromState(state));
@@ -182,45 +173,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     }
-  }
-
-  function setupSortControl() {
-    if (!sortControl) {
-      return;
-    }
-
-    sortControl.querySelectorAll('[data-sort]').forEach((button) => {
-      button.addEventListener('click', function() {
-        const sort = this.dataset.sort;
-        if (!window.siteSearch.sortOptions.includes(sort) || sort === state.sort) {
-          return;
-        }
-
-        renderSearchPage({...state, sort, page: 1}, {
-          replaceUrl: true,
-          refreshControls: false
-        });
-      });
-    });
-  }
-
-  function syncSortControl(searchState, resultCount) {
-    if (!sortControl) {
-      return;
-    }
-
-    sortControl.classList.toggle('hidden', resultCount === 0);
-    const effectiveSort = getEffectiveSort(searchState);
-
-    sortControl.querySelectorAll('[data-sort]').forEach((button) => {
-      const isRelevance = button.dataset.sort === 'relevance';
-      const isHidden = isRelevance && !searchState.query;
-      const isActive = !isHidden && button.dataset.sort === effectiveSort;
-
-      button.classList.toggle('hidden', isHidden);
-      button.classList.toggle('active', isActive);
-      button.setAttribute('aria-pressed', String(isActive));
-    });
   }
 
   /**

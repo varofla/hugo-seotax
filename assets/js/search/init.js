@@ -1,11 +1,5 @@
 window.siteSearch.utils = window.siteSearch.utils || {};
 
-window.siteSearch.sortOptions = ['relevance', 'newest', 'oldest'];
-window.siteSearch.defaultSort = (function() {
-  const configuredSort = '{{ lower (default "relevance" .Site.Params.search.sort) }}';
-  return window.siteSearch.sortOptions.includes(configuredSort) ? configuredSort : 'relevance';
-})();
-
 window.siteSearch.utils.createElement = function(tag, options = {}) {
   const element = document.createElement(tag);
   const hasOwn = Object.prototype.hasOwnProperty;
@@ -49,7 +43,6 @@ window.siteSearch.utils.composeUrl = function(basePath, urlParams) {
 
 window.siteSearch.utils.getUrlState = function(search = window.location.search) {
   const params = new URLSearchParams(search);
-  const requestedSort = params.get('sort');
 
   return {
     query: params.get('query') || '',
@@ -59,25 +52,15 @@ window.siteSearch.utils.getUrlState = function(search = window.location.search) 
       ? [...new Set(params.get('tags').split(',').map((tag) => tag.trim()).filter(Boolean))]
       : [],
     tagsOp: params.get('tagsOp') || 'and',
-    sort: window.siteSearch.sortOptions.includes(requestedSort)
-      ? requestedSort
-      : window.siteSearch.defaultSort,
     page: Math.max(1, parseInt(params.get('page'), 10) || 1),
     pageSize: Math.max(1, parseInt(params.get('pageSize'), 10) || 10)
   };
 };
 
-window.siteSearch.utils.getEffectiveSort = function(state) {
-  if (!state.query && state.sort === 'relevance') {
-    return 'newest';
-  }
-
-  return state.sort;
-};
-
+// Keep the modal and result page in relevance order, with stable date/ID ties.
+// Taxonomy-only browsing has no scores and therefore uses newest first.
 window.siteSearch.utils.sortResultIds = function(ids, state, resultScores = new Map()) {
   const pages = window.siteSearch.pages || [];
-  const effectiveSort = window.siteSearch.utils.getEffectiveSort(state);
 
   const compareNewest = function(a, b) {
     const dateDifference = Number(pages[b]?.date || 0) - Number(pages[a]?.date || 0);
@@ -85,15 +68,10 @@ window.siteSearch.utils.sortResultIds = function(ids, state, resultScores = new 
   };
 
   return Array.from(ids).toSorted((a, b) => {
-    if (effectiveSort === 'relevance') {
+    if (state.query) {
       const scoreDifference = (resultScores.get(a) ?? Number.POSITIVE_INFINITY)
         - (resultScores.get(b) ?? Number.POSITIVE_INFINITY);
       return scoreDifference || compareNewest(a, b);
-    }
-
-    if (effectiveSort === 'oldest') {
-      const dateDifference = Number(pages[a]?.date || 0) - Number(pages[b]?.date || 0);
-      return dateDifference || (a - b);
     }
 
     return compareNewest(a, b);

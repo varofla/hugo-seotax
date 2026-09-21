@@ -12,6 +12,8 @@
     </svg>
   </a>
 
+  {{ partial "menu/search-input" . }}
+
   <a href="{{ `/about/` | relURL }}" title="About" aria-label="About" class="menu-links__item menu-link-pill menu-link-pill--about"{{ if eq .Type "about" }} aria-current="page"{{ end }}>
     <span>About</span>
   </a>

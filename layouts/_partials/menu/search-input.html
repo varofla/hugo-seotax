@@ -1,15 +1,15 @@
 {{ if default true .Site.Params.search.enabled }}
-<div class="menu-search"
-      id="search-input"
-      data-menu-search-trigger
-      data-hotkeys="s/"
-      role="button"
-      tabindex="0"
-      aria-label="검색">
-  <i class="icon-search search-icon"></i>
-  <span class="search-placeholder">
-    <span class="menu-search__shortcut"><code>/</code></span>
-    <span class="menu-search__label">를 눌러 검색하세요</span>
-  </span>
-</div>
+<button
+  type="button"
+  id="search-input"
+  class="menu-links__item menu-link-icon menu-link-icon--search menu-search"
+  data-menu-search-trigger
+  data-hotkeys="s/"
+  title="검색"
+  aria-label="검색">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="7"></circle>
+    <path d="m20 20-4-4"></path>
+  </svg>
+</button>
 {{ end }}

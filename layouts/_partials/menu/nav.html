@@ -14,10 +14,6 @@
     </div>
   </section>
 
-  <section class="site-menu-panel__section site-menu-panel__section--search" data-sidebar-section="search">
-    {{ partial "menu/search-input" . }}
-  </section>
-
   <div class="site-menu-panel__body" data-sidebar-section="body">
     {{ if default false .Site.Params.menu.categories }}
     {{ partial "menu/categories" . }}

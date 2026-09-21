@@ -9,7 +9,7 @@
 - 목록은 흰 배경의 구분선 중심 행, categories는 본문 전용 2열 주제 디렉터리(모바일 1열), tags는 빈도순 링크 목록이다. 탐색 제목·수량 표기는 한국어로 통일했고, 카테고리별 수량은 실제 글 수다. 상위 카테고리의 `category-topics`는 사이드바가 접히는 화면에서만 표시한다.
 - `content/tags` partial이 빈 태그·공백·동일 태그 중복을 정리한다. 글 메타데이터, 태그 전체 보기, 검색 데이터가 이를 공유한다. 검색의 숫자 ID 순서는 그대로 유지했다.
 - `categories/catalog` partial은 사이드바·디렉터리·하위 주제 링크의 데이터와 순서를 공유한다. 디렉터리는 사이드바의 DOM/펼침 JS를 재사용하지 않는다.
-- 목록 상단과 사이드바에 중복되던 `browse-nav`/`site-menu-browse`는 제거했다. 사이드바의 상단 링크는 카테고리·태그·검색 아이콘과 About이며, GitHub·RSS는 About에만 둔다.
+- 목록 상단과 사이드바에 중복되던 `browse-nav`/`site-menu-browse`는 제거했다. 데스크톱 사이드바의 상단 링크는 카테고리·태그·검색 아이콘과 About이며, 모바일 검색은 헤더 아이콘만 쓴다. GitHub·RSS는 About에만 둔다.
 - Pretendard 1.3.9 variable font를 `static/fonts`에 라이선스와 함께 포함했다. Google Fonts 요청은 제거했다. 색상과 글꼴의 공통 토큰은 `variables/_colors.scss`, 로드는 `variables/_fonts.scss`에 있다.
 - `_lists.scss`: 페이지 헤더, 글 목록, 분류 디렉터리, 페이지 번호, 빈 상태. `_search.scss`: 검색 모달과 필터. `_reading.scss`: 읽기 레이아웃·전환·목차·공유 헤더. `_about.scss`: About. `_custom.scss`는 선택적 추가 스타일만 담는다.
 - About 복귀 스크립트는 버튼 뒤로 옮겼다. About 갤러리, 이미지 확대, 읽기 전환과 모바일 패널 구조는 유지했다. `/posts/`도 홈과 공통 목록 partial을 사용하며, 404는 공통 레이아웃을 사용한다.

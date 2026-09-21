@@ -180,6 +180,23 @@
     object-position: center;
   }
 
+  @media screen and (max-width: breakpoint(menu)) {
+    .menu-brand {
+      --menu-brand-mobile-avatar-size: 2.4rem;
+
+      grid-template-columns: var(--menu-brand-mobile-avatar-size) minmax(0, 1fr);
+      align-items: center;
+      column-gap: 0.5rem;
+    }
+
+    .menu-brand-avatar {
+      width: var(--menu-brand-mobile-avatar-size);
+      height: var(--menu-brand-mobile-avatar-size);
+      max-width: 100%;
+      align-self: center;
+    }
+  }
+
   .profile-title {
     display: flex;
     align-items: center;
@@ -298,6 +315,10 @@
   .menu-link-pill--about {
     margin-left: auto;
     line-height: 1;
+  }
+
+  @media screen and (max-width: breakpoint(menu)) {
+    .menu-links .menu-search { display: none !important; }
   }
 
   .menu-categories,

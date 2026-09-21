@@ -236,7 +236,12 @@
 
       mainWrap.scrollTop = nextScrollTop;
     };
+    let hasFinishedRestore = false;
     const finishRestore = () => {
+      if (hasFinishedRestore) {
+        return;
+      }
+      hasFinishedRestore = true;
       document.documentElement.classList.remove(POST_VIEW_RELOAD_RESTORING_CLASS);
       document.documentElement.classList.add(POST_VIEW_RELOAD_REVEALING_CLASS);
       window.setTimeout(() => {

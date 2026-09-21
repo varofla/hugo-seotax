@@ -70,14 +70,48 @@ function cancelActiveScrollAnimation() {
   activeScrollAnimation = null;
 }
 
+function getScrollContext() {
+  const mainWrap = document.querySelector('.main-wrap');
+  const mainWrapScrolls = mainWrap &&
+    ['auto', 'scroll'].includes(window.getComputedStyle(mainWrap).overflowY);
+
+  if (mainWrapScrolls) {
+    return {
+      getTop: () => mainWrap.scrollTop,
+      scrollTo: top => mainWrap.scrollTo({ top, behavior: 'auto' }),
+      targetTop: target => {
+        if (isTopTarget(target)) return 0;
+
+        const containerRect = mainWrap.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const scrollMarginTop = parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0;
+        return Math.max(0, mainWrap.scrollTop + targetRect.top - containerRect.top - scrollMarginTop);
+      }
+    };
+  }
+
+  return {
+    getTop: () => window.scrollY,
+    scrollTo: top => window.scrollTo(0, top),
+    targetTop: target => isTopTarget(target)
+      ? 0
+      : target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET
+  };
+}
+
+function updateLocationHash(hash) {
+  if (!hash) return;
+  history.replaceState(history.state, '', hash);
+}
+
 function smoothScrollToTarget(target, hash) {
   cancelActiveScrollAnimation();
 
-  const start = window.scrollY;
-  const end = isTopTarget(target)
-    ? 0
-    : target.getBoundingClientRect().top + start - HEADER_OFFSET;
+  const context = getScrollContext();
+  const start = context.getTop();
+  const end = context.targetTop(target);
   const animation = {
+    context,
     frameId: null,
     hash,
     startTime: null
@@ -92,7 +126,7 @@ function smoothScrollToTarget(target, hash) {
     const progress = timestamp - animation.startTime;
     const percent = easeInOut(Math.min(progress / SCROLL_DURATION, 1));
 
-    window.scrollTo(0, start + (end - start) * percent);
+    context.scrollTo(start + (end - start) * percent);
 
     if (progress < SCROLL_DURATION) {
       animation.frameId = requestAnimationFrame(scrollStep);
@@ -100,10 +134,8 @@ function smoothScrollToTarget(target, hash) {
     }
 
     activeScrollAnimation = null;
-
-    if (hash) {
-      history.replaceState(null, '', hash);
-    }
+    context.scrollTo(end);
+    updateLocationHash(hash);
 
     highlightHeading(target);
     flashTocLink(target.id);
@@ -115,14 +147,9 @@ function smoothScrollToTarget(target, hash) {
 function jumpToTarget(target, hash) {
   cancelActiveScrollAnimation();
 
-  const end = isTopTarget(target)
-    ? 0
-    : target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET;
-  window.scrollTo(0, end);
-
-  if (hash) {
-    history.replaceState(null, '', hash);
-  }
+  const context = getScrollContext();
+  context.scrollTo(context.targetTop(target));
+  updateLocationHash(hash);
 
   highlightHeading(target);
   flashTocLink(target.id);
@@ -132,7 +159,7 @@ function scrollToHash(hash, options = {}) {
   const target = getTargetFromHash(hash);
   if (!target) return false;
 
-  if (options.instant) {
+  if (options.instant || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     jumpToTarget(target, hash);
   } else {
     smoothScrollToTarget(target, hash);
@@ -166,3 +193,5 @@ window.addEventListener('load', () => {
 window.addEventListener('hashchange', () => {
   scrollToHash(window.location.hash);
 });
+
+window.addEventListener('resize', cancelActiveScrollAnimation);

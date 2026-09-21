@@ -12,6 +12,10 @@
   const EXIT_TRANSITION_FALLBACK = 500;
   const ENTER_TRANSITION_CLEANUP_DELAY = 600;
   const RETURN_TRANSITION_TTL = 10000;
+  const HISTORY_ENTRY_KEY = '__postViewHistoryEntry';
+  const HISTORY_ENTRY_BASE = 'base';
+  const HISTORY_ENTRY_TRAP = 'trap';
+  const HISTORY_PREV_COLLAPSED_FLAG = '__postViewPreviousIsCollapsed';
   const HISTORY_BASE_FLAG = '__postViewHistoryBase';
   const HISTORY_TRAP_FLAG = '__postViewHistoryTrap';
   const HISTORY_PREV_POST_FLAG = '__postViewPreviousIsPost';
@@ -23,6 +27,8 @@
   const SUPPORTED_SOURCES = new Set(transitionConfig.supportedSources || ['post-card', 'post-return']);
 
   let hasBoundHistoryPopState = false;
+  let activeExitTransition = null;
+  let entryCleanupTimer = null;
 
   function normalizePath(path) {
     const normalized = (path || '/').replace(/\/+$/, '');
@@ -113,7 +119,7 @@
     return destinationPath.startsWith(postsSectionRoot + '/');
   }
 
-  function detectPreviousHistoryIsPost() {
+  function detectPreviousHistoryIsCollapsed() {
     if (!document.referrer) {
       return false;
     }
@@ -123,7 +129,11 @@
       return false;
     }
 
-    return isPostDestination(referrerUrl);
+    if (normalizePath(referrerUrl.pathname) === normalizePath(window.location.pathname)) {
+      return false;
+    }
+
+    return isPostDestination(referrerUrl) || isAboutDestination(referrerUrl);
   }
 
   function getNavigationType() {
@@ -198,7 +208,12 @@
 
   function readStoredTransition() {
     try {
-      return parseTransitionData(window.sessionStorage.getItem(STORAGE_KEY));
+      const raw = window.sessionStorage.getItem(STORAGE_KEY);
+      const data = parseTransitionData(raw);
+      if (raw && !data) {
+        window.sessionStorage.removeItem(STORAGE_KEY);
+      }
+      return data;
     } catch (error) {
       return null;
     }
@@ -251,20 +266,27 @@
     });
   }
 
-  function findMatchingPendingTransition(pathname = window.location.pathname, sources = null) {
+  function takeMatchingPendingTransition(pathname = window.location.pathname, sources = null) {
     const data = getPendingPostTransition();
     if (!data) {
       return null;
     }
 
     if (sources && !sources.includes(data.source)) {
+      if (isCollapsedMenuPage()) {
+        clearPendingPostTransition();
+      }
       return null;
     }
 
     if (normalizeTransitionPath(data.pathname) !== normalizeTransitionPath(pathname)) {
+      if (isCollapsedMenuPage()) {
+        clearPendingPostTransition();
+      }
       return null;
     }
 
+    clearPendingPostTransition();
     return data;
   }
 
@@ -367,43 +389,107 @@
     hasBoundHistoryPopState = true;
   }
 
-  function triggerPostExitTransition(onComplete) {
-    const root = document.documentElement;
+  function getHistoryEntryRole(state) {
+    if (!state || typeof state !== 'object') {
+      return null;
+    }
 
-    if (root.classList.contains(POST_VIEW_EXIT_CLASS)) {
+    if (state[HISTORY_ENTRY_KEY] === HISTORY_ENTRY_BASE || state[HISTORY_ENTRY_KEY] === HISTORY_ENTRY_TRAP) {
+      return state[HISTORY_ENTRY_KEY];
+    }
+
+    if (state[HISTORY_TRAP_FLAG]) {
+      return HISTORY_ENTRY_TRAP;
+    }
+
+    if (state[HISTORY_BASE_FLAG]) {
+      return HISTORY_ENTRY_BASE;
+    }
+
+    return null;
+  }
+
+  function previousHistoryIsCollapsed(state) {
+    if (!state || typeof state !== 'object') {
+      return false;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(state, HISTORY_PREV_COLLAPSED_FLAG)) {
+      return Boolean(state[HISTORY_PREV_COLLAPSED_FLAG]);
+    }
+
+    return Boolean(state[HISTORY_PREV_POST_FLAG]);
+  }
+
+  function normalizeHistoryState(state, role, previousIsCollapsed) {
+    const nextState = cloneHistoryState(state);
+    delete nextState[HISTORY_BASE_FLAG];
+    delete nextState[HISTORY_TRAP_FLAG];
+    delete nextState[HISTORY_PREV_POST_FLAG];
+    nextState[HISTORY_ENTRY_KEY] = role;
+    nextState[HISTORY_PREV_COLLAPSED_FLAG] = Boolean(previousIsCollapsed);
+    return nextState;
+  }
+
+  function cancelPostExitTransition() {
+    if (!activeExitTransition) {
       return;
     }
 
+    const transition = activeExitTransition;
+    activeExitTransition = null;
+    transition.cancelled = true;
+    if (transition.menu && transition.onTransitionEnd) {
+      transition.menu.removeEventListener('transitionend', transition.onTransitionEnd);
+    }
+    window.clearTimeout(transition.fallbackTimer);
+  }
+
+  function triggerPostExitTransition(onComplete) {
+    const root = document.documentElement;
+    cancelPostExitTransition();
+    root.classList.remove(POST_VIEW_EXIT_CLASS);
+    void root.offsetWidth;
+
     root.classList.add(POST_VIEW_EXIT_CLASS);
 
-    let done = false;
+    const transition = {
+      cancelled: false,
+      fallbackTimer: null,
+      menu: document.querySelector('.site-menu'),
+      onTransitionEnd: null
+    };
+    activeExitTransition = transition;
+
     const finish = () => {
-      if (done) return;
-      done = true;
+      if (transition.cancelled || activeExitTransition !== transition) return;
+      activeExitTransition = null;
+      if (transition.menu && transition.onTransitionEnd) {
+        transition.menu.removeEventListener('transitionend', transition.onTransitionEnd);
+      }
+      window.clearTimeout(transition.fallbackTimer);
       onComplete();
     };
 
     // Wait for the menu's width transition to complete before navigating.
     // A fixed timeout previously caused jitter on cached/fast-loading pages
     // because the new page could load before the CSS transition finished.
-    const menu = document.querySelector('.site-menu');
-    if (menu) {
-      const onTransitionEnd = (e) => {
+    if (transition.menu) {
+      transition.onTransitionEnd = (e) => {
         if (e.propertyName === 'width') {
-          menu.removeEventListener('transitionend', onTransitionEnd);
           finish();
         }
       };
-      menu.addEventListener('transitionend', onTransitionEnd);
+      transition.menu.addEventListener('transitionend', transition.onTransitionEnd);
     }
 
     // Fallback in case transitionend never fires (e.g. element removed).
-    window.setTimeout(finish, EXIT_TRANSITION_FALLBACK);
+    transition.fallbackTimer = window.setTimeout(finish, EXIT_TRANSITION_FALLBACK);
   }
 
   function playPostEntryTransition(options = {}) {
     const { allowReferrerFallback = true } = options;
-    const pendingTransition = findMatchingPendingTransition(window.location.pathname, ['post-card', 'post-return']);
+    const pendingTransition = takeMatchingPendingTransition(window.location.pathname, ['post-card', 'post-return']);
     const shouldUseReferrerFallback = allowReferrerFallback && !pendingTransition && shouldAnimateEntryFromReferrer();
     if (!pendingTransition && !shouldUseReferrerFallback) {
       return false;
@@ -411,10 +497,6 @@
 
     if (!canAnimatePostEntry()) {
       return false;
-    }
-
-    if (pendingTransition) {
-      clearPendingPostTransition();
     }
 
     const root = document.documentElement;
@@ -429,8 +511,10 @@
     // Remove the class after the animation finishes. This is cleanup only:
     // the animation's final state matches the base CSS, so there is no
     // visual change when the class is removed.
-    setTimeout(() => {
+    window.clearTimeout(entryCleanupTimer);
+    entryCleanupTimer = window.setTimeout(() => {
       root.classList.remove(POST_VIEW_ENTER_CLASS);
+      entryCleanupTimer = null;
     }, ENTER_TRANSITION_CLEANUP_DELAY);
 
     return true;
@@ -441,11 +525,26 @@
       return;
     }
 
-    if (!event.state || !event.state[HISTORY_BASE_FLAG]) {
+    const entryRole = getHistoryEntryRole(event.state);
+    if (entryRole === HISTORY_ENTRY_TRAP) {
+      const pendingTransition = getPendingPostTransition();
+      if (pendingTransition
+        && pendingTransition.source === 'post-return'
+        && normalizeTransitionPath(pendingTransition.pathname) === normalizeTransitionPath(window.location.pathname)) {
+        clearPendingPostTransition();
+      }
+      cancelPostExitTransition();
+      document.documentElement.classList.remove(POST_VIEW_EXIT_CLASS);
       return;
     }
 
-    if (event.state[HISTORY_PREV_POST_FLAG]) {
+    if (entryRole !== HISTORY_ENTRY_BASE) {
+      return;
+    }
+
+    cancelPostExitTransition();
+
+    if (previousHistoryIsCollapsed(event.state)) {
       continueHistoryBack();
       return;
     }
@@ -470,26 +569,26 @@
     }
 
     const currentState = cloneHistoryState(window.history.state);
-    if (currentState[HISTORY_TRAP_FLAG]) {
+    const currentRole = getHistoryEntryRole(currentState);
+    if (currentRole === HISTORY_ENTRY_TRAP) {
+      const normalizedTrapState = normalizeHistoryState(
+        currentState,
+        HISTORY_ENTRY_TRAP,
+        previousHistoryIsCollapsed(currentState)
+      );
+      window.history.replaceState(normalizedTrapState, '', window.location.href);
       bindPostHistoryPopState();
       return;
     }
 
-    const hasPreviousPostFlag = Object.prototype.hasOwnProperty.call(currentState, HISTORY_PREV_POST_FLAG);
-    const previousIsPost = hasPreviousPostFlag
-      ? Boolean(currentState[HISTORY_PREV_POST_FLAG])
-      : detectPreviousHistoryIsPost();
+    const hasPreviousCollapsedFlag = Object.prototype.hasOwnProperty.call(currentState, HISTORY_PREV_COLLAPSED_FLAG)
+      || Object.prototype.hasOwnProperty.call(currentState, HISTORY_PREV_POST_FLAG);
+    const previousIsCollapsed = hasPreviousCollapsedFlag
+      ? previousHistoryIsCollapsed(currentState)
+      : detectPreviousHistoryIsCollapsed();
 
-    const baseState = {
-      ...currentState,
-      [HISTORY_BASE_FLAG]: true,
-      [HISTORY_PREV_POST_FLAG]: previousIsPost
-    };
-
-    const trapState = {
-      ...baseState,
-      [HISTORY_TRAP_FLAG]: true
-    };
+    const baseState = normalizeHistoryState(currentState, HISTORY_ENTRY_BASE, previousIsCollapsed);
+    const trapState = normalizeHistoryState(baseState, HISTORY_ENTRY_TRAP, previousIsCollapsed);
 
     window.history.replaceState(baseState, '', window.location.href);
     window.history.pushState(trapState, '', window.location.href);
@@ -520,6 +619,7 @@
   }
 
   function resetPostExitTransitionState() {
+    cancelPostExitTransition();
     document.documentElement.classList.remove(POST_VIEW_EXIT_CLASS);
   }
 

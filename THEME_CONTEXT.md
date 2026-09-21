@@ -16,6 +16,18 @@
 - upstream `d5d0ebd`에서는 검색 관련도 정렬만 현재 구조에 맞춰 이식했다. 키워드 검색은 항상 관련도순, 키워드 없는 탐색은 최신순이다. 사용자 결정에 따라 데스크톱·모바일 모두 정렬 선택 UI와 설정을 제거했다. 홈 목록 정렬·정적 archive·다국어 UI는 제외했다.
 - 운영 디렉터리와 배포 스크립트는 변경하지 않았다. 전체 개발 사이트 빌드 산출물은 `/tmp/varofla-redesign/public`, 검증 자료는 `/tmp/varofla-redesign`에 있다.
 
+### 2026-09-21 페이지 탐색 안정화
+
+- 브라우저 뒤로가기 애니메이션의 현재 탐색 로직을 안정화했다. 2026-09-22 사용자 확인 결과 Edge의 마우스 뒤로가기에서도 이 전환이 정상 동작한다.
+- `post-card.js`의 방문 기록 상태를 상호 배타적인 `base`/`trap` 역할로 바꾸고 기존 boolean 상태를 마이그레이션한다. 이전 화면이 글인지뿐 아니라 글·About 중 하나인지를 기록해 글↔About 복귀 때 불필요한 메뉴 펼침을 막는다.
+- 종료 전환은 활성 작업 하나만 유지한다. `transitionend` listener와 fallback timer를 완료·취소 시 정리하며, 뒤로가기 도중 앞으로가기로 되돌리면 오래된 이동 callback, 종료 class, `post-return` 표시를 함께 취소한다.
+- 저장된 진입 표시를 도착 페이지에서 한 번 소비한다. 모바일·reduced-motion·목차 없는 글처럼 애니메이션하지 않는 경우에도 제거하며, 손상·만료·다른 목적지의 오래된 값도 정리한다.
+- `index-scroll.js`가 실행 시점의 CSS를 보고 window 또는 `.main-wrap` 중 실제 스크롤 컨테이너 하나만 움직인다. `toc-highlight.js`의 중복 목차 클릭 처리를 제거했고, hash 갱신과 검색 URL 교체는 기존 `history.state`를 보존한다. resize 뒤의 다음 앵커 이동도 새 컨테이너를 다시 판정한다.
+- 글 reload 스크롤 복원의 완료 처리를 한 번만 실행하도록 보정했다. 기존 링크 진입·복귀 애니메이션, About 갤러리, 모바일 패널 CSS는 바꾸지 않았다.
+- 실제 글 2개, 홈·검색·카테고리·About을 포함한 `/tmp/varofla-nav-phase1.*` 축소 사이트가 Hugo 0.158.0에서 경고·오류 없이 빌드됐다: Pages 20, Non-page files 24, Static files 81, Processed images 24.
+- Chrome 151 headless의 1440px/390px에서 글 진입 상태, 목차 hash 이후 상태 보존, reload 후 hash와 스크롤 유지, 뒤로·앞으로 이동, 종료 중 방향 반전, 글→About 복귀, 데스크톱↔모바일 resize 후 스크롤 대상 전환을 확인했다. 개발 호스트에서 Comentario가 등록 도메인 오류와 함께 댓글 위치로 스크롤하므로 외부 Comentario와 운영 URL 이미지를 차단해 테마 탐색 동작을 분리했다.
+- cross-document View Transition을 사용한 2단계 시제품은 전환이 과도하게 보여 사용자가 되돌렸다. 1단계 구현만 유지하며 추가 전환 계획은 종료했다.
+
 ## 1. 사용자와 합의된 방향
 
 - **varofla 전용 테마로 관리한다.** 범용 Hugo 테마 호환성을 유지하는 것이 목표가 아니다. 이번 대화에서 사용자가 명시했다.
@@ -110,17 +122,17 @@
 2. 다음 페이지의 `head.html`이 CSS 표시 전에 이를 읽어 `html.post-view-enter-pending`을 설정한다.
 3. `_custom.scss`가 메뉴 접힘·목차 열림을 실행한다. 기본 전환 시간은 460ms이다.
 4. 복귀 시 `post-view-exit-pending`으로 역방향 전환 후 실제 이동한다. JS에는 500ms fallback과 600ms 진입 정리 타이머가 있다.
-5. 브라우저 뒤로가기는 `history.replaceState/pushState`로 추가 상태를 만들고 `popstate`를 처리한다. 상태 키는 `__postViewHistoryBase`, `__postViewHistoryTrap`, `__postViewPreviousIsPost`다.
+5. 브라우저 뒤로가기는 `history.replaceState/pushState`로 추가 상태를 만들고 `popstate`를 처리한다. 현재 상태는 `__postViewHistoryEntry`의 `base`/`trap` 역할과 `__postViewPreviousIsCollapsed`로 구분하며, 기존 boolean 키는 열린 탭의 마이그레이션에만 사용한다.
 
 연결된 다른 파일:
 
 - `site-menu.js`: 메뉴 스크롤을 localStorage `siteMenu.scrollTop`에 저장. 글 본문 스크롤은 sessionStorage `postView.mainWrapScrollTop:<pathname>`에 저장하고 새로고침 시 복구한다.
 - `toc-show.html`: 제목 또는 글 cover/thumbnail 등을 바탕으로 목차 존재 여부를 결정한다. 전환 JS는 글 목차 유무도 확인한다.
 - `toc-highlight.js`: 활성 제목·목차 위치 동기화, `.main-wrap`에서의 목차 이동.
-- `index-scroll.js`: window 기반 앵커 이동, 초기 hash 처리, 제목 강조.
+- `index-scroll.js`: 현재 CSS에 따른 window/`.main-wrap` 앵커 이동, 초기 hash 처리, 제목 강조.
 - `scroll-progress.js`: 초기 스타일을 보고 스크롤 대상을 선택한다.
 
-특히 `index-scroll.js`는 `history.replaceState(null, '', hash)`를 호출한다. 전환의 history 상태와 겹치는 지점이며, `toc-highlight.js`와 같은 목차 클릭에 별도 핸들러도 등록한다. 동작을 재현하면서 통합해야 한다.
+`index-scroll.js`가 목차와 본문 앵커 이동을 단독 처리하고 hash를 바꿀 때 기존 history 상태를 보존한다. `toc-highlight.js`는 활성 절 표시와 목차 위치 동기화만 담당한다.
 
 ### 모바일 현재 상태
 
@@ -226,7 +238,6 @@ projects:
 | 후보 | 확인 근거 | 후속 처리 시 주의 |
 | --- | --- | --- |
 | 이미지 리소스 탐색 중복 | `img-size`와 `post-card-cover-img`에 유사한 탐색 | crop, 종횡비, 원본 확대 URL의 차이는 유지 |
-| 전환·앵커·스크롤 상태 분산 | head + post-card + site-menu + index-scroll + toc-highlight | 뒤로/앞으로, 새로고침, hash, resize 회귀가 핵심 |
 | breakpoint·시간 상수 중복 | rem/px 및 CSS/JS에 분산 | 현재 시각 기준을 먼저 확보 |
 | highlight 중복 처리 | Hugo 강조 후 브라우저에서도 강조; `console.warn` 전역 패치 존재 | 언어 확장·라인 번호·복사 결과를 확인하고 정리 |
 | 공지 문구 하드코딩 | `layouts/_partials/menu/nav.html`에 현재 공사 안내 포함 | 문구 삭제·설정화 여부는 사용자 결정 |

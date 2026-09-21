@@ -101,10 +101,12 @@
 
     var data = JSON.parse(raw);
     if (!data || !isSupportedSource(data.source)) {
+      window.sessionStorage.removeItem(storageKey);
       return;
     }
 
     if (data.expiresAt && Date.now() > data.expiresAt) {
+      window.sessionStorage.removeItem(storageKey);
       return;
     }
 
@@ -125,6 +127,11 @@
     document.documentElement.classList.add('post-view-enter-pending');
   } catch (error) {
     window.sitePostViewConfig.transition.pendingTransition = null;
+    try {
+      window.sessionStorage.removeItem(storageKey);
+    } catch (storageError) {
+      // Ignore storage cleanup failures.
+    }
   }
 })();
 </script>

@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
     displayResults(ids, state);
 
     if (replaceUrl) {
-      window.history.replaceState(null, '', buildSearchUrlFromState(state));
+      window.history.replaceState(window.history.state, '', buildSearchUrlFromState(state));
     }
 
     if (focusQuery) {

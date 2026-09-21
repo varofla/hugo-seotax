@@ -11,32 +11,46 @@ $hint-colors: (
   caution: #d84747
 );
 
+// Shared semantic palette. Legacy variables below remain aliases for shortcodes.
 @mixin theme-light {
-  --gray-100: #f8f9fa;
-  --gray-200: #e9ecef;
-  --gray-300: #c7cfd3;
-  --gray-500: #6f767e;
-  --gray-800: #495057;
+  --text: oklch(0.22 0.008 220);
+  --text-muted: oklch(0.49 0.008 220);
+  --text-subtle: oklch(0.58 0.008 220);
+  --accent: oklch(0.5 0.13 198);
+  --accent-hover: oklch(0.43 0.11 198);
+  --accent-soft: oklch(0.96 0.015 198);
+  --surface: #fff;
+  --surface-muted: oklch(0.98 0.003 210);
+  --border: oklch(0.91 0.006 210);
+  --border-strong: oklch(0.8 0.01 210);
+  --focus-ring: oklch(0.5 0.13 198 / 0.2);
+  --panel-surface: linear-gradient(160deg, #f5fafb, #f8fafb 50%, #f4f7f9);
+  --radius-control: 8px;
+  --radius-image: 8px;
+  --font-ui: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", "Pretendard Variable", monospace;
 
-  --color-link: #0055bb;
-  --color-visited-link: #5500bb;
-  --color-page-link: #adb5bd;
-  --color-disabled-link: #94a3b8;
+  --gray-100: var(--surface-muted);
+  --gray-200: var(--border);
+  --gray-300: var(--border-strong);
+  --gray-500: var(--text-subtle);
+  --gray-700: var(--text-muted);
+  --gray-800: var(--text-muted);
+  --color-link: var(--accent);
+  --color-visited-link: var(--accent);
+  --color-page-link: var(--accent-soft);
+  --color-disabled-link: var(--text-subtle);
   --color-social-link: #fff;
-  --link-background: rgba(0, 85, 187, 0.1);
-
-  --body-background: white;
-  --body-font-color: black;
-
-  --toc-font-color: black;
-  --toc-active-color: black;
-
+  --link-background: var(--accent-soft);
+  --body-background: var(--surface);
+  --body-font-color: var(--text);
+  --toc-font-color: var(--text-muted);
+  --toc-active-color: var(--accent);
   --icon-filter: none;
-  --box-shadow: rgba(0, 0, 0, 0.1);
-  --lineno-font-color: rgba(0, 0, 0, 0.5);
-
-  --data-thead-color: #d1d5db;
-  --data-tbody-odd: rgba(248, 249, 250, 0.5);
-  --data-tbody-even: rgba(0, 0, 0, 0.1);
-  --data-tbody-hover: rgba(233, 236, 239, 0.8);
+  --box-shadow: rgba(15, 35, 40, 0.08);
+  --lineno-font-color: var(--text-subtle);
+  --data-thead-color: var(--border);
+  --data-tbody-odd: var(--surface-muted);
+  --data-tbody-even: var(--surface);
+  --data-tbody-hover: var(--accent-soft);
 }

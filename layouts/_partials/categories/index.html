@@ -1,20 +1,21 @@
-<article class="content-wrap markdown">
-  {{ $tree := partialCached "categories/tree" . "categories" }}
-  {{ $categoryCount := 0 }}
-  {{ range $category1 := (partial "keys" $tree) }}
-    {{ $categoryCount = add $categoryCount 1 }}
-    {{ $treeL2 := index $tree $category1 }}
-    {{ if $treeL2 }}
-      {{ $categoryCount = add $categoryCount (len (partial "keys" $treeL2)) }}
+{{- $catalog := partialCached "categories/catalog" . "categories" -}}
+<article class="content-wrap browse-page">
+  <header class="list-header">
+    <h1>카테고리</h1>
+    <p class="list-header-count">{{ len $catalog }}개의 주제 · 글 <em class="list-count">{{ len (partialCached "pages/posts" . "posts") }}</em>개</p>
+  </header>
+  <div class="category-directory">
+    {{ range $catalog }}
+    <section class="category-directory-group">
+      <h2><a href="{{ .url }}">{{ .name }}<span class="directory-count">{{ .count }}<span class="sr-only">개의 글</span></span></a></h2>
+      {{ with .children }}
+      <ul>
+        {{ range . }}
+        <li><a href="{{ .url }}"><span>{{ .name }}</span><span class="directory-count">{{ .count }}<span class="sr-only">개의 글</span></span></a></li>
+        {{ end }}
+      </ul>
+      {{ end }}
+    </section>
     {{ end }}
-  {{ end }}
-
-  <div class="list-header list-header--stacked">
-    <h1>Categories</h1>
-    <p class="list-header-count">
-      Total <em class="list-count">{{ $categoryCount }}</em>
-    </p>
   </div>
-
-  {{ partial "menu/categories" . }}
 </article>

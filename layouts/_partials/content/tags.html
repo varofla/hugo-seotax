@@ -1,0 +1,7 @@
+{{- /* Shared normalization for display and search. */ -}}
+{{- $tags := slice -}}
+{{- range .Params.tags -}}
+  {{- $tag := trim (string .) " \t\r\n" -}}
+  {{- if $tag -}}{{- $tags = $tags | append $tag -}}{{- end -}}
+{{- end -}}
+{{- return uniq $tags -}}

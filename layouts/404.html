@@ -1,31 +1,11 @@
-<!DOCTYPE html>
-<html lang="{{ .Site.Language.Lang }}">
-
-  <head>
-    {{ partial "head" . }}
-
-    <style>
-      .not-found {
-        text-align: center;
-      }
-      .not-found h1 {
-        margin: .25em 0 0 0;
-        opacity: .25;
-        font-size: 40vmin;
-      }
-    </style>
-  </head>
-
-  <body>
-    <main class="flex justify-center not-found">
-      <div>
-        <h1>404</h1>
-        <h2>Page Not Found</h2>
-        <h3>
-          <a href="{{ .Site.Home.RelPermalink }}">{{ .Site.Title }}</a>
-        </h3>
-      </div>
-    </main>
-  </body>
-
-</html>
+{{ define "content" }}
+<article class="content-wrap browse-page not-found">
+  <p class="not-found-code">404</p>
+  <h1>페이지를 찾을 수 없습니다.</h1>
+  <p>주소가 바뀌었거나 더 이상 존재하지 않는 페이지입니다.</p>
+  <div class="not-found-links">
+    <a class="action-link" href="{{ `/` | relURL }}">전체 글 보기 <span aria-hidden="true">↗</span></a>
+    <a class="action-link" href="{{ `search/` | relURL }}">글 검색하기 <span aria-hidden="true">↗</span></a>
+  </div>
+</article>
+{{ end }}

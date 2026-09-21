@@ -17,11 +17,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const TEXT = {
     searchAction: '검색',
     searchInputPlaceholder: '검색어를 입력해주세요',
-    searchResultsTitle: 'Search',
-    searchCountLabel: '"%q" 검색 결과 %s',
-    searchCountLabelNoQuery: '검색 결과 %s',
+    searchResultsTitle: '검색',
+    searchCountLabel: '"%q" 검색 결과 %s개',
+    searchCountLabelNoQuery: '검색 결과 %s개',
     searchTagsTitle: '검색 태그',
-    listCountLabel: '전체 글 %s',
+    listCountLabel: '글 %s개',
     categoriesParentSubtitle: '상위 카테고리',
     categoriesChildSubtitle: '하위 카테고리',
     tagsTermsTitle: '태그',
@@ -197,7 +197,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function createListHeader(titleText, pageCount, query = '', countLabelOverride = '') {
     const fragment = document.createDocumentFragment();
 
-    listHeader?.classList.add('list-header--stacked');
 
     const title = createElement('h1');
     title.textContent = titleText || '';
@@ -284,13 +283,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const queryInput = createElement('input', {
       id: 'search-query-input',
       className: 'search-query-input',
-      attrs: {type: 'text', maxLength: 64, placeholder: TEXT.searchInputPlaceholder, value: queryValue}
+      attrs: {type: 'text', maxLength: 64, placeholder: TEXT.searchInputPlaceholder, 'aria-label': TEXT.searchAction, value: queryValue}
     });
     inputWrapper.appendChild(queryInput);
 
     const queryButton = createElement('button', {
       className: 'search-query-button',
-      attrs: {type: 'button'}
+      attrs: {type: 'button', 'aria-label': TEXT.searchAction}
     });
     const queryButtonIcon = createElement('i', {className: 'icon-search'});
     queryButton.appendChild(queryButtonIcon);
@@ -984,6 +983,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     chip.appendChild(createElement('button', {
       className: 'chip-remove',
+      attrs: {'aria-label': `${name} 필터 해제`},
       html: '&times;'
     }));
 
@@ -1289,6 +1289,7 @@ document.addEventListener('DOMContentLoaded', function() {
           pagesDiv.appendChild(createElement('span', {
             id: 'current-page',
             className: 'pagination-page current',
+            attrs: {'aria-current': 'page'},
             text: page.toString()
           }));
         } else {

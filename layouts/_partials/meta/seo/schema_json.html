@@ -67,7 +67,7 @@
     {{- if .Params.keywords }}
     {{ delimit .Params.keywords ", " }}
     {{- else if .Params.tags }}
-    {{ delimit .Params.tags ", " }}
+    {{ delimit (partial "content/tags" .) ", " }}
     {{- end }}
   ],
   "articleBody": {{ .Content | safeJS | htmlUnescape | plainify }},

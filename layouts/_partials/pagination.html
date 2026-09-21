@@ -4,7 +4,7 @@
 {{ $paginate := . }}
 {{ if gt $paginate.TotalPages 1 }}
 <div id="pagination-anchor"></div>
-<nav class="pagination">
+<nav class="pagination" aria-label="글 목록 페이지">
   {{ $currentPage := $paginate.PageNumber }}
   {{ $totalPages := $paginate.TotalPages }}
 
@@ -37,7 +37,7 @@
   <div class="pagination-pages">
     {{ range $i := seq $groupStart $groupEnd }}
       {{ if eq $i $currentPage }}
-      <span class="pagination-page current" id="current-page">{{ $i }}</span>
+      <span class="pagination-page current" id="current-page" aria-current="page">{{ $i }}</span>
       {{ else }}
       <a href="{{ $paginate.First.URL }}{{ if gt $i 1 }}page/{{ $i }}/{{ end }}#pagination-anchor" class="pagination-page pagination-link">
         {{- $i -}}

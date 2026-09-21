@@ -1,8 +1,11 @@
 {{- $hasToc := partial "toc-show" . -}}
 {{- $locationLabel := .Site.Title -}}
-{{- if and (eq .Kind "page") .Title -}}
+{{- if not .IsHome -}}
   {{- $locationLabel = .Title -}}
 {{- end -}}
+{{- if eq .Type "categories" -}}{{- $locationLabel = "카테고리" -}}{{- end -}}
+{{- if eq .Type "tags" -}}{{- $locationLabel = "태그" -}}{{- end -}}
+{{- if eq .Type "search" -}}{{- $locationLabel = "검색" -}}{{- end -}}
 <div class="mobile-header-bar">
   <button type="button"
           class="mobile-header-action menu-toggle-button"
@@ -26,7 +29,7 @@
   </button>
   {{ else }}
   <a href="{{ .Site.Home.RelPermalink }}" class="mobile-location mobile-location--link">
-    <span class="mobile-location-label">{{ .Site.Title }}</span>
+    <span class="mobile-location-label">{{ $locationLabel }}</span>
   </a>
   {{ end }}
 

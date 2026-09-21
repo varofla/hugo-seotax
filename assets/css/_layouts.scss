@@ -29,7 +29,7 @@ h6 {
   flex: auto;
 }
 
-a {
+:where(a) {
   align-items: center;
   gap: space(8);
 
@@ -100,7 +100,8 @@ nav ul {
   width: 100%;
   max-width: $body-wide-width;
   flex: 1 1 0;
-  margin: space(16) auto;
+  margin: space(32) auto;
+  padding: 0 space(32);
 
   // Mobile: fixed layout for overlay
   @media screen and (max-width: breakpoint(menu)) {
@@ -111,72 +112,6 @@ nav ul {
 
   i {
     font-size: $font-size-base;
-  }
-}
-
-.list-header {
-  display: flex;
-  align-items: center;
-  gap: space(8);
-  margin-bottom: 1.25rem;
-  padding-left: 0.625rem;
-  padding-right: 0.625rem;
-  padding-top: space(20);
-  max-width: $body-wide-width;
-
-  p {
-    margin-left: auto;
-    font-family: monospace;
-    font-size: font-size(12);
-    color: var(--gray-500);
-
-    .list-count {
-      font-style: normal;
-      font-weight: 600;
-      color: var(--color-link);
-    }
-  }
-}
-
-.list-header-count {
-  margin: 0 0 0 auto;
-  flex: 0 0 auto;
-  font-family: "DM Mono", monospace;
-  font-size: 0.75rem;
-  line-height: 1;
-  color: oklch(0.5 0.008 220);
-  white-space: nowrap;
-
-  .list-count {
-    font-style: normal;
-    font-weight: 700;
-    color: oklch(0.5 0.13 198);
-  }
-}
-
-.list-header--stacked {
-  flex-wrap: wrap;
-
-  h1 {
-    width: 100%;
-    margin: 0;
-  }
-
-  .list-header-count {
-    margin-top: space(6);
-    margin-left: 0;
-    padding-left: 2px;
-  }
-}
-
-.markdown .list-header {
-  h1 {
-    font-size: font-size(24);
-    margin: 0;
-
-    i {
-      font-size: font-size(24);
-    }
   }
 }
 
@@ -204,7 +139,7 @@ nav ul {
 
 .scroll-progress-bar {
   height: 100%;
-  background: #1e6ef4;
+  background: var(--accent);
 }
 
 .markdown .site-title {
@@ -573,7 +508,7 @@ body[dir="rtl"] .site-menu {
   height: 2.5rem;
   padding: 0 space(8);
   border-radius: 999px;
-  font-family: "Pretendard Variable", Pretendard, sans-serif;
+  font-family: var(--font-ui);
   font-size: font-size(14);
   font-weight: 600;
   cursor: pointer;
@@ -617,7 +552,7 @@ body[dir="rtl"] .site-menu {
 }
 
 .content-header {
-  text-align: center;
+  text-align: left;
   padding-bottom: space(24);
   border-bottom: 1px solid var(--gray-200);
 }
@@ -659,107 +594,29 @@ body[dir="rtl"] .site-menu {
 
 /* Footer */
 
-.site-footer {
-  padding-top: space(16);
-  font-size: font-size(14);
-
-  // a {
-  //   margin: space(4) 0;
-  //   padding: space(4) 0;
-  // }
-}
-
+// Reading footer shares the quiet surfaces used in browsing.
+.site-footer { padding-top: 16px; font-size: 14px; }
 .prev-next-wrap {
-  display: flex;
-  justify-content: space-between;
-  gap: 0;
-  margin-top: space(24);
-  padding-top: space(24);
-  border-top: 1px solid var(--gray-200);
-  overflow: hidden;
-
-  @media screen and (max-width: breakpoint(narrow)) {
-    flex-direction: column;
-  }
-
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px;
+  margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);
   .prev-link, .next-link {
-    display: block;
-    background: var(--gray-100);
-    padding: space(12);
-    text-decoration: none;
-    transition: background-color 0.2s ease;
-    flex: 1;
-    max-width: 50%;
-
-    &:hover {
-      background: var(--link-background);
-    }
-
-    @media screen and (max-width: breakpoint(narrow)) {
-      max-width: 100%;
-    }
+    display: block; padding: 16px; border-radius: var(--radius-control);
+    background: var(--surface-muted); text-decoration: none;
+    transition: background .18s;
+    &:hover { background: var(--accent-soft); }
   }
-
-  .prev-link {
-    text-align: left;
-    border-radius: radius(prev-next) 0 0 radius(prev-next);
-
-    @media screen and (max-width: breakpoint(narrow)) {
-      border-radius: radius(prev-next);
-    }
-  }
-
-  .next-link {
-    text-align: right;
-    border-radius: 0 radius(prev-next) radius(prev-next) 0;
-
-    @media screen and (max-width: breakpoint(narrow)) {
-      border-radius: radius(prev-next);
-    }
-  }
-
-  .prev-link-disabled, .next-link-disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-
-  .prev-next-label {
-    display: block;
-    color: var(--gray-500);
-    font-size: font-size(14);
-    font-weight: 600;
-    margin-bottom: space(8);
-
-    .icon-backward, .icon-forward {
-      font-size: font-size(14);
-    }
-  }
-
-  .prev-next-title {
-    display: block;
-    color: var(--body-font-color);
-    font-size: font-size(16);
-    font-weight: 400;
-    line-height: 1.5;
-
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+  .next-link { text-align: right; }
+  .prev-link-disabled, .next-link-disabled { opacity: .45; pointer-events: none; }
+  .prev-next-label { display: block; color: var(--text-subtle); font-size: 12px; margin-bottom: 8px; i { font-size: 12px; } }
+  .prev-next-title { color: var(--text); font-size: 15px; font-weight: 550; line-height: 1.6; overflow-wrap: anywhere; }
+  @media (max-width: breakpoint(narrow)) { grid-template-columns: minmax(0, 1fr); gap: 12px; }
 }
-
-.comments-wrap {
-  margin-top: space(16);
-}
-
-#disqus_thread {
-  color-scheme: none;
-  margin-top: space(40);
-}
-
+.comments-wrap { margin-top: 32px; }
+#disqus_thread { color-scheme: none; margin-top: 40px; }
 .copyright-wrap {
-  margin-top: space(16);
+  margin-top: 40px; padding: 24px 0; border-top: 1px solid var(--border);
+  color: var(--text-subtle); font-size: 12px;
+  a { color: var(--text-muted); &:hover { color: var(--accent); } }
 }
 
 /* ToC */
@@ -806,8 +663,7 @@ body[dir="rtl"] .site-menu {
     opacity: 0;
     transform: translateY(-100%);
     background:
-      radial-gradient(circle at top right, rgba(0, 119, 181, 0.08), transparent 28%),
-      linear-gradient(180deg, #f8fbff 0%, #f4f7fb 100%);
+      var(--panel-surface);
     border: 1px solid rgba(148, 163, 184, 0.24);
     border-top: 0;
     border-radius: 0 0 1.75rem 1.75rem;
@@ -891,22 +747,22 @@ body[dir="rtl"] .site-menu {
     display: block;
     border-left: 2px solid transparent;
     padding: 4px 16px;
-    font-family: "Pretendard Variable", Pretendard, sans-serif;
+    font-family: var(--font-ui);
     font-size: 12.5px;
     font-weight: 500;
-    color: oklch(0.14 0.005 220);
+    color: var(--text);
     line-height: 1.5;
     text-decoration: none;
     transition: border-color 0.15s, color 0.15s;
 
     &.active,
     &.toc-flash {
-      border-left-color: oklch(0.5 0.13 198);
-      color: oklch(0.5 0.13 198);
+      border-left-color: var(--accent);
+      color: var(--accent);
     }
 
     &[href]:hover {
-      color: oklch(0.5 0.13 198);
+      color: var(--accent);
     }
   }
 
@@ -915,12 +771,12 @@ body[dir="rtl"] .site-menu {
     padding-left: 28px;
     font-size: 11.5px;
     font-weight: 400;
-    color: oklch(0.5 0.008 220);
+    color: var(--text-muted);
 
     &.active,
     &.toc-flash {
-      border-left-color: oklch(0.5 0.13 198);
-      color: oklch(0.5 0.13 198);
+      border-left-color: var(--accent);
+      color: var(--accent);
       font-weight: 600;
     }
   }
@@ -943,76 +799,6 @@ body[dir="rtl"] .site-menu {
     display: block;
     opacity: 1;
     pointer-events: auto;
-  }
-}
-
-/* Categories List */
-.categories-tree {
-  overflow: auto hidden;
-  white-space: nowrap;
-
-  ul {
-    margin-left: 2.4em;
-    list-style-type: none;
-  }
-
-  .category-count {
-    color: var(--gray-500);
-    font-size: font-size(14);
-    white-space: nowrap;
-  }
-}
-
-.categories-list {
-  li {
-    position: relative;
-
-    &::before {
-      content: " ";
-      position: absolute;
-      top: 2.4em;
-      left: 0.1em;
-      width: 0.2em;
-      height: calc(100% - 2.4em);
-      background: var(--gray-200);
-    }
-  }
-
-  .categories-item {
-    color: var(--body-font-color);
-    font-size: 1.2em;
-    text-decoration: none;
-    padding: 0.2em 0;
-    display: block;
-
-    .icon-file, .icon-folder {
-      font-size: 1.2em;
-    }
-  }
-}
-
-.category-posts {
-  margin-top: 0.5em;
-
-  li::before {
-    display: none !important;
-  }
-
-  .category-post {
-    color: var(--body-font-color);
-    text-decoration: none;
-    font-size: 1em;
-    padding: 0.1em 0;
-    display: block;
-
-    .icon-file-text {
-      font-size: 1em;
-    }
-  }
-
-  .category-post.more {
-    font-style: italic;
-    color: var(--gray-500);
   }
 }
 

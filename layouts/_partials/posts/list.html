@@ -1,0 +1,12 @@
+<article class="content-wrap browse-page">
+  {{ $pages := partialCached "pages/posts" . "posts" }}
+  <header class="list-header">
+    <h1>전체 글</h1>
+    <p class="list-header-count">글 <em class="list-count">{{ len $pages }}</em>개</p>
+  </header>
+  {{ $paginate := .Paginate $pages 10 }}
+  <div class="post-list">
+    {{ range $paginate.Pages }}{{ partial "post-item" . }}{{ end }}
+  </div>
+  {{ partial "pagination" $paginate }}
+</article>

@@ -1,15 +1,18 @@
 <div class="menu-links">
-  <a href="{{ .Site.Params.social.github }}" target="_blank" rel="noopener noreferrer" title="GitHub" class="menu-links__item menu-link-icon menu-link-icon--github{{ if not .Site.Params.social.github }} disabled{{ end }}">
-    <i class="icon-github"></i>
-  </a>
-
-  <a href="{{ with .Site.Home.OutputFormats.Get `rss` }}{{ .RelPermalink }}{{ else }}{{ `/index.xml` | relURL }}{{ end }}" title="RSS Feed" class="menu-links__item menu-link-icon menu-link-icon--rss">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.38 20 6.18 20 4.98 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"></path>
+  <a href="{{ `categories/` | relURL }}" title="카테고리" aria-label="카테고리" class="menu-links__item menu-link-icon menu-link-icon--categories"{{ if eq .Type "categories" }} aria-current="page"{{ end }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
     </svg>
   </a>
 
-  <a href="{{ `/about/` | relURL }}" title="About" class="menu-links__item menu-link-pill menu-link-pill--about">
+  <a href="{{ `tags/` | relURL }}" title="태그" aria-label="태그" class="menu-links__item menu-link-icon menu-link-icon--tags"{{ if eq .Type "tags" }} aria-current="page"{{ end }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20.59 13.41 13.41 20.59a2 2 0 0 1-2.82 0L3 13V3h10l7.59 7.59a2 2 0 0 1 0 2.82z"></path>
+      <circle cx="7.5" cy="7.5" r="1"></circle>
+    </svg>
+  </a>
+
+  <a href="{{ `/about/` | relURL }}" title="About" aria-label="About" class="menu-links__item menu-link-pill menu-link-pill--about"{{ if eq .Type "about" }} aria-current="page"{{ end }}>
     <span>About</span>
   </a>
 </div>

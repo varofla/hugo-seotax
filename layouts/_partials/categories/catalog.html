@@ -1,0 +1,23 @@
+{{- $tree := partialCached "categories/tree" . "categories" -}}
+{{- $posts := partialCached "pages/posts" . "posts" -}}
+{{- $order := .Site.Params.categoryOrder | default dict -}}
+{{- $parents := partial "categories/ordered-keys" (dict "Keys" (partial "keys" $tree) "Preferred" ($order.level1 | default slice)) -}}
+{{- $catalog := slice -}}
+{{- range $parent := $parents -}}
+  {{- $count := 0 -}}
+  {{- $counts := dict -}}
+  {{- range $posts -}}
+    {{- if eq (partial "categories/level1" .Params.categories) $parent -}}
+      {{- $count = add $count 1 -}}
+      {{- $child := partial "categories/level2" .Params.categories -}}
+      {{- if $child -}}{{- $counts = merge $counts (dict $child (add (index $counts $child | default 0) 1)) -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $children := slice -}}
+  {{- $childOrder := index ($order.level2 | default dict) $parent | default slice -}}
+  {{- range partial "categories/ordered-keys" (dict "Keys" (partial "keys" (index $tree $parent)) "Preferred" $childOrder) -}}
+    {{- $children = $children | append (dict "name" . "count" (index $counts .) "url" (printf "categories/%s/%s/" (urlize $parent) (urlize .) | relURL)) -}}
+  {{- end -}}
+  {{- $catalog = $catalog | append (dict "name" $parent "count" $count "children" $children "url" (printf "categories/%s/" (urlize $parent) | relURL)) -}}
+{{- end -}}
+{{- return $catalog -}}

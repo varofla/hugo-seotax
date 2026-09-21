@@ -2,6 +2,19 @@
 
 최초 분석 기준: 2026-09-20, 테마 HEAD `6ca296e`. 현재 로컬 코드와 사이트 설정을 기준으로 작성했고, 같은 날 수행한 찌꺼기 청소 결과를 후속 반영했다. 아래 표에서 완료한 정리와 남은 후보를 구분한다.
 
+## 0. 최신 변경 — 2026-09-21 디자인 통합
+
+사용자가 디자인 선택을 위임하고 개발 사본의 빌드를 승인했다. 이번에 채택한 기준과 검증 결과는 [DESIGN_CHANGES.md](DESIGN_CHANGES.md)에 있다. 아래 초기 기록과 충돌하면 이 절과 변경 문서를 우선한다.
+
+- 목록은 흰 배경의 구분선 중심 행, categories는 본문 전용 2열 주제 디렉터리(모바일 1열), tags는 빈도순 링크 목록이다. 탐색 제목·수량 표기는 한국어로 통일했고, 카테고리별 수량은 실제 글 수다.
+- `content/tags` partial이 빈 태그·공백·동일 태그 중복을 정리한다. 글 메타데이터, 태그 전체 보기, 검색 데이터가 이를 공유한다. 검색의 숫자 ID 순서는 그대로 유지했다.
+- `categories/catalog` partial은 사이드바·디렉터리·하위 주제 링크의 데이터와 순서를 공유한다. 디렉터리는 사이드바의 DOM/펼침 JS를 재사용하지 않는다.
+- 목록 상단과 사이드바에 중복되던 `browse-nav`/`site-menu-browse`는 제거했다. 사이드바의 상단 링크는 카테고리·태그 아이콘과 About이며, GitHub·RSS는 About에만 둔다.
+- Pretendard 1.3.9 variable font를 `static/fonts`에 라이선스와 함께 포함했다. Google Fonts 요청은 제거했다. 색상과 글꼴의 공통 토큰은 `variables/_colors.scss`, 로드는 `variables/_fonts.scss`에 있다.
+- `_lists.scss`: 페이지 헤더, 글 목록, 분류 디렉터리, 페이지 번호, 빈 상태. `_search.scss`: 검색 모달과 필터. `_reading.scss`: 읽기 레이아웃·전환·목차·공유 헤더. `_about.scss`: About. `_custom.scss`는 선택적 추가 스타일만 담는다.
+- About 복귀 스크립트는 버튼 뒤로 옮겼다. About 갤러리, 이미지 확대, 읽기 전환과 모바일 패널 구조는 유지했다. `/posts/`도 홈과 공통 목록 partial을 사용하며, 404는 공통 레이아웃을 사용한다.
+- 운영 디렉터리와 배포 스크립트는 변경하지 않았다. 전체 개발 사이트 빌드 산출물은 `/tmp/varofla-redesign/public`, 검증 자료는 `/tmp/varofla-redesign`에 있다.
+
 ## 1. 사용자와 합의된 방향
 
 - **varofla 전용 테마로 관리한다.** 범용 Hugo 테마 호환성을 유지하는 것이 목표가 아니다. 이번 대화에서 사용자가 명시했다.
@@ -26,7 +39,7 @@
 | 카테고리 생성 | `../../scripts/gen-categories.py` |
 | Git 원격 | `https://github.com/varofla/hugo-seotax` |
 
-같은 프로덕션 서버 위에 있지만 개발 디렉터리에서 빌드한다고 운영 배포가 되지는 않는다. 그래도 **`deploy.sh`는 실행 금지**, 테스트 출력은 **`/tmp`**, 전체 글 빌드는 피한다. 운영 디렉터리를 수정하지 않는다.
+같은 프로덕션 서버 위에 있지만 개발 디렉터리에서 빌드한다고 운영 배포가 되지는 않는다. 그래도 **`deploy.sh`는 실행 금지**, 테스트 출력은 **`/tmp`**, 기본 검증은 축소 빌드를 쓴다. 전체 글 빌드는 사용자가 명시적으로 허용한 경우에만 실행한다. 운영 디렉터리를 수정하지 않는다.
 
 현재 호스트에서 Docker는 사용 가능하고 `hugo` 실행 파일은 PATH에 없다. 도구 스크립트는 `hugomods/hugo:debian-non-root-0.158.0`을 사용하며 실제 축소 빌드에서 Hugo **0.158.0 extended**를 확인했다. 테마는 Hugo 템플릿 + SCSS + 일반 JavaScript로 구성되며 `package.json` 기반 빌드나 테스트 러너는 없다.
 
@@ -48,15 +61,15 @@
 | About | `layouts/about/single.html`, `assets/js/about/projects.js` | `../../content/about/index.md`의 front matter와 프로젝트 미리보기 |
 | 기본 레이아웃·반응형 | `assets/css/_layouts.scss`, `variables/_defaults.scss` | 메뉴·목차·overlay·breakpoint |
 | 메뉴 외관 | `assets/css/_menu.scss`, `layouts/_partials/menu/*` | 프로필, 링크, 공지, 카테고리, 최근 글 |
-| 카드·검색 외관 | `assets/css/_search.scss` | 검색 이외에 공용 post-card 스타일도 포함 |
-| 글·About 외관 | `assets/css/_custom.scss` | 핵심 읽기 레이아웃, 전환 애니메이션, 헤더, About 전체 |
+| 목록·검색 외관 | `assets/css/_lists.scss`, `_search.scss` | 탐색 목록/분류와 검색 컨트롤을 분리 |
+| 글·About 외관 | `assets/css/_reading.scss`, `_about.scss` | 읽기 레이아웃·전환·헤더와 About을 분리 |
 | 본문 표현 | `assets/css/main/_markdown.scss`, `_shortcodes.scss` | Markdown, 코드, 이미지, columns 등 |
 | 이미지 처리 | `_partials/content/{cover-url,cover-image,post-card-cover-img,toc-cover,img-size,img-attr}.html` | 카드·목차·본문별 서로 다른 경로 |
 | 이미지 인터랙션 | `assets/js/shortcodes/image-zoom.js`, `assets/js/vendor/medium-zoom.js` | 확대, 교체, 휠·드래그, 로딩 상태 |
 
 표에서 `_partials/`로 시작하는 경로는 `layouts/` 아래다. SCSS의 `variables/`는 `assets/css/` 아래다.
 
-`assets/main.scss`의 적용 순서는 변수 → light theme/highlight → normalize/icon/utils/print/markdown → layouts → search → menu → shortcodes → custom이다. **뒤의 `_custom.scss`가 앞선 레이아웃을 덮어쓰는 구조**이므로 파일 하나만 보고 스타일을 제거하면 안 된다. `_custom.scss`는 이름과 달리 작은 부가 수정 파일이 아니다(분석 시 916줄).
+`assets/main.scss`의 적용 순서는 변수 → light theme/highlight → normalize/icon/utils/print/markdown → layouts → lists → search → menu → shortcodes → reading → about → custom이다. 목록·분류·검색은 `.markdown` wrapper를 사용하지 않는다. `_reading.scss`의 전환 변수는 `_about.scss`에서도 참조하므로 import 순서를 유지한다.
 
 ## 4. 페이지·콘텐츠·검색 계약
 
@@ -69,7 +82,7 @@
 - `categories: [상위, 하위]`는 두 개의 독립 태그가 아니라 **순서가 있는 2단계 경로**다. 메뉴 순서는 사이트 설정의 `params.categoryOrder`도 참조한다.
 - 사이트의 Hugo taxonomy는 `tags`만 등록되어 있고 `disableKinds: [term]`이다. 카테고리 URL은 Python 스크립트가 `content/categories/.../_index.md`를 생성하여 만든 section 페이지다.
 - 생성기는 정규식으로 YAML 일부 형식을 읽고, 더 이상 해당되지 않는 카테고리 `_index.md`를 삭제한다. 테마 내부 분류 처리와 파서 지원 범위가 같다고 가정하지 않는다.
-- 1단계 카테고리 페이지의 `Total`은 현재 글 수에 하위 카테고리 수까지 더한다. 집계 의미를 바꾸려면 사용자에게 확인한다.
+- 카테고리 목록의 수량은 실제 글 수다. 2026-09-21 디자인 선택 위임에 따라 기존의 글 수 + 하위 카테고리 수 집계를 수정했다.
 
 ### 검색
 
@@ -188,7 +201,7 @@ projects:
 - 개발 About 콘텐츠에는 스마트 굴비 16장, Rack Out Of Dust 10장, LEXON MOD 7장이 등록되어 있다. 테마 밖의 콘텐츠와 About 전용 이미지도 사이트 저장소에서 함께 관리한다.
 - 검증: 전체 개발 사이트 Hugo 빌드와 Chrome 151에서 데스크톱 3열·세로 스크롤, 사진이 적을 때 하단 정렬, 240ms 크로스페이드, 갤러리 경계의 둥근 클리핑, 투명 WebP 미리보기의 흰 배경을 확인했다. 390px에서는 정보 → 4:3 대표 사진 → 가로 썸네일 순서, 일부만 보이는 마지막 사진, 탭 선택 유지와 썸네일 밖 탭 복귀, 문서 폭 넘침 없음을 확인했다. About에는 확대 스크립트가 없고 일반 포스팅의 이미지 확대·화살표 이동·Escape는 그대로 동작한다. 실기기 터치 검증은 별도다.
 
-**확인된 결함:** About의 복귀 링크 초기화 inline script가 `content-header`보다 먼저 출력된다. 스크립트 실행 시 `[data-about-back-btn]`가 아직 없어 곧바로 return한다. 축소 빌드 HTML에서도 script → 버튼 순서를 확인했다. 실제 복귀 링크는 기본 홈 링크로 남는 경로다.
+**2026-09-21 수정:** About 복귀 링크 초기화 inline script를 `content-header` 뒤로 옮겼다. 같은 사이트의 참조 페이지로 돌아가는 링크가 정상 초기화된다.
 
 초기 참고 사이트는 [Yufeng Wu의 포트폴리오](https://www.yufengwu.com/)였지만, 이후 사용자가 해당 스타일을 따르지 않고 별도 디자인으로 진행하기로 결정했다.
 
@@ -210,12 +223,10 @@ projects:
 
 | 후보 | 확인 근거 | 후속 처리 시 주의 |
 | --- | --- | --- |
-| `_custom.scss`와 기존 레이아웃 겹침 | 글·About의 큰 레이아웃/애니메이션이 override로 누적 | 공용/페이지별 책임을 정리해도 외관·동작 보존 |
 | 이미지 리소스 탐색 중복 | `img-size`와 `post-card-cover-img`에 유사한 탐색 | crop, 종횡비, 원본 확대 URL의 차이는 유지 |
 | 전환·앵커·스크롤 상태 분산 | head + post-card + site-menu + index-scroll + toc-highlight | 뒤로/앞으로, 새로고침, hash, resize 회귀가 핵심 |
 | breakpoint·시간 상수 중복 | rem/px 및 CSS/JS에 분산 | 현재 시각 기준을 먼저 확보 |
 | highlight 중복 처리 | Hugo 강조 후 브라우저에서도 강조; `console.warn` 전역 패치 존재 | 언어 확장·라인 번호·복사 결과를 확인하고 정리 |
-| 폰트 선언 혼재 | normalize는 Google Fonts Inter/Noto Sans KR 요청, UI는 Pretendard/DM Mono 지정 | 해당 폰트 로드 선언을 찾지 못함; 실제 computed font와 사용자 의도 확인 |
 | 공지 문구 하드코딩 | `layouts/_partials/menu/nav.html`에 현재 공사 안내 포함 | 문구 삭제·설정화 여부는 사용자 결정 |
 | 오래된 설정 | image rootPath가 현재 테마 이름과 다르지만 렌더링 helper가 참조함 | page resource 우선 경로와 실제 이미지 탐색을 더 확인한 후 수정 |
 

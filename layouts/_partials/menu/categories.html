@@ -1,105 +1,21 @@
 <div class="menu-categories" data-menu-categories>
-  {{ $pages := partialCached "pages/posts" . "posts" }}
-  {{ $categoryOrder := .Site.Params.categoryOrder | default (dict) }}
-  {{ $categoryOrderL1 := index $categoryOrder "level1" | default (slice) }}
-  {{ $categoryOrderL2 := index $categoryOrder "level2" | default (dict) }}
-  {{- $currentCategory := partial "categories/current" . -}}
-  {{- $activeCat1Slug := $currentCategory.category1Slug -}}
-  {{- $activeCat2Slug := $currentCategory.category2Slug -}}
-  {{/* Categories list for parent category */}}
+  {{- $current := partial "categories/current" . -}}
   <ul class="category-groups">
-    {{ $treeL1 := partialCached "categories/tree" . "categories" }}
-    {{ $category1Keys := partial "keys" $treeL1 }}
-    {{ $sortedCategory1 := slice }}
-    {{ range $k := $categoryOrderL1 }}
-      {{ $key := printf "%v" $k }}
-      {{ if in $category1Keys $key }}
-        {{ $sortedCategory1 = $sortedCategory1 | append $key }}
-      {{ end }}
-    {{ end }}
-    {{ range $k := $category1Keys }}
-      {{ if not (in $sortedCategory1 $k) }}
-        {{ $sortedCategory1 = $sortedCategory1 | append $k }}
-      {{ end }}
-    {{ end }}
-    {{ range $category1 := $sortedCategory1 }}
-    {{/* Count pages including parent category */}}
-    {{ $pagesL1 := slice }}
-    {{ $category1Count := 0 }}
-    {{ range $pages }}
-      {{ if .Params.categories }}
-        {{ if eq $category1 (partial "categories/level1" .Params.categories) }}
-          {{ $pagesL1 = $pagesL1 | append . }}
-          {{ $category1Count = add $category1Count 1 }}
-        {{ end }}
-      {{ end }}
-    {{ end }}
-    {{/* Categories label for parent category */}}
-    {{ $treeL2 := index $treeL1 $category1 }}
-    {{ $childrenId := printf "category-children-%s" (anchorize $category1) }}
-    {{- $category1Slug := urlize $category1 -}}
-    {{- $isActiveGroup := eq $activeCat1Slug $category1Slug -}}
-    <li class="category-group{{ if not $treeL2 }} category-group-leaf{{ end }}{{ if $isActiveGroup }} is-open{{ end }}" data-category-group data-category1="{{ $category1 }}" data-category1-slug="{{ $category1Slug }}">
-      {{ if $treeL2 }}
-      {{ partial "menu/category-parent" (dict
-        "category1" $category1
-        "category1Count" $category1Count
-        "hasChildren" true
-        "isLeaf" false
-        "childrenId" $childrenId
-        "isActive" $isActiveGroup
-      ) }}
-      {{/* Categories list for child category */}}
-      <div
-        class="category-children-shell"
-        data-category-children-shell
-        aria-hidden="{{ if $isActiveGroup }}false{{ else }}true{{ end }}"{{ if not $isActiveGroup }} inert{{ end }}>
-      <ul class="category-children" id="{{ $childrenId }}" data-category-children>
-        {{ $category2Keys := partial "keys" $treeL2 }}
-        {{ $category2Order := index $categoryOrderL2 $category1 | default (slice) }}
-        {{ $sortedCategory2 := slice }}
-        {{ range $k := $category2Order }}
-          {{ $key := printf "%v" $k }}
-          {{ if in $category2Keys $key }}
-            {{ $sortedCategory2 = $sortedCategory2 | append $key }}
+    {{ range partialCached "categories/catalog" . "categories" }}
+    {{- $parent := . -}}
+    {{- $slug := urlize .name -}}
+    {{- $active := eq $current.category1Slug $slug -}}
+    {{- $childrenId := printf "category-children-%s" (anchorize .name) -}}
+    <li class="category-group{{ if not .children }} category-group-leaf{{ end }}{{ if $active }} is-open{{ end }}" data-category-group data-category1="{{ .name }}" data-category1-slug="{{ $slug }}">
+      {{ partial "menu/category-parent" (dict "category1" .name "category1Count" .count "hasChildren" (gt (len .children) 0) "isLeaf" (eq (len .children) 0) "childrenId" $childrenId "isActive" $active) }}
+      {{ with .children }}
+      <div class="category-children-shell" data-category-children-shell aria-hidden="{{ if $active }}false{{ else }}true{{ end }}"{{ if not $active }} inert{{ end }}>
+        <ul class="category-children" id="{{ $childrenId }}" data-category-children>
+          {{ range . }}
+          {{ partial "menu/category-child" (dict "category1" $parent.name "category2" .name "category2Count" .count "isActive" (and $active (eq $current.category2Slug (urlize .name)))) }}
           {{ end }}
-        {{ end }}
-        {{ range $k := $category2Keys }}
-          {{ if not (in $sortedCategory2 $k) }}
-            {{ $sortedCategory2 = $sortedCategory2 | append $k }}
-          {{ end }}
-        {{ end }}
-        {{ range $category2 := $sortedCategory2 }}
-        {{/* Count pages including child category */}}
-        {{ $category2Count := 0 }}
-        {{ range $pagesL1 }}
-          {{ if .Params.categories }}
-            {{ if eq $category2 (partial "categories/level2" .Params.categories) }}
-              {{ $category2Count = add $category2Count 1 }}
-            {{ end }}
-          {{ end }}
-        {{ end }}
-        {{- $isActiveChild := and $isActiveGroup (eq $activeCat2Slug (urlize $category2)) -}}
-        {{/* Categories label for child category */}}
-        {{ partial "menu/category-child" (dict
-          "category1" $category1
-          "category2" $category2
-          "category2Count" $category2Count
-          "isActive" $isActiveChild
-        ) }}
-        {{ end }}
-      </ul>
+        </ul>
       </div>
-      {{ else }}
-      {{/* Categories label for parent category if child categories not exist */}}
-      {{ partial "menu/category-parent" (dict
-        "category1" $category1
-        "category1Count" $category1Count
-        "hasChildren" false
-        "isLeaf" true
-        "childrenId" ""
-        "isActive" $isActiveGroup
-      ) }}
       {{ end }}
     </li>
     {{ end }}

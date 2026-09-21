@@ -1,39 +1,25 @@
 {{ define "content" }}
-{{- /* ... */ -}}
 {{- $tree := dict -}}
-{{- range partialCached "pages/posts" . "posts" -}}
-  {{ if .Params.tags }}
-    {{- range .Params.tags -}}
-      {{- $count := default 0 (index $tree .) -}}
-      {{- $tree = merge $tree (dict . (add $count 1)) -}}
-    {{- end -}}
+{{- range partialCached "pages/search" . "search" -}}
+  {{- range partial "content/tags" . -}}
+    {{- $tree = merge $tree (dict . (add (index $tree . | default 0) 1)) -}}
   {{- end -}}
 {{- end -}}
-{{- /* convert map to slice so it can be sorted by count */ -}}
-{{ $tags := slice }}
-{{ range $name, $count := $tree }}
-  {{ $tags = $tags | append (dict "name" $name "count" $count) }}
-{{ end }}
-{{- /* ... */ -}}
-<article class="markdown content-wrap">
-  <div class="list-header list-header--stacked">
-    <h1>
-      <i class="icon-tags"></i>
-      <span>태그</span>
-    </h1>
-    <p class="list-header-count">
-      {{- $count := printf `<em class="list-count">%d</em>` (len $tree) -}}
-      {{- printf "전체 태그 %s" $count | safeHTML -}}
-    </p>
-  </div>
-  <div class="taxonomy-chips">
-    {{ range sort $tags "count" "desc" "name" "asc" }}
-    <div class="taxonomy-item">
-      <a href="{{ `search/` | relURL }}?tags={{ .name }}" class="taxonomy-link">
-        <span class="taxonomy-name">{{ replace .name " " "-" }}</span>
-        <span class="taxonomy-count">({{ .count }})</span>
-      </a>
-    </div>
+{{- $tags := slice -}}
+{{- range $name, $count := $tree -}}
+  {{- $tags = $tags | append (dict "name" $name "count" $count) -}}
+{{- end -}}
+<article class="content-wrap browse-page">
+  <header class="list-header">
+    <h1>태그</h1>
+    <p class="list-header-count">태그 <em class="list-count">{{ len $tags }}</em>개 · 글이 많은 순</p>
+  </header>
+  <div class="tag-directory">
+    {{ range sort (sort $tags "name" "asc") "count" "desc" }}
+    <a class="tag-directory-link" href="{{ printf "%s?%s" (`search/` | relURL) (querify `tags` .name) }}">
+      <span class="tag-directory-name"><span aria-hidden="true">#</span>{{ replace .name " " "-" }}</span>
+      <span class="directory-count">{{ .count }}<span class="sr-only">개의 글</span></span>
+    </a>
     {{ end }}
   </div>
 </article>

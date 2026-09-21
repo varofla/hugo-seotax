@@ -27,9 +27,10 @@
         </span>
       </div>
     </a>
-    {{ if $.Params.tags }}
+    {{ $tags := partial "content/tags" . }}
+    {{ if $tags }}
     <div class="post-meta-tags">
-      {{ range $.Params.tags }}
+      {{ range $tags }}
       {{ $displayTag := replace . " " "-" }}
       <a
         href="{{ printf "%s?%s" (`search/` | relURL) (querify `tags` .) }}"

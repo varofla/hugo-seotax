@@ -1,0 +1,632 @@
+// Reading layout, transitions, shared post/About header, and table of contents.
+
+$post-view-menu-enter-duration: 460ms;
+$post-view-menu-enter-easing: cubic-bezier(0.22, 1, 0.36, 1);
+$post-view-menu-collapse-fade-duration: 340ms;
+$post-view-menu-collapse-fade-delay: 120ms;
+$post-view-toc-width: 240px;
+
+// ── Post View: Layout ────────────────────────────────────────────────────────
+// On post pages (posts section single pages), the left menu stays mounted in a
+// collapsed state so we can animate into the article view from post cards.
+// scrollbar moves from the window to the main-wrap element.
+
+body.site-kind-page.site-type-posts {
+  // Desktop: move the scrollbar to .main-wrap
+  @media screen and (min-width: breakpoint(menu)) {
+    overflow: hidden;
+
+    .container {
+      height: 100vh;
+      overflow: hidden;
+      align-items: stretch;
+    }
+
+    .main-wrap {
+      max-width: none;
+      height: 100vh;
+      overflow-y: auto;
+      margin: 0;
+      padding: space(32) space(40);
+
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+      }
+    }
+
+    // Center the content and footer within main-wrap
+    .content-wrap,
+    .site-footer {
+      max-width: $body-wide-width;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .site-menu {
+      --post-view-panel-duration: #{$post-view-menu-enter-duration};
+      display: block;
+      width: 0;
+      margin-right: 0 !important;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        width var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity $post-view-menu-collapse-fade-duration $post-view-menu-enter-easing $post-view-menu-collapse-fade-delay,
+        visibility 0s linear var(--post-view-panel-duration);
+    }
+
+    .site-menu .menu-content {
+      transform: translateX(calc(-1 * #{$menu-width}));
+      opacity: 0;
+      transition:
+        transform var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity $post-view-menu-collapse-fade-duration $post-view-menu-enter-easing $post-view-menu-collapse-fade-delay;
+    }
+  }
+
+  // Desktop: remove sticky positioning from TOC (container is fixed-height)
+  @media screen and (min-width: breakpoint(menu)) {
+    .site-toc {
+      --post-view-panel-duration: #{$post-view-menu-enter-duration};
+      display: flex;
+      justify-content: flex-end;
+      position: relative;
+      top: auto;
+      width: $post-view-toc-width;
+      height: 100vh;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      transition:
+        width var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity var(--post-view-panel-duration) $post-view-menu-enter-easing;
+    }
+
+    .site-toc .toc-content {
+      flex: 0 0 $post-view-toc-width;
+      width: $post-view-toc-width;
+      min-width: $post-view-toc-width;
+      max-width: none;
+      margin-left: auto;
+      transform: none;
+      transition:
+        opacity var(--post-view-panel-duration) $post-view-menu-enter-easing;
+      will-change: opacity;
+    }
+  }
+}
+
+html.post-view-reload-restoring body.site-kind-page.site-type-posts {
+  @media screen and (min-width: breakpoint(menu)) {
+    .main-wrap {
+      opacity: 0;
+    }
+  }
+}
+
+@media screen and (max-width: breakpoint(menu)) {
+  .content-wrap {
+    margin-top: space(24);
+  }
+
+  body.site-kind-page.site-type-posts .post-view-header,
+  body.site-kind-page.site-type-about .about-view-header {
+    .post-back-btn {
+      margin-bottom: space(20);
+    }
+
+    .content-title {
+      font-size: 1.75rem;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .post-meta-row {
+      margin-bottom: 1.75rem;
+    }
+  }
+}
+
+@media screen and (max-width: breakpoint(narrow)) {
+  .main-wrap {
+    padding-right: 0.875rem;
+    padding-left: 0.875rem;
+  }
+
+  .site-header {
+    margin-right: -0.875rem;
+    margin-left: -0.875rem;
+  }
+
+
+  body.site-kind-page.site-type-posts .post-view-header,
+  body.site-kind-page.site-type-about .about-view-header {
+    .content-title {
+      font-size: 1.5rem;
+      margin-bottom: space(12);
+    }
+
+    .post-meta-row {
+      gap: 0.625rem;
+      margin-bottom: space(24);
+      padding-bottom: space(20);
+
+      .menu-brand .menu-brand-avatar {
+        width: 38px;
+        height: 38px;
+      }
+
+      .post-meta-tags {
+        flex-wrap: nowrap;
+        padding-bottom: space(4);
+        overflow-x: auto;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+html.post-view-reload-revealing body.site-kind-page.site-type-posts {
+  @media screen and (min-width: breakpoint(menu)) {
+    .main-wrap {
+      opacity: 1;
+      transition: opacity 180ms ease-out;
+    }
+  }
+}
+
+// ── Post-view entry: keyframes ───────────────────────────────────────────────
+// CSS animations are used (not transitions) because they start playing the
+// moment the class is applied by the inline <head> script — independent of
+// when deferred JS executes. With browser cache enabled, defer scripts run
+// before the first paint, making transition-based approaches unreliable.
+
+@keyframes post-view-enter-menu-width {
+  from { width: #{$menu-width}; }
+  to   { width: 0; }
+}
+@keyframes post-view-enter-menu-opacity {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes post-view-enter-menu-transform {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(-1 * #{$menu-width})); }
+}
+@keyframes post-view-enter-content-opacity-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes post-view-enter-toc-width {
+  from { width: 0; }
+  to   { width: #{$post-view-toc-width}; }
+}
+@keyframes post-view-enter-opacity-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+html.post-view-enter-pending body.site-kind-page.site-type-posts {
+  @media screen and (min-width: breakpoint(menu)) {
+    .site-menu {
+      visibility: visible;
+      animation:
+        post-view-enter-menu-width
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both,
+        post-view-enter-menu-opacity
+          #{$post-view-menu-collapse-fade-duration}
+          #{$post-view-menu-enter-easing}
+          #{$post-view-menu-collapse-fade-delay}
+          both;
+    }
+
+    .site-menu .menu-content {
+      animation:
+        post-view-enter-menu-transform
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both,
+        post-view-enter-content-opacity-out
+          #{$post-view-menu-collapse-fade-duration}
+          #{$post-view-menu-enter-easing}
+          #{$post-view-menu-collapse-fade-delay}
+          both;
+    }
+
+    .site-toc {
+      animation:
+        post-view-enter-toc-width
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both,
+        post-view-enter-opacity-in
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both;
+    }
+
+    .site-toc .toc-content {
+      animation:
+        post-view-enter-opacity-in
+          #{$post-view-menu-enter-duration}
+          #{$post-view-menu-enter-easing}
+          both;
+    }
+  }
+}
+
+html.post-view-exit-pending body.site-kind-page.site-type-posts {
+  @media screen and (min-width: breakpoint(menu)) {
+    .site-menu {
+      transition:
+        width var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        opacity var(--post-view-panel-duration) $post-view-menu-enter-easing,
+        visibility 0s linear 0s;
+      width: $menu-width;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .site-menu .menu-content {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .site-toc {
+      width: 0;
+      opacity: 0;
+    }
+
+    .site-toc .toc-content {
+      opacity: 0;
+    }
+  }
+}
+
+// html element: reset scrollbar-gutter so the window doesn't reserve space
+// for a scrollbar that won't appear (scroll is on .main-wrap instead)
+@media screen and (min-width: breakpoint(menu)) {
+  html:has(body.site-kind-page.site-type-posts) {
+    scrollbar-gutter: auto;
+  }
+}
+
+// ── Post View: TOC Styles ────────────────────────────────────────────────────
+
+body.site-kind-page.site-type-posts {
+  // TOC container: narrower width and left border separator
+  @media screen and (min-width: breakpoint(menu)) {
+    .site-toc {
+      border-left: 1px solid var(--border);
+
+      // Remove existing padding; items handle their own horizontal padding
+      .toc-content {
+        padding: space(16) 0;
+      }
+    }
+  }
+
+  // #TableOfContents link styling
+  #TableOfContents {
+    margin-top: 0;
+    padding-left: 0;
+    border-left: none;
+
+    // Reset global nav ul indent
+    ul {
+      padding-inline-start: 0;
+    }
+
+    // Reset global nav a padding/display
+    a {
+      padding: 0;
+      display: block;
+    }
+
+    // H2 links (> ul > li > a)
+    > ul > li > a {
+      border-left: 2px solid transparent;
+      padding: 4px 16px;
+      font-family: var(--font-ui);
+      font-size: 12.5px;
+      color: var(--text);
+      font-weight: 500;
+      transition: border-color 0.15s, color 0.15s;
+      line-height: 1.5;
+
+      &.active,
+      &.toc-flash {
+        border-left-color: var(--accent);
+        color: var(--accent);
+        font-weight: 500;
+      }
+
+      &[href]:hover {
+        opacity: 1;
+        color: var(--accent);
+      }
+    }
+
+    > ul > li.toc-top-item > a {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    > ul > li.toc-top-item > .toc-cover-wrap {
+      margin: 8px 16px;
+
+      @media screen and (max-width: breakpoint(menu)) {
+        margin: 0 0 space(16);
+      }
+    }
+
+    .toc-cover-wrap {
+      display: block;
+    }
+
+    .toc-cover {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: radius(cover);
+    }
+
+    // H3 links (> ul > li > ul > li > a)
+    > ul > li > ul > li > a {
+      border-left: 2px solid transparent;
+      padding: 3px 16px 3px 28px;
+      font-family: var(--font-ui);
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 400;
+      transition: border-color 0.15s, color 0.15s;
+      line-height: 1.5;
+
+      &.active,
+      &.toc-flash {
+        border-left-color: var(--accent);
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      &[href]:hover {
+        opacity: 1;
+        color: var(--accent);
+      }
+    }
+  }
+}
+
+// ── Post View: Content Header ────────────────────────────────────────────────
+
+.post-view-header,
+.about-view-header {
+  text-align: left;
+  border-bottom: none;
+  padding-bottom: 0;
+
+  .post-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-subtle);
+    font-size: font-size(14);
+    margin-bottom: space(24);
+    text-decoration: none;
+    padding: 0;
+
+    &[href]:hover {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+  }
+
+  .content-category {
+    margin-bottom: 0px;
+
+    .post-categories {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.1875rem;
+      flex-wrap: wrap;
+      margin-bottom: 0;
+    }
+
+    a.post-cat-parent,
+    a.post-cat-child,
+    a.post-cat-parent:visited,
+    a.post-cat-child:visited {
+      display: inline;
+      padding: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      color: var(--gray-500);
+      font-size: 0.75rem;
+      font-weight: 400;
+      line-height: 1.3;
+      text-decoration: none;
+      opacity: 1;
+      transition: color 0.18s ease;
+    }
+
+    a.post-cat-parent:hover,
+    a.post-cat-child:hover,
+    a.post-cat-parent:focus-visible,
+    a.post-cat-child:focus-visible {
+      color: var(--accent);
+      text-decoration: none;
+      background: none;
+    }
+
+    .post-cat-sep {
+      color: var(--gray-500);
+      font-size: 0.75rem;
+      line-height: 1.3;
+      user-select: none;
+    }
+  }
+
+  .content-title {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-top: space(4);
+    margin-bottom: space(16);
+    color: var(--text);
+    text-align: left;
+  }
+
+  .post-meta-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: space(32);
+    padding-bottom: space(24);
+    border-bottom: 1px solid var(--border);
+
+    .menu-brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 10px;
+      color: var(--text);
+      text-decoration: none;
+
+      &:visited,
+      &:hover,
+      &:focus-visible {
+        color: var(--text);
+        opacity: 1;
+        text-decoration: none;
+      }
+
+      .menu-brand-avatar {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+
+      .menu-brand-avatar-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+      }
+
+      .menu-brand-copy {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        gap: 2px;
+        padding-top: 6px;
+      }
+
+      .profile-title {
+        margin: 0;
+        font-family: var(--font-ui);
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.2;
+      }
+
+      .menu-brand-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .menu-subtitle {
+        display: block;
+        font-family: var(--font-ui);
+        font-size: 12px;
+        color: var(--text-subtle);
+        margin-top: 0;
+        letter-spacing: 0;
+      }
+    }
+
+    .post-meta-tags {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      width: 100%;
+      min-width: 0;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    @media screen and (min-width: breakpoint(menu)) {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+
+      .menu-brand {
+        flex: 0 1 auto;
+      }
+
+      .post-meta-tags {
+        flex: 1 1 0;
+        width: auto;
+        padding-top: space(6);
+        justify-content: flex-end;
+      }
+    }
+
+    a.post-view-tag,
+    a.post-view-tag:visited {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 0;
+      white-space: nowrap;
+      text-decoration: none;
+      transition: color 0.18s ease;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--text-subtle);
+      background: none;
+      box-shadow: none;
+      padding: 0;
+
+      &:hover,
+      &:focus-visible {
+        color: var(--accent);
+        background: none;
+        text-decoration: none;
+      }
+    }
+  }
+}

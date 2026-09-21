@@ -155,7 +155,7 @@
     modalSearchInput = createElement('input', {
       className: 'search-modal-input',
       id: 'search-modal-input',
-      attrs: {type: 'text', maxLength: 64, placeholder: TEXT.searchPlaceholder}
+      attrs: {type: 'text', maxLength: 64, placeholder: TEXT.searchPlaceholder, 'aria-label': TEXT.searchAction}
     });
     modalSearchInput.addEventListener('input', () => {
       modalSearchState.query = modalSearchInput.value.trim();
@@ -502,6 +502,11 @@
     }).catch(() => {
       modalSearchReady = false;
       modalSearchInput.required = false;
+      clearModalResults();
+      modalSearchResults.appendChild(createElement('li', {
+        className: 'search-result-empty',
+        text: '검색을 불러오지 못했습니다. 잠시 후 다시 열어주세요.'
+      }));
     });
   }
 
@@ -863,6 +868,10 @@
     );
 
     if (!hasActiveFilters) {
+      modalSearchResults.appendChild(createElement('li', {
+        className: 'search-result-empty',
+        text: '검색어를 입력하거나 카테고리와 태그를 선택하세요.'
+      }));
       return;
     }
 

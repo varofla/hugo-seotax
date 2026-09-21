@@ -3,7 +3,7 @@
 {{- /* Get unique tags */ -}}
 {{- $tags := slice -}}
 {{- range $page := $pages -}}
-  {{- range $page.Params.tags -}}
+  {{- range partial "content/tags" $page -}}
     {{- $tags = $tags | append . -}}
   {{- end -}}
 {{- end -}}
@@ -11,7 +11,7 @@
 {{- range $t := sort (uniq $tags) -}}
   {{- $ids := slice -}}
   {{- range $id, $page := $pages -}}
-    {{- if in $page.Params.tags $t -}}
+    {{- if in (partial "content/tags" $page) $t -}}
       {{- $ids = $ids | append $id -}}
     {{- end -}}
   {{- end -}}

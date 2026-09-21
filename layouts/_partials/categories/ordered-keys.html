@@ -1,0 +1,9 @@
+{{- $keys := .Keys -}}
+{{- $ordered := slice -}}
+{{- range .Preferred -}}
+  {{- if in $keys (string .) -}}{{- $ordered = $ordered | append (string .) -}}{{- end -}}
+{{- end -}}
+{{- range $keys -}}
+  {{- if not (in $ordered .) -}}{{- $ordered = $ordered | append . -}}{{- end -}}
+{{- end -}}
+{{- return $ordered -}}

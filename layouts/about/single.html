@@ -39,6 +39,9 @@
 {{- end -}}
 
 {{- define "content" -}}
+
+<article class="content-wrap about-content-wrap" id="content-wrap">
+  {{ template "content-header" . }}
 <script>
 (function() {
   var backBtn = document.querySelector('[data-about-back-btn]');
@@ -64,8 +67,6 @@
   backBtn.textContent = referrerLabel;
 })();
 </script>
-<article class="content-wrap about-content-wrap" id="content-wrap">
-  {{ template "content-header" . }}
 
   {{- if .Content -}}
   <div class="markdown about-body">

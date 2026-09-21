@@ -69,7 +69,7 @@
 
 {{ define "footer" }}
 <footer class="site-footer">
-  {{ if eq .Section (default "posts" .Site.Params.posts.section) }}
+  {{ if and .IsPage (eq .Section (default "posts" .Site.Params.posts.section)) }}
   {{ if not (and (eq .Kind "page") (eq .Type "posts")) }}
   {{ template "tags" . }}
   {{ end }}

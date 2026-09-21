@@ -1,61 +1,26 @@
 <article class="post-item" data-post-item data-post-item-url="{{ .RelPermalink }}">
-
-  {{ $thumbnailImage := .Params.thumbnail }}
-
-  <div class="post-content-area{{ if $thumbnailImage }} has-cover{{ end }}">
-    <div class="post-text-area">
-      {{ if .Params.categories }}
-      {{ partial "categories/pills" (dict "categories" .Params.categories) }}
-      {{ end }}
-
-      <h2 class="post-title">
-        <a href="{{ .RelPermalink }}" class="post-title-link">{{ .Title }}</a>
-      </h2>
-
-      {{ with $thumbnailImage }}
-      <div class="post-cover-mobile{{ if site.Params.image.roundedCorners }} rounded{{ end }}">
-        {{- $thumbAttrs := partial "content/img-attr" (dict "Page" $ "Url" .) -}}
-        <img src="{{ . | absURL }}" alt="" class="post-cover-mobile-img" {{ $thumbAttrs | safeHTMLAttr }} loading="lazy" decoding="async">
-      </div>
-      {{ end }}
-
-      {{ with cond .Description .Description (cond .Summary .Summary "") }}
-      <div class="post-summary">
-        {{- . | plainify | truncate 148 -}}
-      </div>
-      {{ end }}
-
-      <div class="post-meta">
-        <time datetime="{{ .Date.Format `2006-01-02` }}">
-          {{- .Date.Format "2006.01.02" -}}
-        </time>
-        {{ if .Params.tags }}
-        <span class="post-meta-sep">·</span>
-        <div class="post-tags">
-          {{ range first 5 .Params.tags }}
-          {{ $displayTag := replace . " " "-" }}
-          <a
-            href="{{ printf "%s?%s" (`search/` | relURL) (querify `tags` .) }}"
-            class="post-tag">#{{ $displayTag }}</a>
-          {{ end }}
-        </div>
-        {{ end }}
-      </div>
-    </div>
-
-    {{ with $thumbnailImage }}
-    <div class="post-cover{{ if site.Params.image.roundedCorners }} rounded{{ end }}">
-      {{ partial "content/post-card-cover-img.html" (dict
-        "Page" $
-        "Url" .
-        "Alt" "Thumbnail Image"
-        "Class" "post-cover-img"
-        "Width" 200
-        "Height" 170
-        "Sizes" "200px"
-      ) }}
+  {{- $thumbnail := .Params.thumbnail -}}
+  {{- $tags := partial "content/tags" . -}}
+  <div class="post-content-area{{ if $thumbnail }} has-cover{{ end }}">
+    {{ partial "categories/pills" (dict "categories" .Params.categories) }}
+    <h2 class="post-title"><a href="{{ .RelPermalink }}" class="post-title-link">{{ .Title }}</a></h2>
+    {{ with $thumbnail }}
+    <div class="post-cover">
+      {{ partial "content/post-card-cover-img" (dict "Page" $ "Url" . "Alt" $.Title "Class" "post-cover-img" "Width" 240 "Height" 180 "Sizes" "(max-width: 544px) calc(100vw - 40px), 220px") }}
     </div>
     {{ end }}
+    {{ with cond .Description .Description (cond .Summary .Summary "") }}
+    <p class="post-summary">{{ . | plainify | truncate 148 }}</p>
+    {{ end }}
+    <div class="post-meta">
+      <time datetime="{{ .Date.Format `2006-01-02` }}">{{ .Date.Format "2006.01.02" }}</time>
+      {{ if $tags }}
+      <div class="post-tags">
+        {{ range first 5 $tags }}
+        <a href="{{ printf "%s?%s" (`search/` | relURL) (querify `tags` .) }}" class="post-tag">#{{ replace . " " "-" }}</a>
+        {{ end }}
+      </div>
+      {{ end }}
+    </div>
   </div>
-
 </article>

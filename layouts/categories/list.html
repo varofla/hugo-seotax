@@ -22,18 +22,9 @@
   {{- end -}}
 {{- end -}}
 
-{{- $totalCount := len $filtered -}}
-{{- if not $cat2 -}}
-  {{- $treeL1 := partialCached "categories/tree" . "categories" -}}
-  {{- $treeL2 := index $treeL1 $cat1 -}}
-  {{- if $treeL2 -}}
-    {{- $totalCount = add $totalCount (len (partial "keys" $treeL2)) -}}
-  {{- end -}}
-{{- end -}}
-
 {{- $paginator := .Paginate $filtered 10 -}}
 
-<article class="content-wrap markdown">
+<article class="content-wrap browse-page">
   <div
     data-current-category
     data-category1="{{ $cat1 }}"
@@ -41,18 +32,24 @@
     data-category2="{{ $cat2 }}"
     data-category2-slug="{{ $currentCategory.category2Slug }}"
     hidden></div>
-  <div class="list-header list-header--stacked">
-    <h1 id="category-title">
-      <a href="{{ printf "%s%s/" (`categories/` | relURL) (urlize $cat1) }}" class="category-title-link category-title-link--parent">{{ $cat1 }}</a>
-      {{- if $cat2 }}
-      <span class="category-title-sep">›</span>
-      <a href="{{ printf "%s%s/%s/" (`categories/` | relURL) (urlize $cat1) (urlize $cat2) }}" class="category-title-link category-title-link--child">{{ $cat2 }}</a>
-      {{- end }}
-    </h1>
-    <p class="list-header-count">
-      Total <em class="list-count" id="category-count">{{ $totalCount }}</em>
-    </p>
-  </div>
+  <header class="list-header">
+    {{ if $cat2 }}
+    <p class="list-breadcrumb"><a href="{{ printf "categories/%s/" (urlize $cat1) | relURL }}">{{ $cat1 }}</a><span aria-hidden="true"> / </span></p>
+    {{ end }}
+    <h1 id="category-title">{{ if $cat2 }}{{ $cat2 }}{{ else }}{{ $cat1 }}{{ end }}</h1>
+    <p class="list-header-count">글 <em class="list-count" id="category-count">{{ len $filtered }}</em>개</p>
+  </header>
+  {{ if not $cat2 }}
+    {{ range partialCached "categories/catalog" . "categories" }}
+      {{ if eq .name $cat1 }}
+      {{ with .children }}
+      <nav class="category-topics" aria-label="하위 카테고리">
+        {{ range . }}<a href="{{ .url }}">{{ .name }} <span class="directory-count">{{ .count }}</span></a>{{ end }}
+      </nav>
+      {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
 
   {{ if $paginator.Pages }}
   <div class="post-list" id="category-results">

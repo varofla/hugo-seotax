@@ -1,4 +1,8 @@
-.browse-page { padding-top: 12px; }
+.browse-page { margin-bottom: 24px; padding-top: 12px; }
+.browse-page + .site-footer {
+  padding-top: 0;
+  .copyright-wrap { margin-top: 0; }
+}
 .list-header {
   margin-bottom: 32px;
   h1 { margin: 0; color: var(--text); font-size: 30px; font-weight: 700; line-height: 1.3; letter-spacing: -.035em; overflow-wrap: anywhere; }

@@ -145,7 +145,7 @@
 <link rel="preload" href="{{ `fonts/icomoon.woff?jrhayr` | relURL }}" as="font" type="font/woff" crossorigin>
 
 {{- $manifest := resources.Get "data/manifest.json" | resources.ExecuteAsTemplate "data/manifest.json" . }}
-<link rel="manifest" href="{{ $manifest.RelPermalink }}">
+<link rel="manifest" href="{{ partial `links/resource-precache` $manifest }}">
 <link rel="canonical" href="{{ if .Params.canonicalURL -}} {{ trim .Params.canonicalURL ` ` }} {{- else -}} {{ .Permalink }} {{- end }}">
 
 <!-- Theme stylesheet, you can customize scss by creating `assets/css/custom.scss` in your website -->
@@ -163,11 +163,8 @@
 </script>
 {{- end -}}
 
-<!-- Service Worker -->
-{{- if eq .Site.Params.serviceWorker "precache" -}}
-  {{- $swJS := resources.Get "sw-register.js" | resources.ExecuteAsTemplate "sw.js" . | resources.Minify | resources.Fingerprint }}
-  <script defer src="{{ $swJS.RelPermalink }}" {{ template `integrity` $swJS }}></script>
-{{- else if eq .Site.Params.serviceWorker "cleanup" -}}
+<!-- Service Worker cleanup -->
+{{- if eq .Site.Params.serviceWorker "cleanup" -}}
   <script>
     (function () {
       if (!('serviceWorker' in navigator)) {
@@ -325,17 +322,20 @@ document.addEventListener('DOMContentLoaded', function() {
 <script defer src="{{ partial `links/resource-precache` $readingTimeJS }}" {{ template `integrity` $readingTimeJS }}></script>
 
 <!-- Image Zoom -->
+{{- $mediumZoomJS := resources.Get "js/vendor/medium-zoom.js" | resources.Minify | resources.Fingerprint }}
+{{- $imageZoomJS := resources.Get "js/shortcodes/image-zoom.js" | resources.ExecuteAsTemplate "js/shortcodes/image-zoom.js" . | resources.Minify | resources.Fingerprint }}
+{{- $mediumZoomURL := partial `links/resource-precache` $mediumZoomJS }}
+{{- $imageZoomURL := partial `links/resource-precache` $imageZoomJS }}
 {{- if ne .Type "about" }}
-  {{- $mediumZoomJS := resources.Get "js/vendor/medium-zoom.js" | resources.Minify | resources.Fingerprint }}
-  {{- $imageZoomJS := resources.Get "js/shortcodes/image-zoom.js" | resources.ExecuteAsTemplate "js/shortcodes/image-zoom.js" . | resources.Minify | resources.Fingerprint }}
-  <script defer src="{{ partial `links/resource-precache` $mediumZoomJS }}" {{ template `integrity` $mediumZoomJS }}></script>
-  <script defer src="{{ partial `links/resource-precache` $imageZoomJS }}" {{ template `integrity` $imageZoomJS }}></script>
+  <script defer src="{{ $mediumZoomURL }}" {{ template `integrity` $mediumZoomJS }}></script>
+  <script defer src="{{ $imageZoomURL }}" {{ template `integrity` $imageZoomJS }}></script>
 {{- end }}
 
-{{- if eq .Type "about" }}
 <!-- About project previews -->
 {{- $aboutProjectsJS := resources.Get "js/about/projects.js" | resources.Minify | resources.Fingerprint }}
-<script defer src="{{ partial `links/resource-precache` $aboutProjectsJS }}" {{ template `integrity` $aboutProjectsJS }}></script>
+{{- $aboutProjectsURL := partial `links/resource-precache` $aboutProjectsJS }}
+{{- if eq .Type "about" }}
+<script defer src="{{ $aboutProjectsURL }}" {{ template `integrity` $aboutProjectsJS }}></script>
 {{- end }}
 
 <!-- Data Table -->
@@ -351,19 +351,19 @@ document.addEventListener('DOMContentLoaded', function() {
   <!-- Search Data: Content -->
   {{- $dataContent := resources.Get "data/content.json" | resources.ExecuteAsTemplate "data/content.json" . | resources.Minify | resources.Fingerprint }}
   <script>
-    window.siteSearch.contentUrl = "{{ $dataContent.RelPermalink }}";
+    window.siteSearch.contentUrl = "{{ partial `links/resource-precache` $dataContent }}";
   </script>
 
   <!-- Search Data: Categories -->
   {{- $dataCategories := resources.Get "data/categories.json" | resources.ExecuteAsTemplate "data/categories.json" . | resources.Minify | resources.Fingerprint }}
   <script>
-    window.siteSearch.categoriesUrl = "{{ $dataCategories.RelPermalink }}";
+    window.siteSearch.categoriesUrl = "{{ partial `links/resource-precache` $dataCategories }}";
   </script>
 
   <!-- Search Data: Tags -->
   {{- $dataTags := resources.Get "data/tags.json" | resources.ExecuteAsTemplate "data/tags.json" . | resources.Minify | resources.Fingerprint }}
   <script>
-    window.siteSearch.tagsUrl = "{{ $dataTags.RelPermalink }}";
+    window.siteSearch.tagsUrl = "{{ partial `links/resource-precache` $dataTags }}";
   </script>
 
   <!-- Search Initialization -->
@@ -376,10 +376,17 @@ document.addEventListener('DOMContentLoaded', function() {
   {{- $searchInputJS := resources.Get "js/search/input.js" | resources.ExecuteAsTemplate "js/search/input.js" . | resources.Minify | resources.Fingerprint }}
   <script defer src="{{ partial `links/resource-precache` $searchInputJS }}" {{ template `integrity` $searchInputJS }}></script>
 
+  <!-- Search List -->
+  {{- $searchListJS := resources.Get "js/search/list.js" | resources.ExecuteAsTemplate "js/search/list.js" . | resources.Minify | resources.Fingerprint }}
+  {{- $searchListURL := partial `links/resource-precache` $searchListJS }}
   {{- if eq .Type "search" }}
-    <!-- Search List -->
-    {{- $searchListJS := resources.Get "js/search/list.js" | resources.ExecuteAsTemplate "js/search/list.js" . | resources.Minify | resources.Fingerprint }}
-    <script defer src="{{ partial `links/resource-precache` $searchListJS }}" {{ template `integrity` $searchListJS }}></script>
+    <script defer src="{{ $searchListURL }}" {{ template `integrity` $searchListJS }}></script>
   {{- end }}
 {{- end -}}
 <!-- Search: End -->
+
+<!-- Render the service worker after every app asset has entered the precache list. -->
+{{- if eq .Site.Params.serviceWorker "precache" -}}
+  {{- $swJS := resources.Get "sw-register.js" | resources.ExecuteAsTemplate "sw.js" . | resources.Minify | resources.Fingerprint }}
+  <script defer src="{{ $swJS.RelPermalink }}" {{ template `integrity` $swJS }}></script>
+{{- end -}}

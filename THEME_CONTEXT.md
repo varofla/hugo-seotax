@@ -114,7 +114,7 @@ About 콘텐츠는 테마 밖 `../../content/about/index.md`에 있고 `type: ab
 | `tagline`, `bio` | 상단 소개 |
 | `skills.main/occasional/experienced` | 선택적인 세 기술 그룹 |
 | `projects[].name/desc/link/year/images` | 연도별 프로젝트 갤러리 |
-| `params.author/menu.profileImage/social.github` | 이름·프로필·GitHub |
+| `params.author/menu.profileImage/social.github/social.instagram` | 이름·프로필·GitHub·Instagram (`social.instagram`은 사용자 ID) |
 
 갤러리 기반 동작은 구현되어 있다.
 
@@ -129,7 +129,7 @@ About은 **완료된 화면으로 간주하지 않는다.** 갤러리를 다시 
 
 ## 8. 현재 디자인 결정
 
-- 사이드바 위쪽에는 카테고리·태그·검색 아이콘과 About을 둔다. 모바일 검색은 헤더 아이콘만 쓴다. GitHub와 RSS는 About에만 둔다.
+- 사이드바 위쪽에는 카테고리·태그·검색 아이콘과 About을 둔다. 모바일 검색은 헤더 아이콘만 쓴다. GitHub·Instagram·RSS는 About에만 이 순서로 둔다. Instagram은 아이콘과 `@사용자ID`를 표시하며 설정의 ID로 프로필 URL을 만든다.
 - 전체 글·카테고리·태그·검색의 제목과 수량 표기는 한국어로 통일한다.
 - 목록/분류/검색 wrapper는 `.markdown`을 사용하지 않는다. 본문용 Markdown 스타일을 UI에 다시 상속시키지 않는다.
 - 포스팅의 읽기 배치, 목차, 진행선, series, 이전/다음과 About 갤러리의 서로 다른 밀도는 유지한다. 모든 화면을 같은 카드 형태로 만들지 않는다.

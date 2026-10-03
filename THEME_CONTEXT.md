@@ -114,7 +114,9 @@ About 콘텐츠는 테마 밖 `../../content/about/index.md`에 있고 `type: ab
 | `tagline`, `bio` | 상단 소개 |
 | `skills.main/occasional/experienced` | 선택적인 세 기술 그룹 |
 | `projects[].name/desc/link/year/images` | 연도별 프로젝트 갤러리 |
-| `params.author/menu.profileImage/social.github/social.instagram` | 이름·프로필·GitHub·Instagram (`social.instagram`은 사용자 ID) |
+| `params.author` | 이름 |
+| `params.about.profileImage` | About 프로필 사진. 미설정 시 `params.menu.profileImage` 사용 |
+| `params.social.github/social.instagram` | GitHub·Instagram (`social.instagram`은 사용자 ID) |
 
 갤러리 기반 동작은 구현되어 있다.
 

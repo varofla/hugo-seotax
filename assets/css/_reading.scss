@@ -135,7 +135,7 @@ html.post-view-reload-restoring body.site-kind-page.site-type-posts {
     }
 
     .post-meta-row {
-      margin-bottom: 1.75rem;
+      margin-bottom: 1rem;
     }
   }
 }
@@ -161,7 +161,7 @@ html.post-view-reload-restoring body.site-kind-page.site-type-posts {
 
     .post-meta-row {
       gap: 0.625rem;
-      margin-bottom: space(24);
+      margin-bottom: 1rem;
       padding-bottom: space(20);
 
       .menu-brand .menu-brand-avatar {
@@ -508,7 +508,7 @@ body.site-kind-page.site-type-posts {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
-    margin-bottom: space(32);
+    margin-bottom: 1rem;
     padding-bottom: space(24);
     border-bottom: 1px solid var(--border);
 

@@ -101,6 +101,7 @@
 - 목록 카드는 `thumbnail`만 사용한다. 목차 이미지는 `cover` 우선, 없으면 `thumbnail`이다. SEO 이미지는 대체로 `thumbnail` 우선이라 서로 바꾸면 안 된다.
 - `post-card-cover-img.html`은 crop/resize/srcset을 만들고, `img-size.html`은 표시 치수를 계산한다. 비슷해 보여도 역할 차이를 확인한 뒤 통합한다.
 - Markdown 이미지는 `_markup/render-image.html`, image shortcode는 `_shortcodes/image.html`과 portable-image 경로를 사용한다.
+- 본문 Markdown·shortcode 이미지는 `vertical-align: bottom`으로 baseline 아래 여백을 없애며, 부모의 `text-align` 기반 정렬은 유지한다. 캡션 위와 연속된 이미지·columns 블록 사이에는 8px 간격을 명시해 shortcode 이미지 열의 좌우 간격과 맞춘다.
 - `image-zoom.js`는 Markdown/shortcode 이미지와 목차 cover의 확대, 휠 확대, drag, 키보드 이동, 이미지 교체를 함께 담당한다.
 - `vendor/medium-zoom.js`에는 커스텀 `swap()`이 있다. 일반 upstream 파일로 덮어쓰지 않는다.
 - 기존 콘텐츠는 image, bookmark, hint, columns, youtube, series shortcode를 실제 사용한다. 정적 참조가 없어 보인다는 이유만으로 shortcode를 제거하지 않는다.

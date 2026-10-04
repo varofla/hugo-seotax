@@ -502,6 +502,14 @@
   }
 
   // {{< image >}}
+  .sc-image, .md-image, .sc-columns {
+    + .sc-image,
+    + .md-image,
+    + .sc-columns {
+      margin-top: space(8);
+    }
+  }
+
   .sc-image, .md-image {
     --image-loader-size: 3rem;
     --image-loader-border-width: 3px;
@@ -517,6 +525,7 @@
     img {
       max-width: 100%;
       height: auto;
+      vertical-align: bottom;
     }
 
     img.has-max-width {
@@ -561,7 +570,7 @@
 
       figcaption {
         opacity: 0.7;
-        margin: 0;
+        margin: space(8) 0 0;
         text-align: center;
         font-size: font-size(14);
         font-family: "Noto Sans KR", sans-serif;
